@@ -1,0 +1,596 @@
+﻿@{
+    ViewBag.Title = "Estatísticas";
+}
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js?v=0.00000000005"></script>
+
+<script src="/Content/lib/Highcharts-13.0.0/code/highcharts.js"></script>
+<script src="/Content/lib/Highcharts-13.0.0/code/highcharts-3d.js"></script>
+
+<script src="/Content/lib/Highcharts-13.0.0/code/modules/exporting.js"></script>
+<script src="/Content/lib/Highcharts-13.0.0/code/modules/export-data.js"></script>
+<script src="/Content/lib/Highcharts-13.0.0/code/modules/accessibility.js"></script>
+
+<style type="text/css">
+    ul > li, ul > li input, ul > li div, ul > li label {
+        cursor: pointer;
+    }
+
+        ul > li label {
+            width: 99%;
+        }
+</style>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Estatísticas</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/Home/Index">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Estatísticas</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="container-fluid" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="body-content">
+
+                        <div class="process-info">
+                            <div class="form-group" style="display:none;">
+                                <h1>Detalhes do Movimento</h1>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                @*<h1 class="mb-4">Questionario</h1>*@
+
+                                @*<div id="eventos-questionario"></div>*@
+
+                                <div id="modelo" style="display:none;">
+                                    <figure class="highcharts-figure">
+                                        <div id="container_eve_que_"></div>
+                                        <p class="highcharts-description">
+                                            eve_descricao
+                                        </p>
+                                    </figure>
+                                </div>
+                                <div class="form-row">
+                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                        <div id="div-contagem-por-nota-questionarios">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                                        
+                                    </div>
+                                </div>
+
+                                <div id="div-lista-evento-question">
+                                    <table id="table-lista-eventos" class="table table-striped">
+                                        <thead style="width: 100%;">
+                                            <tr>
+                                                <th>N. Evento</th>
+                                                <th>Evento</th>
+                                                <th>Descrição</th>
+                                                <th>Local</th>
+
+                                                <th>Município</th>
+                                                <th>Início</th>
+                                                <th>Fim</th>
+                                                <th>Dt. Inclusão</th>
+                                                <th>Situação</th>
+
+                                                <th>Questionários</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tb-itens-eventos" style="width: 100%;"></tbody>
+                                        <tfoot style="width: 100%;">
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+
+                                    <table id="table-lista-evento-questionario" class="table table-striped" style="display:none;">
+                                        <thead style="width: 100%;">
+                                            <tr>
+                                                <th>N. Evento</th>
+                                                <th>N. Questionário</th>
+                                                <th>Evento</th>
+                                                <th>Descrição</th>
+                                                <th>Local</th>
+
+                                                <th>Município</th>
+                                                <th>Início</th>
+                                                <th>Fim</th>
+                                                <th>Dt. Inclusão Ev.</th>
+                                                <th>Situação Ev.</th>
+
+                                                <th>Contexto</th>
+                                                <th>Publico Alvo</th>
+                                                <th>Nota Mínima</th>
+                                                <th>Dt. Inclusão Que.</th>
+                                                <th>Situação Que.</th>
+
+                                                <th>Editar</th>
+                                                <th>Cancelar</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody id="tb-itens-evento-questionario" style="width: 100%;"></tbody>
+                                        <tfoot style="width: 100%;">
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+
+                                                <th></th>
+                                                <th></th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+
+                                <form name="formFiltro" id="formFiltro" action="" method="post" style="width:100%;">
+                                    <input type="hidden" name="eve_num_evento" id="eve_num_evento" value="@ViewBag.eve_num_evento" />
+                                    <input type="hidden" name="que_num_questionario" id="que_num_questionario" value="@ViewBag.que_num_questionario" />
+                                    
+                                    <div id="div-formulario-questionario" style="display:none;">
+                                        <div class="form-row">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                                                <label for="que_contexto">Contexto</label>
+                                                <textarea class="form-control" id="que_contexto" name="que_contexto" rows="4"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-162">
+                                                <label for="que_publico_alvo">Publico Alvo</label>
+                                                <input type="text" class="form-control" id="que_publico_alvo" name="que_publico_alvo">
+                                            </div>
+                                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-162">
+                                                <label for="que_nota_minima">Nota Mínima</label>
+                                                <input type="text" class="form-control" id="que_nota_minima" name="que_nota_minima">
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-162">
+                                                <label for="que_dt_inclusao">Dt. Inclusão</label>
+                                                <input type="text" class="form-control" id="que_dt_inclusao" name="que_dt_inclusao" readonly="readonly">
+                                            </div>
+                                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-162">
+                                                <label for="que_situacao">Situação</label>
+                                                <select class="form-control" name="que_situacao" id="que_situacao" required>
+                                                    <option value=""> -- Selecione --</option>
+                                                    <option value="A" selected="selected">Ativo</option>
+                                                    <option value="I">Inativo</option>
+                                                    <option value="C">Cancelado</option>
+                                                    <option value="F">Finalizado</option>
+                                                </select>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <table style="width: 100%;">
+                                            <tr>
+                                                <td>
+                                                    <button class="btn btn-primary" name="btn-salvar-questionario" id="btn-salvar-questionario" type="button">
+                                                        <i class="fa-regular fa-floppy-disk"></i>  Salvar
+                                                    </button>
+                                                </td>
+                                                <td style="text-align:right;">
+                                                    <button class="btn btn-primary" name="btn-fechar-cadastro-questionario" id="btn-fechar-cadastro-questionario" type="button">
+                                                        <i class="fa-solid fa-left-long"></i>   Voltar para a Lista de Questionários
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    <br />
+                                    <div id="div-lista-questionario" style="display:none;">
+                                        <div class="form-row">
+                                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:right;">
+                                                <button type="button" class="btn btn-primary" name="btn-abrir-cadastro" id="btn-abrir-cadastro"
+                                                        data-eve_num_evento="0"
+                                                        data-que_num_questionario="0"
+                                                        data-que_contexto=""
+                                                        data-que_publico_alvo=""
+                                                        data-que_nota_minima=""
+                                                        data-que_dt_inclusao=""
+                                                        data-que_situacao="">
+                                                    <i class="fa-solid fa-plus fa-lg"></i>  Adicionar Novo Questionário
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <br />
+                                        <table id="table-lista-questionario" class="table table-striped">
+                                            <thead style="width: 100%;">
+                                                <tr>
+                                                    <th>N. Evento</th>
+                                                    <th>N. Questionário</th>
+
+                                                    <th>Contexto</th>
+                                                    <th>Publico Alvo</th>
+                                                    <th>Nota Mínima</th>
+                                                    <th>Dt. Inclusão Que.</th>
+                                                    <th>Situação Que.</th>
+
+                                                    <th>Editar</th>
+                                                    <th>Cancelar</th>
+
+                                                </tr>
+                                            </thead>
+                                            <tbody id="tb-itens-questionario" style="width: 100%;"></tbody>
+                                            <tfoot style="width: 100%;">
+                                                <tr>
+                                                    <th></th>
+                                                    <th></th>
+
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+                                                    <th></th>
+
+                                                    <th></th>
+                                                    <th></th>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                        <br />
+                                        <table style="width: 100%;">
+                                            <tr>
+                                                <td>
+                                                    <button class="btn btn-primary" name="btn-salvar-lista-questionario" id="btn-salvar-lista-questionario" type="button">
+                                                        <i class="fa-regular fa-floppy-disk"></i>  Salvar
+                                                    </button>
+                                                </td>
+                                                <td style="text-align:right;">
+                                                    <button class="btn btn-primary" name="btn-fechar-lista-questionario" id="btn-fechar-lista-questionario" type="button">
+                                                        <i class="fa-solid fa-left-long"></i>   Voltar para a lista de Eventos
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+
+
+
+                                    <div id="div-graficos">
+
+                                        
+
+                                    </div>
+
+                                </form>
+
+
+                                <div id="div-cad-questionario" style="display:none;">
+
+                                    <div class="form-group">
+                                        <div class="form-row">
+                                            <div class="col-md-12 mb-3">
+                                                <label for="eve_nome">Evento</label>
+                                                <input type="text" class="form-control" name="eve_nome" id="eve_nome" placeholder="Nome do Evento" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-md-12 mb-3">
+                                                <label for="eve_descricao">Descrição</label>
+                                                <textarea class="form-control" rows="8" name="eve_descricao" id="eve_descricao" placeholder="Descrição do Evento" required></textarea>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="eve_local">Local do Evento</label>
+                                                <input type="text" class="form-control" name="eve_local" id="eve_local" placeholder="Local do Evento" value="" required>
+
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="eve_nome">Município</label>
+                                                <input type="text" class="form-control" name="eve_municipio" id="eve_municipio" placeholder="Município" value="" required>
+                                                <div id="lista-municipios"></div>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="col-md-4 mb-3">
+                                                <label for="eve_dt_inicio">Início</label>
+                                                <input type="text" class="form-control" name="eve_dt_inicio" id="eve_dt_inicio" placeholder="Data de Início" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4 mb-3">
+                                                <label for="eve_dt_fim">Fim</label>
+                                                <input type="text" class="form-control" name="eve_dt_fim" id="eve_dt_fim" placeholder="Fim do Evento" value="" required>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="eve_dt_inclusao">Início</label>
+                                                <input type="text" class="form-control" name="eve_dt_inclusao" id="eve_dt_inclusao" placeholder="Data de Inclusão" value="" readonly="readonly">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="eve_situacao">Situação</label>
+                                                <select class="form-control" name="eve_situacao" id="eve_situacao" required>
+                                                    <option value=""> -- Selecione --</option>
+                                                    <option value="A" selected="selected">Ativo</option>
+                                                    <option value="I">Inativo</option>
+                                                    <option value="C">Cancelado</option>
+                                                    <option value="F">Finalizado</option>
+                                                </select>
+                                                <div class="invalid-feedback">
+                                                    Por favor preencher este campo
+                                                </div>
+                                            </div>
+
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="usuarios-pontos" style="display:none;"></div>
+
+
+                            <div id="content-table" style="display:none;">
+
+                                <table style="width: 100%;">
+                                    <tr>
+                                        <td style="max-width: 500px; width: 500px;">
+                                            <div class="form-group">
+                                                <div class="input-group mb-3">
+                                                    <input type="hidden" name="busca" id="busca" value="">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text" id="basic-addon1">Pesquisar</span>
+                                                    </div>
+                                                    <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addon1" name="buscaLimpa" id="buscaLimpa" style="width: 400px; max-width: 400px;">
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="form-group">
+                                                <div class="input-group mb-3">
+                                                    <button type="button" class="btn btn-light" name="btnBuscar" id="btnBuscar">
+                                                        <i class="fa-solid fa-magnifying-glass fa-lg"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+
+                                <!--div class="text-center">
+                                    <h2 class="mb-4">Notas por usuário</h2>
+                                </div-->
+
+                                <table id="table-lista-itens" class="table table-striped">
+                                    <thead style="width: 100%;">
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tb-itens" style="width: 100%;"></tbody>
+                                    <tfoot style="width: 100%;">
+                                        <tr>
+                                            <th>CPF</th>
+                                            <th>Nome</th>
+                                            <th>Evento</th>
+                                            <th>Pontuação</th>
+                                            <th></th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <!-- Data tables -->
+
+
+                            </div>
+
+
+
+
+
+
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                            <div class="buttons">
+                                <!--<button type="submit" name="btnReload" id="btnReload" style="display:none;"></button>
+                                <button type="submit" class="btn btn-primary" name="btnAvancar" style="display:none;">Avançar</button>
+                                <button type="button" class="btn btn-primary" name="btnVoltarItemMovimento" id="btnVoltarItemMovimento">Voltar</button>
+                                <button type="button" class="btn btn-primary" name="btnSalvarItemMovimento" id="btnSalvarItemMovimento">Salvar</button>-->
+                                <!--button type="button" class="btn btn-primary" name="btnAtualizarResumo" id="btnAtualizarResumo">Atualizar Resumo</button-->
+                                <!--<button type="button" class="btn btn-primary" name="btnGerarPlanilha" id="btnGerarPlanilha">Gerar Planilha</button>
+                                <button type="button" class="btn btn-primary" name="btnSairItemMovimento" id="btnSairItemMovimento">Sair</button>-->
+                            </div>
+                        </div>
+                        @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                            <button type="button" name="gerar-novo-item" id="gerar-novo-item" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Item</button>
+                            </div>*@
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<style type="text/css">
+    table#table-lista-itens {
+        margin: 0px 0px 0px 0px;
+    }
+
+        table#table-lista-itens tfoot tr {
+            max-height: 20px;
+            height: 15px;
+        }
+
+    table#table-lista-eventos thead tr th {
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'sans-serif';
+        padding: 5px 2px 5px 2px;
+        font-size: 14px;
+        text-align: center;
+    }
+
+    table#table-lista-itens thead tr th,
+    table#table-lista-eventos thead tr th,
+    table#table-lista-eventos tfoot tr th,
+    table#table-lista-questionario thead tr th {
+        text-align: center;
+    }
+
+    table#table-lista-eventos tbody tr td, table#table-lista-eventos tfoot tr th {
+        font-family: 'Lucida Sans', 'Lucida Sans Regular', 'sans-serif';
+        font-size: 12px;
+        padding: 5px 2px 5px 2px;
+    }
+
+
+        table#table-lista-eventos tbody tr td:nth-child(1), table#table-lista-eventos tbody tr td:nth-child(1), table#table-lista-eventos tfoot tr th:nth-child(1) {
+            width: 30%;
+            text-align: left;
+        }
+
+        table#table-lista-eventos tbody tr td:nth-child(7), table#table-lista-eventos tbody tr td:nth-child(7), table#table-lista-eventos tfoot tr th:nth-child(7) {
+            text-align: center;
+            width: 80px;
+            max-width: 80px;
+        }
+
+    /** Datatable CSS **/
+    #tableListaMov_wrapper input.search {
+        height: 20px;
+    }
+
+    div.dt-container .dt-search input {
+        height: 25px;
+        width: 260px;
+    }
+
+        div.dt-container .dt-search input::placeholder {
+            font-size: 14px;
+        }
+
+    .dt-buttons button {
+        width: 55px;
+        height: 25px;
+        padding: 2px 2px 2px 2px;
+        float: left;
+        max-height: 25px;
+    }
+
+        .dt-buttons button svg {
+            height: 18px;
+        }
+
+    div.dt-buttons > .dt-button, div.dt-buttons > div.dt-button-split.dt-button {
+        padding: 2px 5px 2px 5px;
+        width: 55px;
+        height: 25px;
+    }
+
+    .dt-search input::placeholder {
+        font-size: 9px;
+    }
+
+    .excluirItem {
+        cursor: pointer;
+    }
+
+    .cancelarItemMovimento {
+        cursor: pointer;
+    }
+
+    .footer {
+        position: page;
+        bottom: 0;
+    }
+</style>
+
+
+<script src="~/Content/controls/js/script-page/estatistica-index.js?V=0.000000000004"></script>
+
+<script type="text/javascript">
+    $(function () {
+        $('input[name="que_dt_inclusao"]').inputmask("99/99/9999");
+    });
+</script>
+

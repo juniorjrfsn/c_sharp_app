@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/dema
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Indicator series type for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Rafał Sebestjański
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts,t._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/dema",["highcharts/highcharts"],function(t){return e(t,t.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/dema"]=e(t._Highcharts,t._Highcharts.SeriesRegistry):t.Highcharts=e(t.Highcharts,t.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(t,e){return function(){"use strict";var r,o={512:function(t){t.exports=e},944:function(e){e.exports=t}},n={};function i(t){var e=n[t];if(void 0!==e)return e.exports;var r=n[t]={exports:{}};return o[t](r,r.exports,i),r.exports}i.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return i.d(e,{a:e}),e},i.d=function(t,e){for(var r in e)i.o(e,r)&&!i.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},i.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var s={};i.d(s,{default:function(){return y}});var a=i(944),u=i.n(a),c=i(512),p=i.n(c),f=(r=function(t,e){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r])})(t,e)},function(t,e){function o(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(o.prototype=e.prototype,new o)}),h=p().seriesTypes.ema,d=function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return f(e,t),e.prototype.getEMA=function(e,r,o,n,i,s){return t.prototype.calculateEma.call(this,s||[],e,void 0===i?1:i,this.EMApercent,r,void 0===n?-1:n,o)},e.prototype.getValues=function(e,r){var o,n,i,s,u,c=r.period,p=[],f=2*c,h=e.xData,d=e.yData,y=d?d.length:0,l=[],g=[],v=[],x=0,_=0,m=-1,O=0;if(this.EMApercent=2/(c+1),!(y<2*c-1)){for((0,a.isArray)(d[0])&&(m=r.index?r.index:0),O=(x=t.prototype.accumulatePeriodPoints.call(this,c,m,d))/c,x=0,s=c;s<y+2;s++)s<y+1&&(_=this.getEMA(d,n,O,m,s)[1],p.push(_)),n=_,s<f?x+=_:(s===f&&(O=x/c),_=p[s-c-1],o=this.getEMA([_],i,O)[1],u=[h[s-2],(0,a.correctFloat)(2*_-o)],l.push(u),g.push(u[0]),v.push(u[1]),i=o);return{values:l,xData:g,yData:v}}},e.defaultOptions=(0,a.merge)(h.defaultOptions),e}(h);p().registerSeriesType("dema",d);var y=u();return s.default}()});

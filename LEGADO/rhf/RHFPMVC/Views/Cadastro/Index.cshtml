@@ -1,0 +1,215 @@
+﻿@{
+    ViewBag.Title = "Página de Cadastro";
+}
+
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js?v=0.000000000000001"></script>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Cadastro</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/Home/Index">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Cadastro</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+ 
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="container body-content" >
+                        <div class="container">
+                            <form name="formCad" id="formCad" method="post" action="/Questionario/SalvarUsuario" style="width:100%;" autocomplete="off">
+                                <input type="hidden" name="usr_num_usuario" id="usr_num_usuario" value="0" />
+                                <input type="hidden" name="eve_num_evento" id="eve_num_evento" value="@ViewBag.eve_num_evento" />
+                                <input type="hidden" name="que_num_questionario" id="que_num_questionario" value="@ViewBag.que_num_questionario" />
+                                <input type="hidden" name="que_nota_minima" id="que_nota_minima" value="@ViewBag.que_nota_minima" />
+
+                                <div class="process-info">
+                                    <div class="form-group" style="display:none;">
+                                        <h1>Detalhes do Cadastro</h1>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                        @*<h1 class="mb-4">Questionario</h1>*@
+
+
+                                        <div class="text-center">
+                                            <h2 class="mb-4">Cadastro</h2>
+                                        </div>
+
+                                        <div class="card border-light">
+                                            <div class="card-header bg-light" style="background-color:#a9aeb1;">
+
+                                            </div>
+                                            <div class="card-body border-light" style="background-color: #fefefe;">
+
+                                                <div class="form-group">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                                            <div class="mb-3">
+                                                                <label for="usr_cpf" class="form-label">CPF <span class="text-danger">*</span></label>
+                                                                <table>
+                                                                    <tr>
+                                                                        <td>
+                                                                            <input type="text" class="form-control" id="usr_cpf_maskarado" name="usr_cpf_maskarado" style="display:none;" maxlength="14" style="width:150px;" readonly="readonly">
+                                                                            <input type="text" class="form-control" id="usr_cpf_mask" name="usr_cpf_mask" required maxlength="14" style="width: 150px; background-color: #E6F5FF;">
+                                                                            <input type="hidden" class="form-control" id="usr_cpf" name="usr_cpf" required maxlength="14" style="width:150px;">
+
+                                                                        </td>
+                                                                        <td><button type="button" class="btn btn-primary" name="btnBuscarDadosPorCPF" id="btnBuscarDadosPorCPF"><i class="fa-solid fa-magnifying-glass fa-lg"></i> Buscar</button></td>
+                                                                    </tr>
+                                                                </table>
+
+
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                                <div class="form-group" id="dados-usuario" style="display:none;">
+                                                    <div class="row">
+                                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+
+                                                            <div class="mb-3">
+                                                                <label for="usr_nome" class="form-label">Nome <span class="text-danger">*</span></label>
+                                                                <input type="text" class="form-control" id="usr_nome" name="usr_nome" required style="background-color: #E6F5FF; text-transform: uppercase;">
+                                                            </div>
+
+                                                            <div class="row">
+                                                                <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8 ">
+                                                                    <div class="mb-3">
+                                                                        <label for="usr_email" class="form-label">e-Mail <span class="text-danger">*</span></label>
+                                                                        <input type="email" class="form-control" id="usr_email" name="usr_email" required style="background-color: #E6F5FF;">
+                                                                    </div>
+                                                                </div>
+                                                                <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                                                                    <div class="mb-3">
+                                                                        <label for="usr_telefone" class="form-label">Telefone <span class="text-danger">*</span></label>
+                                                                        <input type="text" class="form-control" id="usr_telefone" name="usr_telefone" required style="background-color: #E6F5FF;">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+
+                                                            <div class="mb-3 position-relative">
+                                                                <label for="usr_instituicao" class="form-label">Instituição <span class="text-danger">*</span></label>
+                                                                <input type="text" class="form-control" id="usr_instituicao" name="usr_instituicao" required style="background-color: #E6F5FF; text-transform: uppercase;">
+                                                                <div id="lista-instituicoes"></div>
+                                                            </div>
+
+                                                            <div class="mb-3 position-relative">
+                                                                <label for="usr_municipio" class="form-label">Município <span class="text-danger">*</span></label>
+                                                                <input type="text" class="form-control" id="usr_municipio" name="usr_municipio" required style="background-color: #E6F5FF;">
+                                                                <div id="lista-municipios"></div>
+                                                            </div>
+
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+
+
+                                            </div>
+                                            <div class="card-footer table-responsive" id="botoes" style="background-color: #fff; display:none; ">
+
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-left" style="width:49%;">
+                                                        <button type="submit" name="btnCad" id="btnCad" style="display:none;">Cad</button>
+                                                        <button type="button" class="btn btn-primary btn-eventos" name="btnCadastrar" id="btnCadastrar"><i class="fa-solid fa-right-long fa-lg"></i> Avançar</button>
+                                                    </div>
+                                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-right" style="width:49%;">
+                                                        <button type="button" class="btn btn-primary btn-eventos" name="btnSairCadastro" id="btnSairCadastro"><i class="fa-regular fa-circle-xmark fa-lg"></i> Cancelar</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <br />
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                        <div class="buttons">
+                                            <!--<button type="submit" name="btnReload" id="btnReload" style="display:none;"></button>
+                <button type="submit" class="btn btn-primary" name="btnAvancar" style="display:none;">Avançar</button>
+                <button type="button" class="btn btn-primary" name="btnVoltarItemMovimento" id="btnVoltarItemMovimento">Voltar</button>
+                <button type="button" class="btn btn-primary" name="btnSalvarItemMovimento" id="btnSalvarItemMovimento">Salvar</button>-->
+                                            <!--button type="button" class="btn btn-primary" name="btnAtualizarResumo" id="btnAtualizarResumo">Atualizar Resumo</button-->
+                                            <!--<button type="button" class="btn btn-primary" name="btnGerarPlanilha" id="btnGerarPlanilha">Gerar Planilha</button>-->
+                                            @*<button type="button" class="btn btn-primary" name="btnSairCadastro" id="btnSairCadastro">Sair</button>*@
+                                        </div>
+                                    </div>
+                                    @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+            <button type="button" name="gerar-novo-item" id="gerar-novo-item" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Item</button>
+            </div>*@
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+ 
+<script src="/Content/controls/js/script-page/cadastro-index.js?v=0.000000000000058"></script>
+<script>
+    $(function () {
+        $('input[name="usr_cpf_mask"]').inputmask("999.999.999-99");
+        $('input[name="usr_telefone"]').inputmask({
+            mask: ["(99) 9999-9999", "(99) 99999-9999"],
+            keepStatic: true
+        });
+    });
+</script>
+
+<script type="text/javascript">
+    function expandirScreen() {
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }
+    $(function () {
+        setTimeout(() => {
+            console.log("This prints after 2 seconds!");
+            expandirScreen();
+        }, 200);
+    });
+
+</script>

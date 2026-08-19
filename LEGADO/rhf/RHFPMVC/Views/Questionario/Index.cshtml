@@ -1,0 +1,164 @@
+﻿@{
+    ViewBag.Title = "Questionário";
+}
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js?v=0.00000000005"></script>
+
+<style type="text/css">
+    ul > li, ul > li input, ul > li div, ul > li label {
+        cursor: pointer;
+    }
+
+        ul > li label {
+            width: 99%;
+        }
+</style>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Questionario</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/Home/Index">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Questionario</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="container-fluid" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="container body-content">
+                        <div class="container">
+                            <form name="formQuestionario" id="formQuestionario" method="post" action="#" style="width:100%;">
+
+                                <input type="hidden" name="usr_num_usuario" id="usr_num_usuario" value="0" />
+                                <input type="hidden" name="eve_num_evento" id="eve_num_evento" value="@ViewBag.eve_num_evento" />
+                                <input type="hidden" name="que_num_questionario" id="que_num_questionario" value="@ViewBag.que_num_questionario" />
+
+                                <input type="hidden" name="usr_cpf" id="usr_cpf" value="@ViewBag.usr_cpf" />
+                                <input type="hidden" name="usr_nome" id="usr_nome" value="@ViewBag.usr_nome" />
+                                <input type="hidden" name="usr_email" id="usr_email" value="@ViewBag.usr_email" />
+                                <input type="hidden" name="usr_telefone" id="usr_telefone" value="@ViewBag.usr_telefone" />
+                                <input type="hidden" name="usr_instituicao" id="usr_instituicao" value="@ViewBag.usr_instituicao" />
+                                <input type="hidden" name="usr_municipio" id="usr_municipio" value="@ViewBag.usr_municipio" />
+
+                                <div class="process-info">
+                                    <div class="form-group" style="display:none;">
+                                        <h1>Detalhes do Movimento</h1>
+
+                                    </div>
+
+                                </div>
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                        @*<h1 class="mb-4">Questionario</h1>*@
+
+
+                                        <div class="text-center">
+                                            <h2 class="mb-4">Olá <span id="span_usr_nome">@ViewBag.nome</span> vamos ao Questionário</h2>
+                                            <h3 class="mb-4" id="cab_eve_nome"></h3>
+                                            <input type="hidden" name="cab_eve_descricao_hidden" id="cab_eve_descricao_hidden" />
+                                            <h4 class="mb-4" id="cab_eve_descricao"></h4>
+                                            <h3 class="mb-4" id="cab_que_contexto"></h3>
+                                            <h4 class="mb-4" id="cab_que_publico_alvo"></h4>
+                                            <h4 class="mb-4" id="cab_que_nota_minima"></h4>
+                                        </div>
+                                        <script type="text/javascript">
+
+</script>
+                                        <div id="questionario">
+
+
+                                        </div>
+
+
+                                        <div class="card border-light">
+
+                                            <div class="card-body border-light" id="botoes" style="background-color: #fefefe; display:none;">
+
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <button class="btn btn-primary btn-eventos" type="button" name="btnSalvar" id="btnSalvar"><i class="fa-solid fa-floppy-disk fa-lg"></i> Salvar</button>
+                                                    </div>
+                                                    <div class="col-6 text-end">
+                                                        <button class="btn btn-primary btn-eventos" type="button" name="btnCancelar" id="btnCancelar"><i class="fa-regular fa-circle-xmark fa-lg"></i> Cancelar</button>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                        <div class="buttons">
+                                            <!--<button type="submit" name="btnReload" id="btnReload" style="display:none;"></button>
+                                            <button type="submit" class="btn btn-primary" name="btnAvancar" style="display:none;">Avançar</button>
+                                            <button type="button" class="btn btn-primary" name="btnVoltarItemMovimento" id="btnVoltarItemMovimento">Voltar</button>
+                                            <button type="button" class="btn btn-primary" name="btnSalvarItemMovimento" id="btnSalvarItemMovimento">Salvar</button>-->
+                                            <!--button type="button" class="btn btn-primary" name="btnAtualizarResumo" id="btnAtualizarResumo">Atualizar Resumo</button-->
+                                            <!--<button type="button" class="btn btn-primary" name="btnGerarPlanilha" id="btnGerarPlanilha">Gerar Planilha</button>
+                                            <button type="button" class="btn btn-primary" name="btnSairItemMovimento" id="btnSairItemMovimento">Sair</button>-->
+                                        </div>
+                                    </div>
+                                        @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                                        <button type="button" name="gerar-novo-item" id="gerar-novo-item" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Item</button>
+                                        </div>*@
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/Content/controls/js/script-page/questionario-index.js?v=0.000000000071"></script>
+
+<script type="text/javascript">
+    function expandirScreen() {
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }
+    $(function () {
+        setTimeout(() => {
+            console.log("This prints after 2 seconds!");
+            expandirScreen();
+        }, 200);
+    });
+
+</script>

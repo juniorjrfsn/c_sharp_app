@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/trendline
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Indicator series type for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Sebastian Bochan
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts,t._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/trendline",["highcharts/highcharts"],function(t){return e(t,t.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/trendline"]=e(t._Highcharts,t._Highcharts.SeriesRegistry):t.Highcharts=e(t.Highcharts,t.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(t,e){return function(){"use strict";var r,n={512:function(t){t.exports=e},944:function(e){e.exports=t}},o={};function i(t){var e=o[t];if(void 0!==e)return e.exports;var r=o[t]={exports:{}};return n[t](r,r.exports,i),r.exports}i.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return i.d(e,{a:e}),e},i.d=function(t,e){for(var r in e)i.o(e,r)&&!i.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},i.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var a={};i.d(a,{default:function(){return l}});var s=i(944),u=i.n(s),c=i(512),p=i.n(c),f=(r=function(t,e){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r])})(t,e)},function(t,e){function n(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),h=p().seriesTypes.sma,d=function(t){function e(){var e=null!==t&&t.apply(this,arguments)||this;return e.updateAllPoints=!0,e}return f(e,t),e.prototype.getValues=function(t,e){for(var r=t.xData,n=t.yData,o=[],i=[],a=[],u=[],c=e.index,p=0,f=0,h=0,d=0,l=0,y=0;y<r.length;y++)(0===y||r[y]!==r[y-1])&&l++,o.push(l);for(var y=0;y<o.length;y++)h+=o[y],d+=(0,s.isArray)(n[y])?n[y][c]:n[y];for(var g=h/o.length,v=d/n.length,y=0;y<o.length;y++){var x=(0,s.isArray)(n[y])?n[y][c]:n[y];p+=(o[y]-g)*(x-v),f+=Math.pow(o[y]-g,2)}for(var y=0;y<o.length;y++)if(r[y]!==a[a.length-1]){var _=r[y],x=v+p/f*(o[y]-g);i.push([_,x]),a.push(_),u.push(x)}return{xData:a,yData:u,values:i}},e.defaultOptions=(0,s.merge)(h.defaultOptions,{params:{period:void 0,index:3}}),e}(h);(0,s.extend)(d.prototype,{nameBase:"Trendline",nameComponents:void 0}),p().registerSeriesType("trendline",d);var l=u();return a.default}()});

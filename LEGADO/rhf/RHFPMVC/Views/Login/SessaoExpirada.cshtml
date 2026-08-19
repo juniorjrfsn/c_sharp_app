@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "Sessão Expirada";
+}
+
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js?v=0.00000000005"></script>
+
+<style type="text/css">
+    .sessao-expirada-card-header {
+        background-color: #f5a59d;
+        color: #3b2d2b;
+    }
+
+    .sessao-expirada-alert {
+        background-color: #fff7dc;
+        border-color: #f3ddb2;
+        color: #4c3b15;
+    }
+
+    .sessao-expirada-view {
+        background-color: #faf6f2;
+    }
+
+    ul > li, ul > li input, ul > li div, ul > li label {
+        cursor: pointer;
+    }
+
+        ul > li label {
+            width: 99%;
+        }
+</style>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Status da Sessão</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/Home/Index">Início</a>
+                        </li>
+                        <li class="breadcrumb-item active" aria-current="page">Status da Sessão</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="container-fluid" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="body-content">
+
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-10">
+                                <div class="card">
+                                    <div class="card-header sessao-expirada-card-header">
+                                        <h4 class="mb-0">Sessão Expirada</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="lead">Sua sessão expirou ou sua autenticação não foi concluída.</p>
+                                        <p>Para continuar, clique em <strong>SAIR</strong> abaixo e faça login novamente pelo portal de autenticação.</p>
+                                        <div class="alert alert-warning sessao-expirada-alert" role="alert">
+                                            Se você estiver usando o sistema em ambiente de desenvolvimento, confirme que o <code>AppAmbiente</code> no <strong>Web.config</strong> está definido como <strong>desenvolvimento</strong>.
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <a class="btn btn-secondary" href="/" role="button">Voltar para Início</a>
+                                            <a class="btn btn-danger" href="/Home/Logout" role="button">Sair e tentar novamente</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    function expandirScreen() {
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }
+    $(function () {
+        setTimeout(() => {
+            console.log("This prints after 2 seconds!");
+            expandirScreen();
+        }, 200);
+    });
+
+</script>

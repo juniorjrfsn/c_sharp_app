@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/zigzag
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Indicator series type for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Kacper Madej
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts,t._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/zigzag",["highcharts/highcharts"],function(t){return e(t,t.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/zigzag"]=e(t._Highcharts,t._Highcharts.SeriesRegistry):t.Highcharts=e(t.Highcharts,t.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(t,e){return function(){"use strict";var r,n={512:function(t){t.exports=e},944:function(e){e.exports=t}},o={};function i(t){var e=o[t];if(void 0!==e)return e.exports;var r=o[t]={exports:{}};return n[t](r,r.exports,i),r.exports}i.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return i.d(e,{a:e}),e},i.d=function(t,e){for(var r in e)i.o(e,r)&&!i.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},i.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var s={};i.d(s,{default:function(){return g}});var a=i(944),u=i.n(a),h=i(512),p=i.n(h),c=(r=function(t,e){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r])})(t,e)},function(t,e){function n(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),f=p().seriesTypes.sma,d=function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return c(e,t),e.prototype.getValues=function(t,e){var r,n,o,i,s=e.lowIndex,a=e.highIndex,u=e.deviation/100,h={low:1+u,high:1-u},p=t.xData,c=t.yData,f=c?c.length:0,d=[],g=[],l=[],y=!1,v=!1;if(p&&!(p.length<=1)&&(!f||void 0!==c[0][s]&&void 0!==c[0][a])){var x=c[0][s],_=c[0][a];for(r=1;r<f;r++)c[r][s]<=_*h.high?(d.push([p[0],_]),o=[p[r],c[r][s]],i=!0,y=!0):c[r][a]>=x*h.low&&(d.push([p[0],x]),o=[p[r],c[r][a]],i=!1,y=!0),y&&(g.push(d[0][0]),l.push(d[0][1]),n=r++,r=f);for(r=n;r<f;r++)i?(c[r][s]<=o[1]&&(o=[p[r],c[r][s]]),c[r][a]>=o[1]*h.low&&(v=a)):(c[r][a]>=o[1]&&(o=[p[r],c[r][a]]),c[r][s]<=o[1]*h.high&&(v=s)),!1!==v&&(d.push(o),g.push(o[0]),l.push(o[1]),o=[p[r],c[r][v]],i=!i,v=!1);var w=d.length;return 0!==w&&d[w-1][0]<p[f-1]&&(d.push(o),g.push(o[0]),l.push(o[1])),{values:d,xData:g,yData:l}}},e.defaultOptions=(0,a.merge)(f.defaultOptions,{params:{index:void 0,period:void 0,lowIndex:2,highIndex:1,deviation:1}}),e}(f);(0,a.extend)(d.prototype,{nameComponents:["deviation"],nameSuffixes:["%"],nameBase:"Zig Zag"}),p().registerSeriesType("zigzag",d);var g=u();return s.default}()});

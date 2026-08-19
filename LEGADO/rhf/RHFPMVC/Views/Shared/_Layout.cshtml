@@ -1,0 +1,562 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RHFP Legado</title>
+    <link rel="icon" type="image/png" sizes="16x16" href="/Content/assets/images/favicon.png">
+
+    <!-- Custom CSS -->
+    <link href="/Content/assets/libs/chartist/dist/chartist.min.css" rel="stylesheet">
+    <link href="/Content/assets/extra-libs/c3/c3.min.css" rel="stylesheet">
+    <link href="/Content/assets/extra-libs/jvector/jquery-jvectormap-2.0.2.css" rel="stylesheet" />
+
+    <!-- bootstrap -->
+    <link href="/Content/lib/bootstrap-5.3.8-dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+    <link href="/Content/css/style.min.css?v=0.000000000000000011" rel="stylesheet">
+    <link href="/Content/css/css.css?v=0.0000000000000026" rel="stylesheet">
+
+    <!-- jquery -->
+    <script src="/Content/assets/libs/jquery/dist/jquery.min.js"></script>
+    <!-- fontawesome -->
+    <link href="/Content/lib/fontawesome-free-7.3.1-web/css/all.css" rel="stylesheet" />
+    <script src="/Content/lib/fontawesome-free-7.3.1-web/js/all.js"></script>
+    @*@Styles.Render("~/Content/css")
+        @Scripts.Render("~/bundles/modernizr")
+    *@
+
+    <link href="/Content/chartist-js-0.11.4/dist/chartist.min.css" rel="stylesheet" />
+    <script src="/Content/chartist-js-0.11.4/dist/chartist.min.js"></script>
+    <link href="/Content/chartist-plugin-tooltips-0.0.17/dist/chartist-plugin-tooltip.css" rel="stylesheet" />
+    <script src="/Content/chartist-plugin-tooltips-0.0.17/dist/chartist-plugin-tooltip.min.js"></script>
+
+    <!-- DataTables -->
+    <link href="/Content/DataTables/datatables.min.css" rel="stylesheet" />
+    <script src="/Content/DataTables/datatables.min.js"></script>
+
+
+    <!--<!-- bootstrap -->
+    <script src="/Content/lib/bootstrap-5.3.8-dist/js/bootstrap.min.js"></script>
+    @*<script src="/Content/bootstrap-5.3.3-dist/js/bootstrap.esm.min.js"></script>*@
+    <script src="/Content/lib/bootstrap-5.3.8-dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- sweetalert2 -->
+    <link href="/Content/sweetalert2/sweetalert2.min.css" rel="stylesheet" />
+    <script src="/Content/sweetalert2/sweetalert2.all.min.js"></script>
+
+
+
+    <!-- maskMoney -->
+    <script src="/Content/lib/jquery-maskmoney-3.0.2/dist/jquery.maskMoney.min.js"></script>
+    <!-- Inputmask -->
+    <link href="/Content/lib/Inputmask-5.0.9/dist/colormask.css" rel="stylesheet" />
+    <script src="/Content/lib/Inputmask-5.0.9/dist/colormask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.0.9/dist/inputmask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.0.9/dist/jquery.inputmask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.0.9/dist/bindings/inputmask.binding.js"></script>
+    <link href="/Content/jquery/jquery-ui.css" rel="stylesheet" />
+    <script src="/Content/jquery/jquery-ui.min.js"></script>
+
+    <link href="/Content/lib/jtable.2.3.1/themes/lightcolor/blue/jtable.min.css" rel="stylesheet" />
+    <link href="/Content/lib/jtable.2.3.1/validationEngine/validationEngine.jquery.css" rel="stylesheet" />
+    <script type="text/javascript" src="/Content/lib/jtable.2.3.1/jquery.jtable.min.js"></script>
+    <script type="text/javascript" src="/Content/lib/jtable.2.3.1/localization/jquery.jtable.pt-BR.js"></script>
+    <script type="text/javascript" src="/Content/lib/jtable.2.3.1/validationEngine/jquery.validationEngine.js"></script>
+    <script type="text/javascript" src="/Content/lib/jtable.2.3.1/validationEngine/jquery.validationEngine-pt.js"></script>
+
+
+    <script type="text/javascript">
+        function expandir() {
+            if (!document.fullscreenElement) {
+                let elem = document.documentElement;
+                if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                } else if (elem.mozRequestFullScreen) {
+                    elem.mozRequestFullScreen();
+                } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                } else if (elem.msRequestFullscreen) {
+                    elem.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) {
+                    document.msExitFullscreen();
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- ============================================================== -->
+    <!-- Preloader - style you can find in spinners.css -->
+    <!-- ============================================================== -->
+    <div class="preloader">
+        <div class="lds-ripple">
+            <div class="lds-pos"></div>
+            <div class="lds-pos"></div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- Main wrapper - style you can find in pages.scss -->
+    <!-- ============================================================== -->
+    <div id="main-wrapper">
+        <!-- ============================================================== -->
+        <!-- Topbar header - style you can find in pages.scss -->
+        <!-- ============================================================== -->
+        <header class="topbar">
+            <nav class="navbar top-navbar navbar-expand-md navbar-dark ">
+                <div class="navbar-header container-fluid">
+                    <!-- This is for the sidebar toggle which is visible on mobile only -->
+                    <a class="nav-toggler waves-effect waves-light d-block d-md-none" href="javascript:void(0)">
+                        <i class="ti-menu ti-close"></i>
+                    </a>
+                    <!-- ============================================================== -->
+                    <!-- Logo -->
+                    <!-- ============================================================== -->
+                    <div class="navbar-brand">
+                        <a href="https://www.ageprev.ms.gov.br/" class="logo" target="_blank">
+
+                            <!-- Logo icon -->
+                            <b class="logo-icon">
+                                <!--You can put here icon as well // <i class="wi wi-sunset"></i> //-->
+                                <!-- Dark Logo icon -->
+                                <img src="~/Content/img/logo-ageprev-ms.svg?v=0.001" />
+
+                                <!--<img src="/Content/assets/images/logo-icon.png" alt="homepage" class="dark-logo" />-->
+                                <!-- Light Logo icon -->
+                                <!--<img src="/Content/assets/images/logo-light-icon.png" alt="homepage" class="light-logo" />-->
+                            </b>
+                            <!--End Logo icon -->
+                            <!-- Logo text -->
+                            <!--<span class="logo-text">-->
+                            <!-- dark Logo text -->
+                            <!--<img src="/Content/assets/images/logo-text.png" alt="homepage" class="dark-logo" />-->
+                            <!-- Light Logo text -->
+                            <!--<img src="/Content/assets/images/logo-light-text.png" class="light-logo" alt="homepage" />
+                        </span>-->
+                        </a>
+                    </div>
+                    <!-- ============================================================== -->
+                    <!-- End Logo -->
+                    <!-- ============================================================== -->
+                    <!-- ============================================================== -->
+                    <!-- Toggle which is visible on mobile only -->
+                    <!-- ============================================================== -->
+                    <a class="topbartoggler d-block d-md-none waves-effect waves-light" href="javascript:void(0)" data-toggle="collapse" data-target="#navbarSupportedContent"
+                       aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="ti-more"></i>
+                    </a>
+                </div>
+                <!-- ============================================================== -->
+                <!-- End Logo -->
+                <!-- ============================================================== -->
+                <div class="navbar-collapse collapse" id="navbarSupportedContent">
+                    <!-- ============================================================== -->
+                    <!-- toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-left mr-auto" style="margin-left:50px;">
+                        <!-- <li class="nav-item d-none d-md-block">
+                        <a class="nav-link sidebartoggler waves-effect waves-light" href="javascript:void(0)" data-sidebartype="mini-sidebar">
+                            <i class="mdi mdi-menu font-24"></i>
+                        </a>
+                    </li> -->
+                        <li class="nav-item d-none d-md-block">
+                            @Html.ActionLink("RHFP Legado - Sistema Legado v. 0.0.01", "Index", "Home", new { area = "" }, new { @class = "sidebar-link waves-effect text-white" })
+                        </li>
+
+                        <!-- ============================================================== -->
+                        <!-- Search -->
+                        <!-- ============================================================== -->
+                        @*<li class="nav-item search-box">
+                            <a class="nav-link waves-effect waves-dark" href="javascript:void(0)">
+                                <div class="d-flex align-items-center">
+                                    <i class="mdi mdi-magnify font-20 mr-1"></i>
+                                    <div class="ml-1 d-none d-sm-block">
+                                        <span>Search</span>
+                                    </div>
+                                </div>
+                            </a>
+                            <form class="app-search position-absolute">
+                                <input type="text" class="form-control" placeholder="Search &amp; enter">
+                                <a class="srh-btn">
+                                    <i class="ti-close"></i>
+                                </a>
+                            </form>
+                        </li>*@
+                    </ul>
+
+                    <!-- ============================================================== -->
+                    <!-- Right side toggle and nav items -->
+                    <!-- ============================================================== -->
+                    <ul class="navbar-nav float-right">
+
+                  
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle waves-effect waves-dark text-white" href="@Url.Action("Index", "Home", new { area = "" })" id="2"  aria-haspopup="true" aria-expanded="false">
+                                <svg class="svg-inline--fa fa-house text-white" data-prefix="far" data-icon="house" role="img" viewBox="0 0 512 512" aria-hidden="true" data-fa-i2svg=""><path fill="currentColor" d="M240 6.1c9.1-8.2 22.9-8.2 32 0l232 208c9.9 8.8 10.7 24 1.8 33.9s-24 10.7-33.9 1.8l-8-7.2 0 205.3c0 35.3-28.7 64-64 64l-288 0c-35.3 0-64-28.7-64-64l0-205.3-8 7.2c-9.9 8.8-25 8-33.9-1.8s-8-25 1.8-33.9L240 6.1zm16 50.1L96 199.7 96 448c0 8.8 7.2 16 16 16l48 0 0-104c0-39.8 32.2-72 72-72l48 0c39.8 0 72 32.2 72 72l0 104 48 0c8.8 0 16-7.2 16-16l0-248.3-160-143.4zM208 464l96 0 0-104c0-13.3-10.7-24-24-24l-48 0c-13.3 0-24 10.7-24 24l0 104z"></path></svg>
+                                <span style="padding: 0px 0px 0px 0px; font-family: sans-serif; font-size: 16px;">Início</span>
+                            </a>
+                        </li>
+                        @*<li class="nav-item dropdown border-right">
+                            <a class="nav-link dropdown-toggle waves-effect waves-dark text-white" href="javascript:expandir();"  aria-haspopup="true" aria-expanded="false">
+                                <svg class="svg-inline--fa fa-expand text-white" data-prefix="fas" data-icon="expand" role="img" viewBox="0 0 448 512" aria-hidden="true" data-fa-i2svg=""><path fill="currentColor" d="M32 32C14.3 32 0 46.3 0 64l0 96c0 17.7 14.3 32 32 32s32-14.3 32-32l0-64 64 0c17.7 0 32-14.3 32-32s-14.3-32-32-32L32 32zM64 352c0-17.7-14.3-32-32-32S0 334.3 0 352l0 96c0 17.7 14.3 32 32 32l96 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-64 0 0-64zM320 32c-17.7 0-32 14.3-32 32s14.3 32 32 32l64 0 0 64c0 17.7 14.3 32 32 32s32-14.3 32-32l0-96c0-17.7-14.3-32-32-32l-96 0zM448 352c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 64-64 0c-17.7 0-32 14.3-32 32s14.3 32 32 32l96 0c17.7 0 32-14.3 32-32l0-96z"></path></svg>
+                                <span style="padding: 0px 0px 0px 0px; font-family: sans-serif; font-size: 16px; ">Tela Cheia</span>
+                            </a>
+                        </li>*@
+
+                        @if (TempData["USUARIOPRINCIPAL"] != null)
+                        {
+                            string[] dadosUsuario = (string[])TempData["USUARIOPRINCIPAL"];
+                            <li class="sidebar-item nav-item dropdown">
+                                <a class="nav-link dropdown-toggle waves-effect waves-dark pro-pic" href="#" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    @*<img src="/Content/img/avatar-logo.png" alt="user" class="rounded-circle" width="40" height="30">*@
+                                    <svg class="svg-inline--fa fa-user fa-lg text-white" data-prefix="far" data-icon="user" role="img" viewBox="0 0 448 512" aria-hidden="true" data-fa-i2svg=""><path fill="currentColor" d="M144 128a80 80 0 1 1 160 0 80 80 0 1 1 -160 0zm208 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0zM48 480c0-70.7 57.3-128 128-128l96 0c70.7 0 128 57.3 128 128l0 8c0 13.3 10.7 24 24 24s24-10.7 24-24l0-8c0-97.2-78.8-176-176-176l-96 0C78.8 304 0 382.8 0 480l0 8c0 13.3 10.7 24 24 24s24-10.7 24-24l0-8z"></path></svg>
+                                    <span class="m-l-5 font-medium d-none d-sm-inline-block text-white">@dadosUsuario[1] @(TempData["AMBIENTEDEV"] != null ? " - " + TempData["AMBIENTEDEV"] : null) <i class="mdi mdi-chevron-down"></i></span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right user-dd animated flipInY">
+                                    <span class="with-arrow">
+                                        <span class="bg-primary"></span>
+                                    </span>
+                                    <div class="d-flex no-block align-items-center p-15 bg-primary text-white m-b-10">
+                                        <div class="form-label" style="padding: 10px 2px 2px 10px; ">
+                                            @*<img src="/Content/img/avatar-logo.png" alt="user" class="rounded-circle" width="60">*@
+                                            <svg class="svg-inline--fa fa-user fa-lg text-white" data-prefix="far" data-icon="user" role="img" viewBox="0 0 448 512" aria-hidden="true" data-fa-i2svg=""><path fill="currentColor" d="M144 128a80 80 0 1 1 160 0 80 80 0 1 1 -160 0zm208 0a128 128 0 1 0 -256 0 128 128 0 1 0 256 0zM48 480c0-70.7 57.3-128 128-128l96 0c70.7 0 128 57.3 128 128l0 8c0 13.3 10.7 24 24 24s24-10.7 24-24l0-8c0-97.2-78.8-176-176-176l-96 0C78.8 304 0 382.8 0 480l0 8c0 13.3 10.7 24 24 24s24-10.7 24-24l0-8z"></path></svg>
+                                        </div>
+                                        <div class="m-l-10" style="padding: 10px 2px 2px 7px; ">
+                                            <h6 class="m-b-0">@dadosUsuario[0]</h6>
+                                            <!--p class=" m-b-0">user@gmail.com</p-->
+                                        </div>
+                                    </div>
+                                    <a class="dropdown-item" href="javascript:void(0)">
+                                        <i class="ti-user m-r-5 m-l-5"></i> @dadosUsuario[3]
+                                    </a>
+                                    @if (!string.IsNullOrEmpty(@dadosUsuario[2].ToString()))
+                                    {
+                                        <a class="dropdown-item" href="javascript:void(0)">
+                                            <i class="ti-wallet m-r-5 m-l-5"></i> @dadosUsuario[2]
+                                        </a>
+                                    }
+                                    <!--a class="dropdown-item" href="javascript:void(0)">
+                    <i class="ti-email m-r-5 m-l-5"></i> Inbox
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="javascript:void(0)">
+                    <i class="ti-settings m-r-5 m-l-5"></i> Account Setting
+                </a>
+                <div class="dropdown-divider"></div-->
+                                    <a class="dropdown-item" href="/Home/Logout">
+                                        <i class="fa fa-power-off m-r-5 m-l-5"></i> Sair
+                                    </a>
+                                    <!--div class="dropdown-divider"></div>
+                <div-- class="p-l-30 p-10">
+                    <a href="javascript:void(0)" class="btn btn-sm btn-success btn-rounded">View Profile</a>
+                </div-->
+                                </div>
+                            </li>
+                        }
+                        <!-- ============================================================== -->
+                        <!-- User profile and search -->
+                        <!-- ============================================================== -->
+                    </ul>
+                </div>
+            </nav>
+        </header>
+        <!-- ============================================================== -->
+        <!-- End Topbar header -->
+        <!-- ============================================================== -->
+        <!-- Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+        <aside class="left-sidebar" style=" background:#1e1e2e;overflow: visible; ">
+            <!-- Sidebar scroll-->
+            <div class="scroll-sidebar" style="overflow: visible;">
+                <!-- Sidebar navigation-->
+                <nav class="sidebar-nav" style="height: auto; overflow: visible; font-family: sans-serif; ">
+                    <ul id="sidebarnav">
+                        <!-- User Profile-->
+                        @*<li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Personal</span></li>*@
+                        <li class="nav-small-cap" style="background:#ffffff;">@Html.ActionLink("RHFP - Sistema Legado v. 1.0.0", "Index", "Home", new { area = "" }, new { @class = "sidebar-link waves-effect text-white" })</li>
+
+                        <li class="sidebar-item" style="position: relative; font-family: sans-serif;">
+                            <a class="sidebar-link waves-effect waves-dark" href="@Url.Action("Index", "Home", new { area = "" })"
+                               style=" display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false">
+                                <i class="mdi mdi-home"></i><span class="hide-menu text-white">Início</span>
+                            </a>
+                        </li>
+                        <!--li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Precatório</span></li-->
+                        <li class="sidebar-item" style="position: relative;">
+                            <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style="  display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false"><i class="mdi mdi-cash-multiple"></i><span class="hide-menu text-white"> Relatórios </span></a>
+                            <ul class="collapse first-level" style="display: none; position: absolute; background: white; min-width: 250px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); top: calc(100% + 0px); left: 0; right: auto;">
+                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Relatórios de Atos e Eventos", "AtoEventos", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Relatórios de Financeiro", "Financeiro", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Dados Pessoais", "DadosPessoais", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Dados Funcionais", "DadosFuncionais", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+              
+                                @if (TempData["_SUBMENU_RELAT"] != null)
+                                {
+                                    @MvcHtmlString.Create(TempData["_SUBMENU_RELAT"].ToString())
+                                }
+
+                            </ul>
+                        </li>
+                        <!--li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Tabelas Básicas</span></li-->
+                        <!--<li class="sidebar-item" style="position: relative;">
+                            <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style=" display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false">
+                                <i class="mdi mdi-border-none"></i><span class="hide-menu text-white">Tabelas Básicas</span>
+                            </a>
+                            <ul class="collapse first-level" style="display: none; position: absolute; background: white; min-width: 250px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); top: calc(100% + 0px); left: 0;">
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-border-style"></i><span class="hide-menu">situação</span></a></li>
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-tab-unselected"></i><span class="hide-menu">índices de correção monetária</span></a></li>
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/admin/historicoaliquotas" aria-expanded="false"><i class="mdi mdi-table-large"></i><span class="hide-menu">histórico de alíquotas</span></a></li>
+
+                                @if (TempData["_SUBMENU_TB"] != null)
+                                {
+                                    @MvcHtmlString.Create(TempData["_SUBMENU_TB"].ToString())
+                                }
+                            </ul>
+                        </li>-->
+                        <!--li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Tabelas de Outros Sistemas</span></li-->
+                        <li class="sidebar-item" style="position: relative;">
+                            <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style=" display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false"><i class="mdi mdi-widgets"></i><span class="hide-menu text-white">Tabelas de Gestão</span></a>
+                            <ul class="collapse first-level" style="display: none; position: absolute; background: white; min-width: 250px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); top: calc(100% + 0px); left: 0;">
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-border-style"></i><span class="hide-menu">situação</span></a></li>
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-tab-unselected"></i><span class="hide-menu">índices de correção monetária</span></a></li>
+                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/admin/historicoaliquotas" aria-expanded="false"><i class="mdi mdi-table-large"></i><span class="hide-menu">histórico de alíquotas</span></a></li>
+
+                                @if (TempData["_SUBMENU_TG"] != null)
+                                {
+                                    @MvcHtmlString.Create(TempData["_SUBMENU_TG"].ToString())
+                                }
+                            </ul>
+                        </li>
+
+                    </ul>
+                </nav>
+                <!-- End Sidebar navigation -->
+            </div>
+            <!-- End Sidebar scroll-->
+        </aside>
+        <!-- ============================================================== -->
+        <!-- End Left Sidebar - style you can find in sidebar.scss  -->
+        <!-- ============================================================== -->
+        <script type="text/javascript">
+            // Hover expand functionality for horizontal navbar and sidebar menus
+            $(document).ready(function () {
+                var hoverTimeout;
+
+                // Handle hover on items with submenus (navbar-horizontal)
+                $('nav.navbar-horizontal').on('mouseenter', '.sidebar-item', function () {
+                    clearTimeout(hoverTimeout);
+                    var $link = $(this).find('.has-arrow');
+                    var $submenu = $(this).find('.collapse.first-level');
+                    if ($submenu.length && $link.length) {
+                        $link.attr('aria-expanded', 'true');
+                        $submenu.stop(true, true).slideDown(150, function () {
+                            $(this).css('display', 'block');
+                        });
+                    }
+                }).on('mouseleave', '.sidebar-item', function () {
+                    var $this = $(this);
+                    var $link = $this.find('.has-arrow');
+                    var $submenu = $this.find('.collapse.first-level');
+
+                    hoverTimeout = setTimeout(function () {
+                        if ($submenu.length && $link.length) {
+                            $link.attr('aria-expanded', 'false');
+                            $submenu.stop(true, true).slideUp(150, function () {
+                                $(this).css('display', 'none');
+                            });
+                        }
+                    }, 100);
+                });
+
+                // Handle hover on items with submenus (left sidebar)
+                $('aside.left-sidebar').on('mouseenter', '.sidebar-item', function () {
+                    clearTimeout(hoverTimeout);
+                    var $link = $(this).find('.sidebar-link.has-arrow');
+                    var $submenu = $(this).find('.collapse.first-level');
+                    if ($submenu.length && $link.length) {
+                        $link.attr('aria-expanded', 'true');
+                        $submenu.stop(true, true).slideDown(150, function () {
+                            $(this).css('display', 'block');
+                        });
+                    }
+                }).on('mouseleave', '.sidebar-item', function () {
+                    var $this = $(this);
+                    var $link = $this.find('.sidebar-link.has-arrow');
+                    var $submenu = $this.find('.collapse.first-level');
+
+                    hoverTimeout = setTimeout(function () {
+                        if ($submenu.length && $link.length) {
+                            $link.attr('aria-expanded', 'false');
+                            $submenu.stop(true, true).slideUp(150, function () {
+                                $(this).css('display', 'none');
+                            });
+                        }
+                    }, 100);
+                });
+            });
+        </script>
+
+
+
+        <!-- ============================================================== -->
+        <!-- Page wrapper  -->
+        <!-- ============================================================== -->
+        <div class="page-wrapper" style="position: relative;">
+
+            @*<nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark" style="border-radius: 8px;">
+                <div class="container">
+                    <img src="/Content/images/logoms.png" alt="Logo do Estado do Mato Grosso do Sul" style="height: 40px; margin-right: 10px;">
+                    @Html.ActionLink("SIGPRECAT - Sistema de Gestão dos Precatórios v. 1.0.0", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
+                    <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Alternar a navegação" aria-controls="navbarSupportedContent"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
+                        <ul class="navbar-nav flex-grow-1">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Precatórios
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                    <li>@Html.ActionLink("Registro de Precatório", "Index", "Precatorios", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                    <li>@Html.ActionLink("Edição de Precatório", "EditarPrecatorio", "Precatorios", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                    <li>@Html.ActionLink("Item Movimento", "ItemMovimento", "Precatorios", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                    <li>@Html.ActionLink("Item Movimento Por Evento", "ItemMovimentoPorEvento", "Precatorios", new { area = "" }, new { @class = "dropdown-item" })</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>*@
+            @RenderBody()
+
+            <!-- ============================================================== -->
+            <!-- Container fluid  -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- Recent comment and chats -->
+            <!-- ============================================================== -->
+            <!--<div class="row">-->
+            <!-- column -->
+            <!--<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="container-fluid body-content">
+
+                            <hr />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+            <!-- ============================================================== -->
+            <!-- Recent comment and chats -->
+            <!-- ============================================================== -->
+            <!-- ============================================================== -->
+            <!-- End Container fluid  -->
+            <!-- ============================================================== -->
+
+
+        </div>
+
+        <!-- ============================================================== -->
+        <!-- footer -->
+        <!-- ============================================================== -->
+        <footer class="footer">
+
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-6" style="padding-top:15px;">
+                        <span class="text-white">RHFP Legado</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <img src="~/Content/img/logo-ms.svg" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center align-items-center copyright-holder">
+                <div class="row">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 text-center">
+                        <a href="@Url.Action("Index", "Home", new { area = "" })" target="_blank" class="cursor-pointer text-white">@DateTime.Now.Year ©  AGEPREV/DIRGIN - Todos direitos reservados </a>
+                    </div>
+                </div>
+
+            </div>
+
+
+            @*<img src="~/Content/img/gov-ms-secretaria-sead-negativa.png" style="float:right;" />*@
+        </footer>
+        <!-- ============================================================== -->
+        <!-- End footer -->
+        <!-- ============================================================== -->
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $(window).on('resize', function () {
+                    var width = $(window).width();
+                    var height = $(window).height();
+
+                    // console.log("Largura: " + width + "px, Altura: " + height + "px");
+                    $('.footer').css('top', (height) + 'px');
+                    // Use as needed, e.g., to adjust layout:
+                    if (width < 768) {
+                        // Mobile layout
+                    } else {
+                        // Desktop layout
+                    }
+                });
+            });
+        </script>
+
+    </div>
+ 
+    <div class="sales ct-charts" style="display:none;"></div>
+    <div id="campaign" style="display:none;" class="m-t-10"></div>
+    <div class="weather-report" style="display:none;"></div>
+
+
+
+    <!-- ============================================================== -->
+    <!-- All Jquery -->
+    <!-- ============================================================== -->
+    @*<script src="/Content/assets/libs/jquery/dist/jquery.min.js"></script>*@
+    <!-- Bootstrap tether Core JavaScript -->
+    <script src="/Content/assets/libs/popper.js/dist/umd/popper.min.js"></script>
+    <script src="/Content/assets/libs/bootstrap/dist/js/bootstrap.min.js"></script>
+    <!-- apps -->
+    <script src="/Content/js/app.min.js"></script>
+    <script src="/Content/js/app.init.horizontal.js"></script>
+    <script src="/Content/js/app-style-switcher.horizontal.js"></script>
+    <!-- slimscrollbar scrollbar JavaScript -->
+    <script src="/Content/assets/libs/perfect-scrollbar/dist/perfect-scrollbar.jquery.min.js"></script>
+    <script src="/Content/assets/extra-libs/sparkline/sparkline.js"></script>
+    <!--Wave Effects -->
+    <script src="/Content/js/waves.js"></script>
+    <!--Menu sidebar -->
+    <script src="/Content/js/sidebarmenu.js"></script>
+    <!--Custom JavaScript -->
+    <script src="/Content/js/custom.js"></script>
+    <!--This page JavaScript -->
+    <!--chartis chart-->
+    @*<script src="/Content/assets/libs/chartist/dist/chartist.min.js"></script>
+        <script src="/Content/assets/libs/chartist-plugin-tooltips/dist/chartist-plugin-tooltip.min.js"></script>*@
+    <!--c3 charts -->
+    <script src="/Content/assets/extra-libs/c3/d3.min.js"></script>
+    <script src="/Content/assets/extra-libs/c3/c3.min.js"></script>
+    <script src="/Content/assets/extra-libs/jvector/jquery-jvectormap-2.0.2.min.js"></script>
+    <script src="/Content/assets/extra-libs/jvector/jquery-jvectormap-world-mill-en.js"></script>
+    <script src="/Content/js/pages/dashboards/dashboard1.js?v=0.00000000000001"></script>
+
+
+</body>
+</html>

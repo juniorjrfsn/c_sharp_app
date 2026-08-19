@@ -1,0 +1,118 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Highcharts Example</title>
+
+		<style type="text/css">
+:root {
+    color-scheme: light dark;
+}
+* {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        sans-serif;
+}
+
+.highcharts-figure {
+    min-width: 320px;
+    max-width: 800px;
+    margin: 1em auto;
+}
+
+.highcharts-description {
+    background: light-dark(#f2f6f2, #323232);
+    border-radius: 0 4px 4px 0;
+    border-left: 2px solid light-dark(#1d6aff, #fff);
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 8px 16px;
+    margin: 2em 10px 1em;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #141414;
+        color: #ddd;
+    }
+    a {
+        color: #2caffe;
+    }
+}
+		</style>
+	</head>
+	<body>
+<script src="../../code/highcharts.js"></script>
+<script src="../../code/highcharts-more.js"></script>
+<script src="../../code/modules/exporting.js"></script>
+<script src="../../code/modules/accessibility.js"></script>
+<script src="../../code/themes/adaptive.js"></script>
+
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+        Chart showing use of plot bands with a gauge series.
+    </p>
+</figure>
+
+
+		<script type="text/javascript">
+/* eslint-disable */
+Highcharts.chart('container', {
+  chart: {
+    type: 'gauge'
+  },
+  title: {
+    text: 'Revenue this month'
+  },
+  // Defines the gauge area
+  pane: {
+    startAngle: -90,
+    endAngle: 90,
+    background: null
+  },
+  // The value axis
+  yAxis: {
+    min: 0,
+    max: 200000,
+    plotBands: [{
+      from: 0,
+      to: 110000,
+      color: 'rgba(128, 128, 128, 0.1)' // gray
+    }, {
+      from: 111000,
+      to: 149000,
+      color: '#FFBF00' // yellow
+    }, {
+      from: 150000,
+      to: 200000,
+      color: '#00A96B' // green
+    }]
+  },
+  series: [{
+    name: 'Revenue',
+    data: [80000],
+    tooltip: {
+      valuePrefix: '
+		</script>
+	</body>
+</html>
+
+    },
+    dataLabels: {
+      format: '${y:,.0f}'
+    }
+  }]
+});
+		</script>
+	</body>
+</html>

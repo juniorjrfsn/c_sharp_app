@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/mfi
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Money Flow Index indicator for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Grzegorz Blachliński
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts,t._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/mfi",["highcharts/highcharts"],function(t){return e(t,t.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/mfi"]=e(t._Highcharts,t._Highcharts.SeriesRegistry):t.Highcharts=e(t.Highcharts,t.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(t,e){return function(){"use strict";var r,n={512:function(t){t.exports=e},944:function(e){e.exports=t}},o={};function i(t){var e=o[t];if(void 0!==e)return e.exports;var r=o[t]={exports:{}};return n[t](r,r.exports,i),r.exports}i.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return i.d(e,{a:e}),e},i.d=function(t,e){for(var r in e)i.o(e,r)&&!i.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},i.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var u={};i.d(u,{default:function(){return g}});var s=i(944),a=i.n(s),c=i(512),f=i.n(c),p=(r=function(t,e){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r])})(t,e)},function(t,e){function n(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),h=f().seriesTypes.sma;function d(t){return t.reduce(function(t,e){return t+e})}function l(t){return(t[1]+t[2]+t[3])/3}var y=function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return p(e,t),e.prototype.getValues=function(t,e){var r,n,o,i,u,a,c,f=e.period,p=t.xData,h=t.yData,y=h?h.length:0,g=e.decimals,v=t.chart.get(e.volumeSeriesID),m=(null==v?void 0:v.getColumn("y"))||[],x=[],_=[],S=[],O=[],b=[],w=!1,D=1;if(!v)return void(0,s.error)("Series "+e.volumeSeriesID+" not found! Check `volumeSeriesID`.",!0,t.chart);if(!(p.length<=f)&&(0,s.isArray)(h[0])&&4===h[0].length&&m){for(n=l(h[D]);D<f+1;)o=n,w=(n=l(h[D]))>=o,i=n*m[D],O.push(w?i:0),b.push(w?0:i),D++;for(c=D-1;c<y;c++)c>D-1&&(O.shift(),b.shift(),o=n,w=(n=l(h[c]))>o,i=n*m[c],O.push(w?i:0),b.push(w?0:i)),u=d(b),r=100-100/(1+d(O)/u),a=parseFloat(r.toFixed(g)),x.push([p[c],a]),_.push(p[c]),S.push(a);return{values:x,xData:_,yData:S}}},e.defaultOptions=(0,s.merge)(h.defaultOptions,{params:{index:void 0,volumeSeriesID:"volume",decimals:4}}),e}(h);(0,s.extend)(y.prototype,{nameBase:"Money Flow Index"}),f().registerSeriesType("mfi",y);var g=a();return u.default}()});

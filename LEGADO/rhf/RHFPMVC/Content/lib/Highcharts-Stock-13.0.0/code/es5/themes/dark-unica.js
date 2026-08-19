@@ -1,0 +1,11 @@
+!/**
+ * Highcharts JS v13.0.0 (2026-06-11)
+ * @module highcharts/themes/dark-unica
+ * @requires highcharts
+ *
+ * (c) 2009-2026 Highsoft AS
+ * Author: Torstein Hønsi
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(e._Highcharts):"function"==typeof define&&define.amd?define("highcharts/themes/dark-unica",["highcharts/highcharts"],function(e){return t(e)}):"object"==typeof exports?exports["highcharts/themes/dark-unica"]=t(e._Highcharts):e.Highcharts=t(e.Highcharts)}("u"<typeof window?this:window,function(e){return function(){"use strict";var t,o,r={944:function(t){t.exports=e}},n={};function a(e){var t=n[e];if(void 0!==t)return t.exports;var o=n[e]={exports:{}};return r[e](o,o.exports,a),o.exports}a.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return a.d(t,{a:t}),t},a.d=function(e,t){for(var o in t)a.o(t,o)&&!a.o(e,o)&&Object.defineProperty(e,o,{enumerable:!0,get:t[o]})},a.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)};var s={};a.d(s,{default:function(){return u}});var i=a(944),f=a.n(i),c=f().setOptions;(t=o||(o={})).options={palette:{colorScheme:"dark",dark:{backgroundColor:"#3e3e40",neutralColor:"#f0f0f3",highlightColor:"#75fffd",colors:["#2b908f","#90ee7e","#f45b5b","#7798BF","#aaeeee","#ff0066","#eeaaee","#55BF3B","#DF5353","#7798BF","#aaeeee"]}},chart:{backgroundColor:{linearGradient:{x1:0,y1:0,x2:1,y2:1},stops:[[0,"#2a2a2b"],[1,"#3e3e40"]]},style:{fontFamily:"'Unica One', sans-serif"}},title:{style:{textTransform:"uppercase",fontSize:"20px"}},subtitle:{style:{textTransform:"uppercase"}},plotOptions:{series:{dataLabels:{style:{fontSize:"13px"}}}},legend:{backgroundColor:"#00000388"},global:{buttonTheme:{states:{hover:{fill:"#707073"},select:{fill:"#000003"}}}}},t.apply=function(){(0,i.createElement)("link",{href:"https://fonts.googleapis.com/css?family=Unica+One",rel:"stylesheet",type:"text/css"},void 0,document.getElementsByTagName("head")[0]),c(t.options)};var l=o;f().theme=l.options,l.apply();var u=f();return s.default}()});

@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/obv
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Indicator series type for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Karol Kołodziej
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(e._Highcharts,e._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/obv",["highcharts/highcharts"],function(e){return t(e,e.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/obv"]=t(e._Highcharts,e._Highcharts.SeriesRegistry):e.Highcharts=t(e.Highcharts,e.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(e,t){return function(){"use strict";var r,o={512:function(e){e.exports=t},944:function(t){t.exports=e}},n={};function i(e){var t=n[e];if(void 0!==t)return t.exports;var r=n[e]={exports:{}};return o[e](r,r.exports,i),r.exports}i.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return i.d(t,{a:t}),t},i.d=function(e,t){for(var r in t)i.o(t,r)&&!i.o(e,r)&&Object.defineProperty(e,r,{enumerable:!0,get:t[r]})},i.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)};var s={};i.d(s,{default:function(){return l}});var u=i(944),a=i.n(u),c=i(512),p=i.n(c),f=(r=function(e,t){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(e,t){e.__proto__=t}||function(e,t){for(var r in t)t.hasOwnProperty(r)&&(e[r]=t[r])})(e,t)},function(e,t){function o(){this.constructor=e}r(e,t),e.prototype=null===t?Object.create(t):(o.prototype=t.prototype,new o)}),h=p().seriesTypes.sma,d=function(e){function t(){return null!==e&&e.apply(this,arguments)||this}return f(t,e),t.prototype.getValues=function(e,t){var r,o=e.chart.get(t.volumeSeriesID),n=e.xData,i=e.yData,s=[],a=[],c=[],p=!(0,u.isNumber)(i[0]),f=[],h=1,d=0,l=0,y=0,v=0;if(!o)return void(0,u.error)("Series "+t.volumeSeriesID+" not found! Check `volumeSeriesID`.",!0,e.chart);for(r=o.getColumn("y"),f=[n[0],d],y=p?i[0][3]:i[0],s.push(f),a.push(n[0]),c.push(f[1]);h<i.length;h++)l=(v=p?i[h][3]:i[h])>y?d+r[h]:v===y?d:d-r[h],f=[n[h],l],d=l,y=v,s.push(f),a.push(n[h]),c.push(f[1]);return{values:s,xData:a,yData:c}},t.defaultOptions=(0,u.merge)(h.defaultOptions,{marker:{enabled:!1},params:{index:void 0,period:void 0,volumeSeriesID:"volume"},tooltip:{valueDecimals:0}}),t}(h);(0,u.extend)(d.prototype,{nameComponents:void 0}),p().registerSeriesType("obv",d);var l=a();return s.default}()});

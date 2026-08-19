@@ -1,0 +1,13 @@
+!/**
+ * Highcharts JS v13.0.0 (2026-06-11)
+ * @module highcharts/modules/mouse-wheel-zoom
+ * @requires highcharts
+ *
+ * Mousewheel zoom module
+ *
+ * (c) 2023-2026 Highsoft AS
+ * Author: Askel Eirik Johansson
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(e,t){"object"==typeof exports&&"object"==typeof module?module.exports=t(e._Highcharts):"function"==typeof define&&define.amd?define("highcharts/modules/mouse-wheel-zoom",["highcharts/highcharts"],function(e){return t(e)}):"object"==typeof exports?exports["highcharts/modules/mouse-wheel-zoom"]=t(e._Highcharts):e.Highcharts=t(e.Highcharts)}("u"<typeof window?this:window,function(e){return function(){"use strict";var t,o={944:function(t){t.exports=e}},n={};function r(e){var t=n[e];if(void 0!==t)return t.exports;var i=n[e]={exports:{}};return o[e](i,i.exports,r),i.exports}r.n=function(e){var t=e&&e.__esModule?function(){return e.default}:function(){return e};return r.d(t,{a:t}),t},r.d=function(e,t){for(var o in t)r.o(t,o)&&!r.o(e,o)&&Object.defineProperty(e,o,{enumerable:!0,get:t[o]})},r.o=function(e,t){return Object.prototype.hasOwnProperty.call(e,t)};var i={};r.d(i,{default:function(){return p}});var s=r(944),a=r.n(s),u=function(e){return e.filter(function(e){var t=e.axis.getExtremes(),o=t.min,n=t.max,r=(0,s.pick)(e.axis.minPointOffset,0);return(0,s.isNumber)(o)&&(0,s.isNumber)(n)&&e.value>=o-r&&e.value<=n+r&&!e.axis.options.isInternal})[0]},h=[],l={enabled:!0,sensitivity:1.1,showResetButton:!1},c=function(e,o,n,r,i,a,u){var h=(0,s.pick)(u.type,e.zooming.type,""),l=[];"x"===h?l=n:"y"===h?l=r:"xy"===h&&(l=e.axes);var c=e.transform({axes:l,to:{x:i-5,y:a-5,width:10,height:10},from:{x:i-5*o,y:a-5*o,width:10*o,height:10*o},trigger:"mousewheel",allowResetButton:u.showResetButton});return c&&((0,s.defined)(t)&&(0,s.internalClearTimeout)(t),t=setTimeout(function(){var t;null==(t=e.pointer)||t.drop()},400)),c};function f(){var e,t=this,o=(e=this.zooming.mouseWheel,(0,s.isObject)(e)||(e={enabled:null==e||e}),(0,s.merge)(l,e));o.enabled&&(0,s.addEvent)(this.container,"wheel",function(e){e=(null==(n=t.pointer)?void 0:n.normalize(e))||e;var n,r,i=t.pointer,s=i&&!i.inClass(e.target,"highcharts-no-mousewheel");if(t.isInsidePlot(e.chartX-t.plotLeft,e.chartY-t.plotTop)&&s){var a=o.sensitivity||1.1,h=e.detail||(e.deltaY||0)/120,l=u(i.getCoordinates(e).xAxis),f=u(i.getCoordinates(e).yAxis);c(t,Math.pow(a,h),l?[l.axis]:t.xAxis,f?[f.axis]:t.yAxis,e.chartX,e.chartY,o)&&(null==(r=e.preventDefault)||r.call(e))}})}var d=a();d.MouseWheelZoom=d.MouseWheelZoom||{compose:function(e){-1===h.indexOf(e)&&(h.push(e),(0,s.addEvent)(e,"afterGetContainer",f))}},d.MouseWheelZoom.compose(d.Chart);var p=a();return i.default}()});

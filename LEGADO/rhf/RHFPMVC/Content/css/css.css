@@ -1,0 +1,936 @@
+﻿#header {}
+
+footer {
+    /* Footer */
+
+    width: 100%;
+    background: #004F9F;
+    height: 100px;
+    /*position: absolute;
+    width: 1440px;
+    height: 98px;
+    left: calc(50% - 1440px/2);
+    bottom: 0px;*/
+    /* Color/Primaria/Primaria */
+    /*background: #004F9F;*/
+    /* GOV MS - SECRETARIA_SEAD - NEGATIVA 1 */
+    /*position: absolute;
+    width: 256px;
+    height: 68px;
+    left: 1084px;
+    top: 15px;*/
+    /* SigPrecat */
+    /*background: url('/Content/img/gov-ms-secretaria-sead-negativa.png');
+    position: absolute;
+    width: 110px;
+    height: 32px;
+    left: 112px;
+    top: calc(50% - 32px/2);
+    font-family: 'Avenir Next LT Pro';
+    font-style: normal;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;*/
+    /* identical to box height, or 133% */
+    /*display: flex;
+    align-items: center;*/
+    /* Color/Neutras/Branco */
+    /*color: #FFFFFF;*/
+}
+
+footer span {
+    margin-top: 23px;
+    float: left;
+}
+
+footer svg {
+    float: right;
+    /*   width: 110px;
+    height: 32px;*/
+}
+
+.footer {
+    background: #004F9F;
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    width: 100%;
+    align-self: end;
+    color: #ffffff;
+    position: page;
+    bottom: 0;
+}
+
+.copyright-holder {
+    display: flex;
+    /*  text-align: center;*/
+    min-width: 500px;
+    min-height: 40px;
+    background-color: #0081D5;
+    font-size: 11px;
+}
+.copyright-holder div {
+    width: 100%;
+}
+
+.table thead th .table tfoot th {
+    background: #DBEDFF;
+}
+
+.buttons button {
+    background: #004F9F;
+    border: 1px solid #004F9F;
+    border-radius: 4px;
+}
+
+.card {
+    background: #eff7ff;
+        /*#DBEDFF;*/
+        /*#e6edf5*/
+        /* #eff7ff*/
+}
+.card .card-title {
+    padding-top: 10px;
+    text-align: center;
+}
+
+.card .card-title h2 {
+    color: #004F9F;
+    font-weight: 500;
+}
+
+select#pod_codigo {
+    width: 220px;
+}
+
+button.btn-eventos {
+    background-color: #337ab7;
+    border-radius: 8px;
+}
+
+.form-check-input[type=checkbox] {
+    border-color: #337ab7;
+}
+
+
+
+/*
+table thead tr th {
+    font-size: 11px;
+}
+
+table tbody tr {
+    max-height: 15px;
+}
+
+    table tbody tr td {
+        font-size: 11px;
+        max-height: 15px;
+        padding: 0px 0px 0px 0px;
+    }
+*/
+
+/* =============================================
+   Tipografia Responsiva — .responsivo
+   8 breakpoints + clamp() fluido
+   ============================================= */
+
+/* =============================================================
+   css.css — SIGEVENTOS — Responsividade Global
+   Cobre: Home/Index, Cadastro/Index, Questionario/Index,
+          Relpontuacao/Index, _Layout (topbar, sidebar, footer)
+   ============================================================= */
+
+/* ─── 1. RESET & BOX-MODEL ─────────────────────────────────── */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+svg,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* ─── 2. TIPOGRAFIA FLUIDA ──────────────────────────────────── */
+:root {
+    --color-primary: #004F9F;
+    --color-primary-2: #0081D5;
+    --color-white: #FFFFFF;
+    --color-bg-card: #eff7ff;
+    --color-bg-thead: #DBEDFF;
+
+    --text-xs: clamp(10px, 1.8vw, 13px);
+    --text-sm: clamp(12px, 2.2vw, 15px);
+    --text-base: clamp(13px, 2.6vw, 16px);
+    --text-md: clamp(15px, 3vw, 18px);
+    --text-lg: clamp(17px, 3.5vw, 22px);
+    --text-xl: clamp(20px, 4vw, 28px);
+    --text-2xl: clamp(26px, 5vw, 40px);
+    --text-3xl: clamp(32px, 6vw, 56px);
+}
+
+body {
+    font-size: var(--text-base);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+h1 {
+    font-size: var(--text-3xl);
+    line-height: 1.15;
+}
+
+h2 {
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+}
+
+h3 {
+    font-size: var(--text-xl);
+    line-height: 1.3;
+}
+
+h4 {
+    font-size: var(--text-lg);
+    line-height: 1.4;
+}
+
+h5 {
+    font-size: var(--text-md);
+    line-height: 1.5;
+}
+
+h6 {
+    font-size: var(--text-base);
+}
+
+/* ─── 3. LAYOUT PRINCIPAL (#main-wrapper) ───────────────────── */
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* ─── 4. TOPBAR / HEADER ────────────────────────────────────── */
+header.topbar {
+    width: 100%;
+    position: relative;
+    z-index: 100;
+}
+
+header.topbar .navbar {
+    padding: 0.5rem 1rem;
+}
+
+header.topbar .navbar-header {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0;
+}
+
+/* Logo */
+.navbar-brand {
+    flex-shrink: 0;
+    margin-right: 1rem;
+}
+
+.navbar-brand img,
+.logo-icon img {
+    max-height: 52px;
+    width: auto;
+}
+
+/* Nav links no topbar */
+.navbar-nav .nav-item .sidebar-link {
+    white-space: normal;
+    word-break: break-word;
+    font-size: var(--text-sm);
+}
+
+/* Collapse em mobile */
+.navbar-collapse {
+    width: 100%;
+}
+
+/* Botão toggler mobile */
+.nav-toggler,
+.topbartoggler {
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+}
+
+/* ─── 5. SIDEBAR ────────────────────────────────────────────── */
+aside.left-sidebar {
+    min-width: 240px;
+    /*max-width: 260px;*/
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sidebar-nav ul li a {
+    white-space: normal;
+    word-break: break-word;
+    font-size: var(--text-sm);
+}
+
+/* Sidebar em mobile: drawer sobre o conteúdo */
+@media (max-width: 767.98px) {
+    aside.left-sidebar {
+        position: fixed !important;
+        top: 0;
+        left: -260px;
+        height: 100%;
+        z-index: 200;
+        transition: left 0.3s ease;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    aside.left-sidebar.open {
+        left: 0;
+    }
+
+    .page-wrapper {
+        margin-left: 0 !important;
+    }
+}
+
+/* ─── 6. CONTEÚDO (page-wrapper) ───────────────────────────── */
+.page-wrapper {
+    flex: 1;
+    padding: 1rem;
+    width: 100%;
+}
+
+.page-breadcrumb {
+    padding: 0.75rem 1rem;
+}
+
+.page-breadcrumb .row {
+    align-items: center;
+}
+
+.page-title {
+    font-size: var(--text-lg);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breadcrumb {
+    font-size: var(--text-sm);
+    flex-wrap: wrap;
+    margin-bottom: 0;
+}
+
+/* ─── 7. CARD ───────────────────────────────────────────────── */
+.card {
+    background: var(--color-bg-card);
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    width: 100%;
+}
+
+.card .card-title {
+    padding-top: 10px;
+    text-align: center;
+}
+
+.card .card-title h2 {
+    color: var(--color-primary);
+    font-weight: 500;
+    font-size: var(--text-xl);
+}
+
+.card-body {
+    padding: 1rem;
+}
+
+/* ─── 8. FORMULÁRIOS ────────────────────────────────────────── */
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-control {
+    font-size: var(--text-base);
+    width: 100%;
+}
+
+label {
+    font-size: var(--text-sm);
+}
+
+/* select específico */
+select#pod_codigo {
+    width: 100%;
+    max-width: 220px;
+}
+
+/* Checkboxes */
+.form-check-input[type=checkbox] {
+    border-color: #337ab7;
+}
+
+/* ─── 9. BOTÕES ─────────────────────────────────────────────── */
+.buttons button,
+.btn-primary {
+    background: var(--color-primary);
+    border: 1px solid var(--color-primary);
+    border-radius: 4px;
+    font-size: var(--text-sm);
+    padding: 0.375rem 0.75rem;
+}
+
+button.btn-eventos {
+    background-color: #337ab7;
+    border-radius: 8px;
+}
+
+/* Botões em linha: empilha no mobile */
+@media (max-width: 575.98px) {
+    .buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .buttons button,
+    .buttons .btn {
+        width: 100%;
+    }
+
+    .dt-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .dt-buttons button {
+        width: auto !important;
+        flex: 1 1 auto;
+    }
+}
+
+/* ─── 10. TABELAS ────────────────────────────────────────────── */
+.table {
+    font-size: var(--text-sm);
+    width: 100%;
+}
+
+.table thead th,
+.table tfoot th {
+    background: var(--color-bg-thead);
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.table tbody tr td {
+    font-size: var(--text-sm);
+    vertical-align: middle;
+}
+
+/* Wrapper para scroll horizontal em telas pequenas */
+.table-responsive,
+.container-fluid .card-body table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* ─── 10a. TABELA RELPONTUACAO (/Relpontuacao/Index) ────────── */
+table#table-lista-itens {
+    width: 100%;
+    max-width: 100%;
+    /* remove o max-width: 450px fixo em telas maiores */
+    margin: 0;
+}
+
+@media (min-width: 576px) {
+    /*    
+        table#table-lista-itens {
+            max-width: 560px;
+        }
+    */
+}
+
+table#table-lista-itens tfoot tr {
+    height: auto;
+}
+
+table#table-lista-itens thead tr th, table#table-lista-itens tbody tr td, table#table-lista-itens tfoot tr {
+    padding: 10px 0px 0px 0px;
+}
+
+table#table-lista-itens tfoot tr th {
+    text-align: center;
+}
+
+table#table-lista-itens tbody tr td:nth-child(1), table#table-lista-itens tfoot tr th:nth-child(1) {
+    width: auto;
+    min-width: 100px;
+    /* vertical-align: bottom; */
+}
+
+table#table-lista-itens tbody tr td:nth-child(1) input[type="text"] {
+    text-align: left;
+}
+
+table#table-lista-itens tbody tr td input[type="text"] {
+    text-align: center;
+    width: 100%;
+}
+
+table#table-lista-itens thead tr th:nth-child(2),
+table#table-lista-itens tbody tr td:nth-child(2),
+table#table-lista-itens tbody tr td:nth-child(2) input[type="text"],
+table#table-lista-itens tfoot tr th:nth-child(2) {
+    text-align: center;
+    max-width: 80px;
+    vertical-align: bottom;
+    padding-bottom: 2px;
+}
+
+table#table-lista-itens thead tr th:nth-child(4),
+table#table-lista-itens tbody tr td:nth-child(4),
+table#table-lista-itens tbody tr td:nth-child(4) input[type="text"],
+table#table-lista-itens tfoot tr th:nth-child(4) {
+    text-align: center;
+    max-width: 80px;
+}
+
+table#table-lista-itens thead tr th:nth-child(5),
+table#table-lista-itens tbody tr td:nth-child(5),
+table#table-lista-itens tfoot tr th:nth-child(5) {
+    text-align: center;
+    max-width: 60px;
+}
+
+/* Em mobile: esconde colunas secundárias da tabela de pontuação */
+@media (max-width: 575.98px) {
+
+    table#table-lista-itens thead tr th:nth-child(3),
+    table#table-lista-itens tbody tr td:nth-child(3),
+    table#table-lista-itens tfoot tr th:nth-child(3) {
+        display: none;
+    }
+}
+
+/* ─── 11. DATATABLES ─────────────────────────────────────────── */
+div.dt-container .dt-search input {
+    height: 32px;
+    width: 100%;
+    max-width: 260px;
+    font-size: var(--text-sm);
+}
+
+div.dt-container .dt-search input::placeholder {
+    font-size: var(--text-xs);
+}
+
+.dt-buttons button {
+    height: 30px;
+    padding: 2px 6px;
+    float: left;
+}
+
+.dt-buttons button svg {
+    height: 18px;
+}
+
+div.dt-buttons>.dt-button,
+div.dt-buttons>div.dt-button-split.dt-button {
+    padding: 2px 6px;
+    height: 30px;
+}
+
+.dt-search input::placeholder {
+    font-size: var(--text-xs);
+}
+
+/* DataTable wrapper scroll */
+.dt-container {
+    overflow-x: auto;
+}
+
+/* ─── 12. HOME/INDEX — DASHBOARD ────────────────────────────── */
+/* Cards de estatísticas em grid fluido */
+.row.dashboard-cards>[class*="col-"] {
+    margin-bottom: 1rem;
+}
+
+/* Gráficos */
+.ct-chart,
+.sales.ct-charts {
+    width: 100%;
+    height: auto;
+    min-height: 200px;
+}
+
+/* ─── 13. CADASTRO/INDEX ─────────────────────────────────────── */
+/* Container do formulário de cadastro */
+#formCadastro,
+form[name*="cadastro"],
+form[id*="cadastro"] {
+    width: 100%;
+}
+
+/* Campos em linha viram coluna no mobile */
+@media (max-width: 767.98px) {
+    .row.campos-cadastro>[class*="col-"] {
+        margin-bottom: 0.75rem;
+    }
+}
+
+/* ─── 14. QUESTIONARIO/INDEX ────────────────────────────────── */
+/* Lista de opções */
+ul>li,
+ul>li input,
+ul>li div,
+ul>li label {
+    cursor: pointer;
+}
+
+ul>li label {
+    width: 100%;
+    font-size: var(--text-base);
+}
+
+/* Opções do questionário empilhadas */
+.questionario-opcoes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@media (min-width: 768px) {
+    .questionario-opcoes {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+}
+
+/* ─── 15. CONTAINER PRINCIPAL ───────────────────────────────── */
+.container-fluid {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 100%;
+}
+
+.container {
+    width: 100%;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+
+/* ─── 16. FOOTER ─────────────────────────────────────────────── */
+footer {
+    width: 100%;
+    background: var(--color-primary);
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+}
+
+footer span {
+    float: none;
+    margin: 0;
+    color: var(--color-white);
+    font-size: var(--text-sm);
+    text-align: center;
+}
+
+footer svg {
+    float: none;
+    display: block;
+    margin: 0 auto;
+}
+
+.footer {
+    background: var(--color-primary);
+    padding: 0;
+    width: 100%;
+    color: var(--color-white);
+    /* substituímos absolute por relative para não sobrepor conteúdo */
+    bottom: auto;
+}
+
+.copyright-holder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+    min-height: 40px;
+    background-color: var(--color-primary-2);
+    font-size: var(--text-xs);
+    text-align: center;
+    padding: 0.25rem 1rem;
+}
+
+.copyright-holder div {
+    width: 100%;
+}
+
+/* ─── 17. UTILITÁRIOS RESPONSIVOS ───────────────────────────── */
+.responsivo {
+    --text-xs: clamp(10px, 2vw, 13px);
+    --text-sm: clamp(12px, 2.5vw, 15px);
+    --text-base: clamp(14px, 3vw, 18px);
+    --text-md: clamp(16px, 3.5vw, 20px);
+    --text-lg: clamp(18px, 4vw, 26px);
+    --text-xl: clamp(22px, 4.5vw, 34px);
+    --text-2xl: clamp(28px, 5vw, 44px);
+    --text-3xl: clamp(36px, 6vw, 60px);
+    font-size: var(--text-base);
+    line-height: 1.6;
+}
+
+.responsivo .text-xs {
+    font-size: var(--text-xs);
+}
+
+.responsivo .text-sm {
+    font-size: var(--text-sm);
+}
+
+.responsivo .text-base {
+    font-size: var(--text-base);
+}
+
+.responsivo .text-md {
+    font-size: var(--text-md);
+}
+
+.responsivo .text-lg {
+    font-size: var(--text-lg);
+}
+
+.responsivo .text-xl {
+    font-size: var(--text-xl);
+}
+
+.responsivo .text-2xl {
+    font-size: var(--text-2xl);
+}
+
+.responsivo .text-3xl {
+    font-size: var(--text-3xl);
+}
+
+.responsivo h1 {
+    font-size: var(--text-3xl);
+    line-height: 1.15;
+}
+
+.responsivo h2 {
+    font-size: var(--text-2xl);
+    line-height: 1.2;
+}
+
+.responsivo h3 {
+    font-size: var(--text-xl);
+    line-height: 1.3;
+}
+
+.responsivo h4 {
+    font-size: var(--text-lg);
+    line-height: 1.4;
+}
+
+.responsivo h5 {
+    font-size: var(--text-md);
+    line-height: 1.5;
+}
+
+.responsivo h6 {
+    font-size: var(--text-base);
+}
+
+.responsivo p {
+    font-size: var(--text-base);
+    margin: 0 0 1em;
+}
+
+.responsivo small,
+.responsivo figcaption,
+.responsivo label {
+    font-size: var(--text-sm);
+}
+
+.responsivo caption,
+.responsivo .hint {
+    font-size: var(--text-xs);
+}
+
+/* ─── 18. BREAKPOINTS GLOBAIS ───────────────────────────────── */
+
+/* xs ≤ 320px */
+/*@media (max-width: 320px) {
+    body {
+        font-size: 13px;
+    }
+
+    .navbar-brand img,
+    .logo-icon img {
+        max-height: 38px;
+    }
+
+    .card-body {
+        padding: 0.5rem;
+    }
+}*/
+
+/* sm: 480px */
+/*@media (min-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+}*/
+
+/* md: 640px */
+/*@media (min-width: 640px) {
+    body {
+        font-size: 15px;
+    }
+
+    .container-fluid {
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+}*/
+
+/* lg: 768px */
+/*@media (min-width: 768px) {
+    body {
+        font-size: 15px;
+    }
+
+    .card-body {
+        padding: 1.25rem;
+    }
+}*/
+
+/* xl: 1024px */
+/*@media (min-width: 1024px) {
+    body {
+        font-size: 16px;
+    }
+
+    .container-fluid {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+}*/
+
+/* 2xl: 1280px */
+/*@media (min-width: 1280px) {
+    body {
+        font-size: 16px;
+    }
+}*/
+
+/* 3xl: 1440px */
+/*@media (min-width: 1440px) {
+    body {
+        font-size: 17px;
+    }
+}*/
+
+/* 4xl: 1920px */
+/*@media (min-width: 1920px) {
+    body {
+        font-size: 18px;
+    }
+}*/
+
+/* ─── 19. INTERAÇÕES ─────────────────────────────────────────── */
+/*.excluirItem,
+.cancelarItemMovimento {
+    cursor: pointer;
+}*/
+
+/* ─── 20. AJUSTES FINOS MOBILE (< 768px) ───────────────────── */
+@media (max-width: 767.98px) {
+
+    /* Breadcrumb oculta texto longo */
+    .page-breadcrumb .col-5,
+    .page-breadcrumb .col-7 {
+        width: 100%;
+        text-align: left;
+    }
+
+    /* Tabela: força scroll horizontal */
+    .table-responsive,
+    .card-body .table,
+    .container table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Formulário: inputs e selects em bloco */
+    .form-control,
+    select,
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"] {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* DataTable: busca em cima da tabela */
+    .dt-container .dt-search {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .dt-container .dt-search input {
+        max-width: 100%;
+    }
+
+    /* Paginação centralizada */
+    .dt-paging {
+        text-align: center;
+    }
+
+    /* Footer: sem position absolute */
+    .footer {
+        position:page;
+        bottom: 0 !important;
+    }
+
+    /* Botões lado a lado → empilhados */
+    .row .col-lg-6[style*="text-align:right"],
+    .row .col-lg-6[style*="text-align: right"] {
+        text-align: left !important;
+        margin-top: 0.5rem;
+    }
+}
+
+/* ─── 21. AJUSTES TABLET (768px – 1023px) ──────────────────── */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+
+    table#table-lista-itens {
+        max-width: 100%;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .dt-container .dt-search input {
+        max-width: 200px;
+    }
+}

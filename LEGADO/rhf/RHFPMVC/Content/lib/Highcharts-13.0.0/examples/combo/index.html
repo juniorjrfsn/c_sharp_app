@@ -1,0 +1,210 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Highcharts Example</title>
+
+		<style type="text/css">
+:root {
+    color-scheme: light dark;
+}
+body {
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        "Apple Color Emoji",
+        "Segoe UI Emoji",
+        "Segoe UI Symbol",
+        sans-serif;
+    background: var(--highcharts-background-color);
+    color: var(--highcharts-neutral-color-100);
+}
+
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 310px;
+    max-width: 800px;
+    margin: 1em auto;
+}
+
+#container {
+    height: 400px;
+}
+
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid var(--highcharts-neutral-color-10, #e6e6e6);
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: var(--highcharts-neutral-color-60, #666);
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tbody tr:nth-child(even) {
+    background: var(--highcharts-neutral-color-3, #f7f7f7);
+}
+
+.highcharts-description {
+    background: light-dark(#f2f6f2, #323232);
+    border-radius: 0 4px 4px 0;
+    border-left: 2px solid light-dark(#1d6aff, #fff);
+    font-size: 0.8rem;
+    font-style: italic;
+    padding: 8px 16px;
+    margin: 2em 10px 1em;
+}
+
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #141414;
+        color: #ddd;
+    }
+    a {
+        color: #2caffe;
+    }
+}
+		</style>
+	</head>
+	<body>
+<script src="../../code/highcharts.js"></script>
+<script src="../../code/modules/series-label.js"></script>
+<script src="../../code/modules/exporting.js"></script>
+<script src="../../code/modules/export-data.js"></script>
+<script src="../../code/modules/accessibility.js"></script>
+
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+        Chart showing how different series types can be combined in a single
+        chart. The chart is using a set of column series, overlaid by a line and
+        a pie series. The line is illustrating the column averages, while the
+        pie is illustrating the column totals.
+    </p>
+</figure>
+
+
+
+		<script type="text/javascript">
+// Data retrieved from https://www.ssb.no/energi-og-industri/olje-og-gass/statistikk/sal-av-petroleumsprodukt/artikler/auka-sal-av-petroleumsprodukt-til-vegtrafikk
+Highcharts.chart('container', {
+    dataTable: {
+        columns: {
+            Product: [
+                'Jet fuel', 'Duty-free diesel', 'Petrol', 'Diesel', 'Gas oil'
+            ],
+            2020: [59, 83, 65, 228, 184],
+            2021: [24, 79, 72, 240, 167],
+            2022: [58, 88, 75, 250, 176],
+            Average: [47, 83.33, 70.66, 239.33, 175.66]
+        }
+    },
+    title: {
+        text: 'Sales of petroleum products March, Norway'
+    },
+    xAxis: {
+        type: 'category'
+    },
+    yAxis: {
+        title: {
+            text: 'Million liters'
+        }
+    },
+    tooltip: {
+        valueSuffix: ' million liters'
+    },
+    plotOptions: {
+        series: {
+            borderRadius: '25%',
+            dataMapping: {
+                name: 'Product'
+            }
+        }
+    },
+    series: [{
+        type: 'column',
+        dataMapping: {
+            y: '2020'
+        }
+    }, {
+        type: 'column',
+        dataMapping: {
+            y: '2021'
+        }
+    }, {
+        type: 'column',
+        dataMapping: {
+            y: '2022'
+        }
+    }, {
+        type: 'line',
+        step: 'center',
+        dataMapping: {
+            y: 'Average'
+        },
+        marker: {
+            lineWidth: 2,
+            lineColor: 'var(--highcharts-color-3)',
+            fillColor: 'var(--highcharts-background-color, white)'
+        }
+    }, {
+        type: 'pie',
+        name: 'Total',
+        data: [{
+            name: '2020',
+            y: 619,
+            color: 'var(--highcharts-color-0)', // 2020 color
+            dataLabels: {
+                enabled: true,
+                distance: -50,
+                format: '{point.total} M',
+                style: {
+                    fontSize: '15px',
+                    color: 'var(--highcharts-neutral-color-100, black)'
+                }
+            }
+        }, {
+            name: '2021',
+            y: 586,
+            color: 'var(--highcharts-color-1)' // 2021 color
+        }, {
+            name: '2022',
+            y: 647,
+            color: 'var(--highcharts-color-2)' // 2022 color
+        }],
+        center: [75, 65],
+        size: 100,
+        innerSize: '70%',
+        showInLegend: false,
+        dataLabels: {
+            enabled: false
+        }
+    }]
+});
+
+		</script>
+	</body>
+</html>

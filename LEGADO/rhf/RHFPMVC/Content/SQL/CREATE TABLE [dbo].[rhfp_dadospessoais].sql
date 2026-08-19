@@ -1,0 +1,18 @@
+﻿
+CREATE TABLE [dbo].[rhfp_dadospessoais](
+	[dpess_id] [int] IDENTITY(1,1) NOT NULL,
+	[ALA-DP-MATRICULA] [int] NULL,
+	[ALA-DP-NOME-SERVIDOR] [varchar](70) NULL,
+	[ALA-DP-CPF-SERVIDOR] [varchar](11) NULL,
+	[DATA-NASC] [varchar](8) NULL,
+	[ALA-DP-DATA-ADMISSAO] [varchar](8) NULL,
+	[ALA-DP-STATUS] [int] NULL,
+	[Status] [varchar](15) NULL,
+	[ALA-DP-NOME-PAI] [varchar](33) NULL,
+	[ALA-DP-NOME-MAE] [varchar](33) NULL
+ CONSTRAINT [PK_rhfp_dadospessoais] PRIMARY KEY CLUSTERED 
+(
+	[dpess_id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+

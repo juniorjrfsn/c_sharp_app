@@ -1,0 +1,13 @@
+!/**
+ * Highcharts Gantt JS v13.0.0 (2026-06-11)
+ * @module highcharts/modules/static-scale
+ * @requires highcharts
+ *
+ * StaticScale
+ *
+ * (c) 2016-2026 Highsoft AS
+ * Author: Torstein Hønsi, Lars A. V. Cabrera
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts):"function"==typeof define&&define.amd?define("highcharts/modules/static-scale",["highcharts/highcharts"],function(t){return e(t)}):"object"==typeof exports?exports["highcharts/modules/static-scale"]=e(t._Highcharts):t.Highcharts=e(t.Highcharts)}("u"<typeof window?this:window,function(t){return function(){"use strict";var e={944:function(e){e.exports=t}},i={};function r(t){var a=i[t];if(void 0!==a)return a.exports;var n=i[t]={exports:{}};return e[t](n,n.exports,r),n.exports}r.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return r.d(e,{a:e}),e},r.d=function(t,e){for(var i in e)r.o(e,i)&&!r.o(t,i)&&Object.defineProperty(t,i,{enumerable:!0,get:e[i]})},r.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var a={};r.d(a,{default:function(){return d}});var n=r(944),o=r.n(n),s=o().composed;function h(){var t,e=this.chart.userOptions.chart;!this.horiz&&(0,n.isNumber)(this.options.staticScale)&&(!(null==e?void 0:e.height)||(null==(t=e.scrollablePlotArea)?void 0:t.minHeight))&&(this.staticScale=this.options.staticScale)}function c(){var t,e;if("adjustHeight"!==this.redrawTrigger){for(var i=0,r=this.axes||[];i<r.length;i++)!function(i){var r=i.chart,a=i.options.staticScale;if(i.staticScale&&a&&(0,n.defined)(i.min)&&(0,n.defined)(i.max)){var o=(null!=(e=null==(t=i.brokenAxis)?void 0:t.unitLength)?e:i.max+i.tickInterval-i.min)*a,s=(o=Math.max(o,a))-r.plotHeight;!r.scrollablePixelsY&&Math.abs(s)>=1&&(r.plotHeight=o,r.redrawTrigger="adjustHeight",r.setSize(void 0,r.chartHeight+s,!!r.initiatedScale&&void 0)),i.series.forEach(function(t){var e=t.sharedClipKey&&r.sharedClips[t.sharedClipKey];e&&e.attr(r.inverted?{width:r.plotHeight}:{height:r.plotHeight})})}}(r[i]);this.initiatedScale=!0}this.redrawTrigger=void 0}var u=o();!function(t,e){if((0,n.pushUnique)(s,"StaticScale")){var i=e.prototype;(0,n.addEvent)(t,"afterSetOptions",h),i.adjustHeight=c,(0,n.addEvent)(e,"render",i.adjustHeight)}}(u.Axis,u.Chart);var d=o();return a.default}()});

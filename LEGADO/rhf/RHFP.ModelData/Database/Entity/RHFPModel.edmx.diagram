@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="3b49e04f51084045972617e00d6c3855" Name="Diagram1">
+        <EntityTypeShape EntityType="RHFPModel.rhfp_cargo_simbolo" Width="1.5" PointX="0.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_cbo" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_codigo_atos_eventos" Width="1.5" PointX="0.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_estado_civil" Width="1.5" PointX="2.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_grau_instrucao" Width="1.5" PointX="4.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_municipio" Width="1.5" PointX="4.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_orgao_superior" Width="1.5" PointX="6.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_provimento" Width="1.5" PointX="0.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_sexo" Width="1.5" PointX="2.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_situacao_funcional" Width="1.5" PointX="6.75" PointY="3.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_status" Width="1.5" PointX="4.75" PointY="6.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.sysdiagrams" Width="1.5" PointX="8.75" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_banco" Width="1.5" PointX="0.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_banco_agencia" Width="1.5" PointX="2.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_faixas_imposto_renda" Width="1.5" PointX="9.75" PointY="3.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_financeiro" Width="1.5" PointX="4.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_grau_parentesco" Width="1.5" PointX="9.75" PointY="6.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_orgao_externo" Width="1.5" PointX="6.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_orgao_unidade_orcamentaria" Width="1.5" PointX="8.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_paises" Width="1.5" PointX="10.75" PointY="9.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_quadro_cargo_original" Width="1.5" PointX="11.75" PointY="0.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_reparticao" Width="1.5" PointX="11.75" PointY="3.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_rubricas" Width="1.5" PointX="11.75" PointY="6.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_seguradoras" Width="1.5" PointX="0.75" PointY="12.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_tipo_ato_funcional" Width="1.5" PointX="6.75" PointY="12.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_tipo_dependencia" Width="1.5" PointX="8.75" PointY="12.75" />
+        <EntityTypeShape EntityType="RHFPModel.rhfp_valores_mensais" Width="1.5" PointX="12.75" PointY="9.75" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>

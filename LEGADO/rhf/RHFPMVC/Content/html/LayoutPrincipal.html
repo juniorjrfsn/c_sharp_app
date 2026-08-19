@@ -1,0 +1,539 @@
+﻿<!DOCTYPE html>
+<html lang="pt-br">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{PageTitle}</title>
+        {PageHead}
+        <style>
+            .verde {
+                background: #eefde5;
+            }
+
+            .azul {
+                background: #e5eeff;
+            }
+
+            .amarelo {
+                background: #fff6cf;
+            }
+
+            .trresumocota {
+                background-color: #f2f2f2; /* Exemplo de estilo */
+                font-weight: 600;
+            }
+
+            #header {
+                width: 100%;
+                position: relative;
+            }
+
+            #header tbody tr td:nth-child(1) {
+                max-width: 240px;
+                width: 240px;
+                padding-left: 0px;
+                padding-right: 0px;
+                text-align: left;
+            }
+
+            #header tbody tr td:nth-child(2) {
+                text-align: center;
+                font-size: 26px;
+                color: #002060;
+                font-weight: 600;
+                font-size: 25px;
+                min-width: 500px;
+                padding-left: 0px;
+            }
+
+            #header tbody tr td:nth-child(3) {
+                padding-left: 0px;
+                text-align: right;
+                max-width: 220px;
+                width: 220px;
+            }
+
+            #logoAgeprev {
+                height: 100px;
+            }
+
+            #logoEstado {
+                height: 100px;
+            }
+
+            body {
+                margin: 0;
+                font-family: 'Times New Roman', Times, serif;
+            }
+
+            .content {
+                /*   flex: 1;
+                display: flex;
+                flex-direction: column;
+                margin-bottom: 20px;*/
+                margin: 0px 0px 0px 0px;
+            }
+
+            /*#content-dados {
+
+            }*/
+
+            /*{EstiloMarcaDagua}*/
+
+            #titulo {
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 18px;
+            }
+
+            #rodape {
+                width: 100%;
+                font-size: 18px;
+                font-weight: 600;
+                border-collapse: collapse;
+                border: 1px solid black;
+                background: #f2f2f2;
+                /* font-family: 'Times'; */
+            }
+
+            #footer {
+                width: 100%;
+                height: 30px;
+                font-size: 14px;
+                font-weight: 600;
+                color: #222222;
+                border-collapse: collapse;
+                font-family: 'Courier New';
+            }
+
+            #footer td {
+                padding: 15px 1px 0px 1px;
+            }
+
+            .footer-left {
+                text-align: left;
+                width: 33.33%;
+                border-top: 1px solid black;
+            }
+
+            .footer-center {
+                text-align: left;
+                border-top: 1px solid black;
+                /*  width: 33.33%;*/
+            }
+
+            .footer-right {
+                text-align: right;
+                width: 33.33%;
+            }
+
+            table.Rel1 {
+                border-collapse: collapse;
+                width: 100%;
+            }
+
+            table.Rel1 thead tr th {
+                padding: 8px;
+                border: none;
+                font-size: 11px;
+                text-align: center;
+            }
+
+            table.Rel1 tbody tr td {
+                padding: 8px;
+                border: none;
+                font-size: 11px;
+            }
+
+            table.Rel1 tbody tr td {
+                padding: 8px;
+                border: none;
+                font-size: 11px;
+            }
+
+            table.Rel1 thead tr th:nth-child(1),
+            table.Rel1 tbody tr td:nth-child(1) {
+                text-align: center;
+                width: 60px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(2) {
+                text-align: right;
+                width: 110px;
+                max-width: 110px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(3) {
+                text-align: right;
+                width: 110px;
+                max-width: 110px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(4) {
+                text-align: right;
+                width: 70px;
+                max-width: 70px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(5) {
+                text-align: right;
+                width: 70px;
+                max-width: 70px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(6) {
+                text-align: center;
+                width: 50px;
+                max-width: 50px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(7) {
+                text-align: center;
+                width: 50px;
+                max-width: 50px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(8),
+            table.Rel1 tbody tr td:nth-child(9) {
+                text-align: center;
+                width: 50px;
+                max-width: 50px;
+            }
+
+            table.Rel1 tbody tr td:nth-child(10),
+            table.Rel1 tbody tr td:nth-child(11) {
+                text-align: right;
+                width: 50px;
+            }
+
+            table.Rel1 tfoot tr td {
+                padding: 8px;
+                border: 1px solid black;
+                border-width: 1px;
+                font-size: 11px;
+            }
+
+            table.Rel1 tfoot tr td:nth-child(1) {
+                width: 10px;
+            }
+
+            table.Rel1 tfoot tr td:nth-child(4) {
+                text-align: left;
+            }
+
+            table.Rel1 tfoot tr td:nth-child(1),
+            table.Rel1 tfoot tr td:nth-child(8),
+            table.Rel1 tfoot tr td:nth-child(9) {
+                text-align: center;
+            }
+
+            table.Rel1 tfoot tr td:nth-child(2),
+            table.Rel1 tfoot tr td:nth-child(3),
+            table.Rel1 tfoot tr td:nth-child(5),
+            table.Rel1 tfoot tr td:nth-child(6),
+            table.Rel1 tfoot tr td:nth-child(7),
+            table.Rel1 tfoot tr td:nth-child(10),
+            table.Rel1 tfoot tr td:nth-child(11) {
+                text-align: right;
+            }
+
+            table.Rel1 tfoot tr td:nth-child(13) {
+                padding-left: 10px;
+                background-color: #f2f2f2;
+                text-align: center;
+            }
+
+            /* Estilo para a tabela de resumo */
+            table#Resumo {
+                border-collapse: collapse;
+                float: right;
+            }
+
+            table#Resumo thead tr th {
+                padding: 8px;
+                border: none;
+                font-size: 20px; /* Ajuste conforme necessário */
+                text-align: center;
+                background-color: #f2f2f2;
+            }
+
+            table#Resumo tbody tr td {
+                padding: 8px;
+                border: none;
+                font-size: 14px; /* Ajuste conforme necessário */
+                text-align: right;
+            }
+
+            table#Resumo tbody tr td:first-child {
+                text-align: left;
+                padding-right: 100px; /* Ajuste conforme necessário */
+            }
+
+            table#Resumo tbody tr td:nth-child(2) {
+                padding-left: 51px; /* Ajuste conforme necessário */
+            }
+
+            table#Resumo tbody tr td:nth-child(2) {
+                padding-left: 51px; /* Ajuste conforme necessário */
+            }
+
+            table#Resumo tbody tr:nth-child(4) {
+                font-weight: 600;
+            }
+
+            table#Resumo tfoot tr td {
+                padding: 8px;
+                border: none;
+                font-size: 14px; /* Ajuste conforme necessário */
+                text-align: right;
+            }
+
+            table#Resumo tfoot tr td:first-child {
+                text-align: left;
+                padding-right: 100px; /* Ajuste conforme necessário */
+            }
+
+            table#Resumo tfoot tr td:nth-child(2) {
+                padding-left: 50px; /* Ajuste conforme necessário */
+            }
+
+            table#Resumo tfoot tr:nth-child(3) {
+                background-color: #f2f2f2; /* Exemplo de estilo */
+                font-weight: 600;
+            }
+
+            table#Resumo tfoot tr:nth-child(4) {
+                font-weight: 600;
+            }
+
+            /* ============= CARD STYLES ============= */
+            .card {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                margin-bottom: 12px;
+                page-break-inside: avoid;
+            }
+
+            .card.border-light {
+                border: 1px solid #e9ecef;
+            }
+
+            .card-header {
+                padding: 12px 16px;
+                background-color: #337ab7;
+                color: white;
+                font-weight: 600;
+                border-bottom: 1px solid #dee2e6;
+                border-radius: 8px 8px 0 0;
+            }
+
+            .card-header h4 {
+                margin: 0;
+                padding: 0;
+                font-size: 14px;
+                line-height: 1.4;
+                font-family: sans-serif;
+                font-weight: 800;
+            }
+
+            .card-header h4 b {
+                font-weight: 800;
+            }
+
+            .card-header input[type="hidden"] {
+                display: none;
+            }
+
+            .card-body {
+                padding: 12px 16px;
+                background-color: #fefefe;
+                border-radius: 0 0 8px 8px;
+            }
+
+            .card-body.border-light {
+                background-color: #fefefe;
+            }
+
+            /* ============= LIST GROUP STYLES ============= */
+            .list-group {
+                list-style: none;
+                margin: 0;
+                padding: 0;
+                border: none;
+            }
+
+            .list-group-flush {
+                border-radius: 0;
+            }
+
+            .list-group-item {
+                padding: 10px 0;
+                background-color: transparent;
+                border: none;
+                border-bottom: 1px solid #e9ecef;
+                margin-bottom: 0;
+            }
+
+            .list-group-item:last-child {
+                border-bottom: none;
+            }
+
+            /* ============= FORM CHECK STYLES ============= */
+            .form-check {
+                display: flex;
+                align-items: flex-start;
+                gap: 8px;
+                margin: 0;
+                padding: 0;
+            }
+
+            .form-check-input {
+                width: 16px;
+                height: 16px;
+                margin-top: 2px;
+                margin-right: 0;
+                cursor: pointer;
+                border: 1px solid #999;
+                border-radius: 3px;
+                flex-shrink: 0;
+            }
+
+            .form-check-input:checked {
+                background-color: #337ab7;
+                border-color: #337ab7;
+            }
+
+            .form-check-label {
+                margin-left: 0;
+                margin-bottom: 0;
+                font-size: 13px;
+                line-height: 1.4;
+            }
+
+            /* ============= SVG ICON STYLES ============= */
+            svg.svg-inline--fa {
+                width: 16px;
+                height: 16px;
+                display: inline-block;
+                vertical-align: -2px;
+                margin: 0 4px;
+                flex-shrink: 0;
+            }
+
+            svg.svg-inline--fa.fa-lg {
+                width: 16px;
+                height: 16px;
+            }
+
+            svg.fa-check {
+                width: 18px;
+                height: 18px;
+                margin-right: 8px;
+            }
+
+            .text-success {
+                color: #28a745;
+            }
+
+            .text-danger {
+                color: #dc3545;
+            }
+
+            /* ============= FORM LABEL AND GROUP STYLES ============= */
+            .form-label {
+                display: inline-block;
+                font-weight: 500;
+                margin-bottom: 0;
+                font-size: 13px;
+            }
+
+            .form-group {
+                margin-bottom: 0;
+            }
+
+            .table {
+                width: 100%;
+                margin: 0;
+                border-collapse: collapse;
+                font-size: 13px;
+            }
+
+            .table.table-striped-columns tbody tr td {
+                padding: 8px;
+                vertical-align: top;
+            }
+
+            /* ============= USER INFO CARD ============= */
+            #questionario > .card:first-child .card-body {
+                background-color: #fefefe;
+            }
+
+            #questionario > .card:first-child .table {
+                width: 100%;
+            }
+
+            #questionario > .card:first-child .table tr {
+                border: none;
+            }
+
+            #questionario > .card:first-child .table td {
+                padding: 6px 8px;
+                border: none;
+            }
+
+            #nomeUser, #notaUser {
+                font-weight: 600;
+                font-size: 13px;
+            }
+
+            /* ============= CAPTCHA CARD ============= */
+            #cardCaptcha {
+                page-break-inside: avoid;
+            }
+
+            .alert {
+                padding: 10px 12px;
+                margin: 10px 0 0 0;
+                border-radius: 4px;
+                font-size: 12px;
+                text-align: center;
+            }
+
+            /* ============= ICON NEXT TO QUESTION ============= */
+            #questionario > .card > div:first-child {
+                display: inline-flex;
+                align-items: center;
+                margin-bottom: 8px;
+                height: 20px;
+            }
+
+            #questionario > .card > div:first-child svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            /* ============= ADJUST CARD SPACING ============= */
+            #questionario > .card {
+                margin-bottom: 16px;
+                page-break-inside: avoid;
+            }
+
+            #questionario > .card > .card-header + div {
+                display: flex;
+                align-items: center;
+                margin-bottom: 8px;
+                gap: 8px;
+            }
+
+            #questionario > .card > .card-header + div svg {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+            }
+
+        </style>
+        <body>
+            <div class="content">
+                {PageContent}
+            </div>
+        </body>
+</html>

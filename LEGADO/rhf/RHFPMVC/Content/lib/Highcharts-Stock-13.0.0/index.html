@@ -1,0 +1,148 @@
+
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Highstock Examples</title>
+        <style>
+            * {
+                font-family: sans-serif;
+            }
+            body {
+                margin: 1rem 1.5rem;
+            }
+            .sidebar-category-list,
+            .sidebar-demo-list {
+                list-style: none;
+                padding-left: 0;
+                margin-left: 0;
+            }
+            .sidebar-category-group {
+                margin: 0 0 1rem 0;
+            }
+            .sidebar-category {
+                font-size: 1.5em;
+                font-weight: bold;
+                margin: 1em 0 0.3em 0;
+            }
+            .sidebar-demo-list {
+                padding-left: 1.25em;
+                font-size: 1.15em;
+            }
+            .sidebar-demo-list > li {
+                padding-bottom: 0.5em;
+            }
+            a {
+                text-decoration: none;
+                color: #6065c8;
+            }
+            a:hover {
+                text-decoration: underline;
+            }
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background-color: #141414;
+                    color: #ddd;
+                }
+                a {
+                    color: #2caffe;
+                }
+            }
+        </style>
+    </head>
+    <body>
+    <h1>Highstock Examples</h1>
+    
+<ul class="sidebar-category-list">
+
+    <li class="sidebar-category-group">
+        <h2 class="sidebar-category">General</h2>
+        <ul class="sidebar-demo-list">
+
+            <li><a href="examples/dynamic-update/index.html">Dynamically updated data</a></li>
+            <li><a href="examples/live-candlestick/index.html">Live candlestick chart</a></li>
+            <li><a href="examples/relative-rotation-graph/index.html">Relative Rotation Graph</a></li>
+            <li><a href="examples/stock-tools-gui/index.html">Stock chart with GUI</a></li>
+            <li><a href="examples/flags-general/index.html">Flags marking events</a></li>
+            <li><a href="examples/intraday-candlestick/index.html">Intraday candlestick</a></li>
+            <li><a href="examples/intraday-breaks/index.html">Intraday with breaks</a></li>
+            <li><a href="examples/intraday-area/index.html">Intraday area</a></li>
+            <li><a href="examples/lazy-loading/index.html">1.7 million points with async loading</a></li>
+            <li><a href="examples/soundscape/index.html">Soundscape</a></li>
+            <li><a href="examples/data-grouping/index.html">52,000 points with data grouping</a></li>
+            <li><a href="examples/compare/index.html">Compare multiple series</a></li>
+            <li><a href="examples/candlestick-and-volume/index.html">Two panes, candlestick and volume</a></li>
+            <li><a href="examples/basic-line/index.html">Single line series</a></li>
+            <li><a href="examples/cumulative-sum/index.html">Cumulative Sum</a></li>
+        </ul>
+    </li>
+    <li class="sidebar-category-group">
+        <h2 class="sidebar-category">Chart types</h2>
+        <ul class="sidebar-demo-list">
+
+            <li><a href="examples/pointandfigure/index.html">Point and figure series</a></li>
+            <li><a href="examples/markers-only/index.html">Point markers only</a></li>
+            <li><a href="examples/renko/index.html">Renko series</a></li>
+            <li><a href="examples/columnrange/index.html">Column range</a></li>
+            <li><a href="examples/column/index.html">Column</a></li>
+            <li><a href="examples/ohlc/index.html">OHLC</a></li>
+            <li><a href="examples/candlestick/index.html">Candlestick</a></li>
+            <li><a href="examples/areasplinerange/index.html">Area spline range</a></li>
+            <li><a href="examples/depth-chart/index.html">Depth chart</a></li>
+            <li><a href="examples/orderbook-chart/index.html">Order book chart</a></li>
+            <li><a href="examples/arearange/index.html">Area range</a></li>
+            <li><a href="examples/areaspline/index.html">Area spline</a></li>
+            <li><a href="examples/area/index.html">BTC-ETH Area</a></li>
+            <li><a href="examples/step-line/index.html">Step line</a></li>
+            <li><a href="examples/spline/index.html">Spline</a></li>
+            <li><a href="examples/hollow-candlestick/index.html">Hollow Candlestick</a></li>
+            <li><a href="examples/hlc/index.html">HLC</a></li>
+            <li><a href="examples/heikinashi/index.html">Heikin Ashi</a></li>
+            <li><a href="examples/candlestick-volume-width/index.html">Candlestick and volume width</a></li>
+        </ul>
+    </li>
+    <li class="sidebar-category-group">
+        <h2 class="sidebar-category">Various features</h2>
+        <ul class="sidebar-demo-list">
+
+            <li><a href="examples/maskinside-false/index.html">Inverted navigator mask</a></li>
+            <li><a href="examples/responsive/index.html">Responsive chart</a></li>
+            <li><a href="examples/standalone-navigator/index.html">Standalone Navigator</a></li>
+            <li><a href="examples/two-standalone-navigators/index.html">Two Standalone Navigators</a></li>
+            <li><a href="examples/styled-scrollbar/index.html">Styled scrollbar</a></li>
+            <li><a href="examples/yaxis-plotbands/index.html">Plot bands on Y axis</a></li>
+            <li><a href="examples/yaxis-plotlines/index.html">Plot lines on Y axis</a></li>
+            <li><a href="examples/stock-tools-custom-gui/index.html">Stock chart with custom GUI</a></li>
+            <li><a href="examples/compare-etf/index.html">Compare ETFs performance</a></li>
+            <li><a href="examples/drag-on-axis/index.html">Drag on axis to zoom</a></li>
+            <li><a href="examples/inverted-navigator/index.html">Inverted navigator</a></li>
+            <li><a href="examples/rangeselector-datagrouping/index.html">Range selector with data grouping</a></li>
+        </ul>
+    </li>
+    <li class="sidebar-category-group">
+        <h2 class="sidebar-category">Flags and Technical indicators</h2>
+        <ul class="sidebar-demo-list">
+
+            <li><a href="examples/flags-shapes/index.html">Flags shapes and colors</a></li>
+            <li><a href="examples/technical-analysis/index.html">Technical analysis with annotations</a></li>
+            <li><a href="examples/flags-placement/index.html">Flags placement</a></li>
+            <li><a href="examples/sma-volume-by-price/index.html">SMA and Volume by price</a></li>
+            <li><a href="examples/macd-pivot-points/index.html">MACD and Pivot points</a></li>
+            <li><a href="examples/all-indicators/index.html">All technical indicators</a></li>
+        </ul>
+    </li>
+    <li class="sidebar-category-group">
+        <h2 class="sidebar-category">Designs</h2>
+        <ul class="sidebar-demo-list">
+
+            <li><a href="examples/black-and-white/index.html">Black and white Stock chart</a></li>
+            <li><a href="examples/dark-theme/index.html">Dark themed Stock chart</a></li>
+            <li><a href="examples/dark-candlestick-and-volume/index.html">Dark themed candlestick and volume</a></li>
+            <li><a href="examples/neon-line-chart/index.html">Neon line chart</a></li>
+            <li><a href="examples/stock-css-design/index.html">Stock chart design CSS</a></li>
+        </ul>
+    </li>
+</ul>
+    </body>
+</html>

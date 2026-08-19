@@ -1,0 +1,15 @@
+# Arquivos e pastas do Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Pastas de build
+bin/
+obj/
+
+# Arquivos temporários
+*.cache
+*.vsidx
+*.vscode/

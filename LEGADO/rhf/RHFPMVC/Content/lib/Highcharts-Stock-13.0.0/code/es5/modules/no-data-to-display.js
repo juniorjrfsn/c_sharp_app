@@ -1,0 +1,13 @@
+!/**
+ * Highcharts JS v13.0.0 (2026-06-11)
+ * @module highcharts/modules/no-data-to-display
+ * @requires highcharts
+ *
+ * Plugin for displaying a message when there is no data visible in chart.
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Øystein Moseng
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,o){"object"==typeof exports&&"object"==typeof module?module.exports=o(t._Highcharts,t._Highcharts.AST):"function"==typeof define&&define.amd?define("highcharts/modules/no-data-to-display",["highcharts/highcharts"],function(t){return o(t,t.AST)}):"object"==typeof exports?exports["highcharts/modules/no-data-to-display"]=o(t._Highcharts,t._Highcharts.AST):t.Highcharts=o(t.Highcharts,t.Highcharts.AST)}("u"<typeof window?this:window,function(t,o){return function(){"use strict";var a={660:function(t){t.exports=o},944:function(o){o.exports=t}},e={};function n(t){var o=e[t];if(void 0!==o)return o.exports;var r=e[t]={exports:{}};return a[t](r,r.exports,n),r.exports}n.n=function(t){var o=t&&t.__esModule?function(){return t.default}:function(){return t};return n.d(o,{a:o}),o},n.d=function(t,o){for(var a in o)n.o(o,a)&&!n.o(t,a)&&Object.defineProperty(t,a,{enumerable:!0,get:o[a]})},n.o=function(t,o){return Object.prototype.hasOwnProperty.call(t,o)};var r={};n.d(r,{default:function(){return v}});var i=n(944),s=n.n(i),h=n(660),d=n.n(h),u={lang:{noData:"No data to display"},noData:{attr:{zIndex:1},position:{x:0,y:0,align:"center",verticalAlign:"middle"},style:{fontWeight:"bold",fontSize:"0.8em",color:"var(--highcharts-neutral-color-60)"}}};function c(){for(var t=this.series||[],o=t.length;o--;)if(t[o].hasData()&&!t[o].options.isInternal)return!0;return this.loadingShown}function l(){this.noDataLabel&&(this.noDataLabel=this.noDataLabel.destroy())}function f(t){var o=this.options,a=t||o&&o.lang.noData||"",e=o&&(o.noData||{});this.renderer&&(this.noDataLabel||(this.noDataLabel=this.renderer.label(a,0,0,void 0,void 0,void 0,e.useHTML,void 0,"no-data").add()),this.styledMode||this.noDataLabel.attr(d().filterUserAttributes(e.attr||{})).css(e.style||{}),this.noDataLabel.align((0,i.extend)(this.noDataLabel.getBBox(),e.position||{}),!1,"plotBox"))}function p(){this.hasData()?this.hideNoData():this.showNoData()}var g=s();({compose:function(t,o){var a=t.prototype;a.showNoData||(a.hasData=c,a.hideNoData=l,a.showNoData=f,(0,i.addEvent)(t,"render",p),(0,i.merge)(!0,o,u))}}).compose(g.Chart,g.defaultOptions);var v=s();return r.default}()});

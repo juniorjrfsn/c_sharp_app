@@ -1,0 +1,775 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="RHFPModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="rhfp_banco">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="int" Nullable="false" />
+          <Property Name="os_banco" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_banco_agencia">
+          <Key>
+            <PropertyRef Name="os_cod_banco" />
+            <PropertyRef Name="os_cod_agencia" />
+          </Key>
+          <Property Name="os_cod_banco" Type="int" Nullable="false" />
+          <Property Name="os_cod_agencia" Type="int" Nullable="false" />
+          <Property Name="os_agencia" Type="nvarchar" MaxLength="150" />
+        </EntityType>
+        <EntityType Name="rhfp_cargo_simbolo">
+          <Key>
+            <PropertyRef Name="cs_cod" />
+          </Key>
+          <Property Name="cs_cod" Type="int" Nullable="false" />
+          <Property Name="cs_simbolo" Type="nvarchar" MaxLength="12" />
+          <Property Name="cs_cargo" Type="nvarchar" MaxLength="79" />
+          <Property Name="cs_valor_referencia" Type="decimal" Precision="7" Scale="2" />
+          <Property Name="cs_carga_horaria" Type="int" />
+          <Property Name="cs_ind_cargo" Type="int" />
+          <Property Name="cs_valor_auxiliar" Type="decimal" Precision="7" Scale="2" />
+          <Property Name="cs_cod_orcamentario" Type="nvarchar" MaxLength="10" />
+          <Property Name="cs_incidencias" Type="nvarchar" MaxLength="12" />
+        </EntityType>
+        <EntityType Name="rhfp_cbo">
+          <Key>
+            <PropertyRef Name="cb_cod" />
+          </Key>
+          <Property Name="cb_cod" Type="int" Nullable="false" />
+          <Property Name="cb_cbo" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_codigo_atos_eventos">
+          <Key>
+            <PropertyRef Name="ae_cod" />
+          </Key>
+          <Property Name="ae_cod" Type="int" Nullable="false" />
+          <Property Name="ae_atos_eventos" Type="varchar" MaxLength="100" />
+          <Property Name="ae_status" Type="varchar" MaxLength="3" />
+          <Property Name="ae_ato_texto" Type="nvarchar" MaxLength="7" />
+          <Property Name="ae_conta_vida_funcional" Type="nvarchar" MaxLength="1" />
+        </EntityType>
+        <EntityType Name="rhfp_estado_civil">
+          <Key>
+            <PropertyRef Name="ec_cod" />
+          </Key>
+          <Property Name="ec_cod" Type="int" Nullable="false" />
+          <Property Name="ec_estado_civil" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_faixas_imposto_renda">
+          <Key>
+            <PropertyRef Name="fi_cod" />
+          </Key>
+          <Property Name="fi_cod" Type="int" Nullable="false" />
+          <Property Name="fi_faixa_imposto_renda" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_financeiro">
+          <Key>
+            <PropertyRef Name="fin_id" />
+          </Key>
+          <Property Name="fin_id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="ala-fi-MATRICULA" Type="int" Nullable="false" />
+          <Property Name="tipo-cargo-fi" Type="int" Nullable="false" />
+          <Property Name="ALA-DP-NOME-SERVIDOR" Type="varchar" MaxLength="70" />
+          <Property Name="ALA-DP-CPF-SERVIDOR" Type="varchar" MaxLength="11" />
+          <Property Name="COMPETENCIA-FI" Type="char" MaxLength="6" Nullable="false" />
+          <Property Name="cod-rubrica-fi" Type="int" Nullable="false" />
+          <Property Name="pr_Rubrica" Type="nvarchar" MaxLength="150" />
+          <Property Name="data-inicio-fi" Type="char" MaxLength="8" />
+          <Property Name="ala-fi-valor" Type="decimal" Precision="12" Scale="2" />
+          <Property Name="ala-fi-perc-pont-dia-hora" Type="decimal" Precision="8" Scale="2" />
+          <Property Name="ala-fi-QTDE-URV" Type="decimal" Precision="12" Scale="2" />
+        </EntityType>
+        <EntityType Name="rhfp_grau_instrucao">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="int" Nullable="false" />
+          <Property Name="gi_grau_instrucao" Type="nchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_grau_parentesco">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="int" Nullable="false" />
+          <Property Name="gi_grau_parentesco" Type="nchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_municipio">
+          <Key>
+            <PropertyRef Name="mc_cod" />
+          </Key>
+          <Property Name="mc_cod" Type="int" Nullable="false" />
+          <Property Name="mc_municipio" Type="nvarchar" MaxLength="100" />
+          <Property Name="mc_cod_uf" Type="nvarchar" MaxLength="2" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_externo">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="int" Nullable="false" />
+          <Property Name="os_orgao_externo" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_superior">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="int" Nullable="false" />
+          <Property Name="os_orgao" Type="nvarchar" MaxLength="100" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_unidade_orcamentaria">
+          <Key>
+            <PropertyRef Name="os_cod_orgao" />
+            <PropertyRef Name="os_cod_unidade" />
+          </Key>
+          <Property Name="os_cod_orgao" Type="int" Nullable="false" />
+          <Property Name="os_cod_unidade" Type="int" Nullable="false" />
+          <Property Name="os_unidade_ordamentaria" Type="nvarchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="rhfp_paises">
+          <Key>
+            <PropertyRef Name="st_cod" />
+          </Key>
+          <Property Name="st_cod" Type="int" Nullable="false" />
+          <Property Name="st_paises" Type="nvarchar" MaxLength="50" />
+        </EntityType>
+        <EntityType Name="rhfp_provimento">
+          <Key>
+            <PropertyRef Name="pr_cod" />
+          </Key>
+          <Property Name="pr_cod" Type="int" Nullable="false" />
+          <Property Name="pr_provimento" Type="nvarchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_quadro_cargo_original">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="int" Nullable="false" />
+          <Property Name="gi_quadro_cargo_original" Type="nchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_reparticao">
+          <Key>
+            <PropertyRef Name="sf_cod" />
+          </Key>
+          <Property Name="sf_cod" Type="int" Nullable="false" />
+          <Property Name="sf_reparticao" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_rubricas">
+          <Key>
+            <PropertyRef Name="pr_cod" />
+          </Key>
+          <Property Name="pr_cod" Type="int" Nullable="false" />
+          <Property Name="pr_rubrica" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_seguradoras">
+          <Key>
+            <PropertyRef Name="sx_cod" />
+          </Key>
+          <Property Name="sx_cod" Type="int" Nullable="false" />
+          <Property Name="sx_seguradora" Type="nvarchar" MaxLength="50" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_sexo">
+          <Key>
+            <PropertyRef Name="sx_cod" />
+          </Key>
+          <Property Name="sx_cod" Type="int" Nullable="false" />
+          <Property Name="sx_sexo" Type="nvarchar" MaxLength="15" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_situacao_funcional">
+          <Key>
+            <PropertyRef Name="sf_cod" />
+          </Key>
+          <Property Name="sf_cod" Type="int" Nullable="false" />
+          <Property Name="sf_situacao_funcional" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_status">
+          <Key>
+            <PropertyRef Name="st_cod" />
+          </Key>
+          <Property Name="st_cod" Type="int" Nullable="false" />
+          <Property Name="st_status" Type="nvarchar" MaxLength="15" />
+        </EntityType>
+        <EntityType Name="rhfp_tipo_ato_funcional">
+          <Key>
+            <PropertyRef Name="taf_codigo" />
+          </Key>
+          <Property Name="taf_codigo" Type="smallint" Nullable="false" />
+          <Property Name="taf_tipo_ato_funcional" Type="varchar" MaxLength="100" />
+        </EntityType>
+        <EntityType Name="rhfp_tipo_dependencia">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="int" Nullable="false" />
+          <Property Name="gi_tipo_dependencia" Type="nchar" MaxLength="30" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_valores_mensais">
+          <Key>
+            <PropertyRef Name="vm_cod" />
+          </Key>
+          <Property Name="vm_cod" Type="int" Nullable="false" />
+          <Property Name="vm_descricao" Type="nvarchar" MaxLength="150" Nullable="false" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="nvarchar" MaxLength="128" Nullable="false" />
+          <Property Name="principal_id" Type="int" Nullable="false" />
+          <Property Name="diagram_id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+          <Property Name="version" Type="int" />
+          <Property Name="definition" Type="varbinary(max)" />
+        </EntityType>
+        <EntityContainer Name="RHFPModelStoreContainer">
+          <EntitySet Name="rhfp_banco" EntityType="Self.rhfp_banco" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_banco_agencia" EntityType="Self.rhfp_banco_agencia" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_cargo_simbolo" EntityType="Self.rhfp_cargo_simbolo" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_cbo" EntityType="Self.rhfp_cbo" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_codigo_atos_eventos" EntityType="Self.rhfp_codigo_atos_eventos" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_estado_civil" EntityType="Self.rhfp_estado_civil" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_faixas_imposto_renda" EntityType="Self.rhfp_faixas_imposto_renda" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_financeiro" EntityType="Self.rhfp_financeiro" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_grau_instrucao" EntityType="Self.rhfp_grau_instrucao" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_grau_parentesco" EntityType="Self.rhfp_grau_parentesco" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_municipio" EntityType="Self.rhfp_municipio" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_orgao_externo" EntityType="Self.rhfp_orgao_externo" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_orgao_superior" EntityType="Self.rhfp_orgao_superior" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_orgao_unidade_orcamentaria" EntityType="Self.rhfp_orgao_unidade_orcamentaria" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_paises" EntityType="Self.rhfp_paises" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_provimento" EntityType="Self.rhfp_provimento" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_quadro_cargo_original" EntityType="Self.rhfp_quadro_cargo_original" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_reparticao" EntityType="Self.rhfp_reparticao" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_rubricas" EntityType="Self.rhfp_rubricas" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_seguradoras" EntityType="Self.rhfp_seguradoras" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_sexo" EntityType="Self.rhfp_sexo" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_situacao_funcional" EntityType="Self.rhfp_situacao_funcional" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_status" EntityType="Self.rhfp_status" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_tipo_ato_funcional" EntityType="Self.rhfp_tipo_ato_funcional" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_tipo_dependencia" EntityType="Self.rhfp_tipo_dependencia" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="rhfp_valores_mensais" EntityType="Self.rhfp_valores_mensais" Schema="dbo" store:Type="Tables" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="RHFPModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityType Name="rhfp_cargo_simbolo">
+          <Key>
+            <PropertyRef Name="cs_cod" />
+          </Key>
+          <Property Name="cs_cod" Type="Int32" Nullable="false" />
+          <Property Name="cs_cargo" Type="String" MaxLength="79" FixedLength="false" Unicode="true" />
+          <Property Name="cs_simbolo" Type="String" MaxLength="12" FixedLength="false" Unicode="true" />
+          <Property Name="cs_valor_referencia" Type="Decimal" Precision="7" Scale="2" />
+          <Property Name="cs_carga_horaria" Type="Int32" />
+          <Property Name="cs_ind_cargo" Type="Int32" />
+          <Property Name="cs_valor_auxiliar" Type="Decimal" Precision="7" Scale="2" />
+          <Property Name="cs_cod_orcamentario" Type="String" MaxLength="10" FixedLength="false" Unicode="true" />
+          <Property Name="cs_incidencias" Type="String" MaxLength="12" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_cbo">
+          <Key>
+            <PropertyRef Name="cb_cod" />
+          </Key>
+          <Property Name="cb_cod" Type="Int32" Nullable="false" />
+          <Property Name="cb_cbo" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_codigo_atos_eventos">
+          <Key>
+            <PropertyRef Name="ae_cod" />
+          </Key>
+          <Property Name="ae_cod" Type="Int32" Nullable="false" />
+          <Property Name="ae_atos_eventos" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+          <Property Name="ae_status" Type="String" MaxLength="3" FixedLength="false" Unicode="false" />
+          <Property Name="ae_ato_texto" Type="String" MaxLength="7" FixedLength="false" Unicode="true" />
+          <Property Name="ae_conta_vida_funcional" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_estado_civil">
+          <Key>
+            <PropertyRef Name="ec_cod" />
+          </Key>
+          <Property Name="ec_cod" Type="Int32" Nullable="false" />
+          <Property Name="ec_estado_civil" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_grau_instrucao">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="Int32" Nullable="false" />
+          <Property Name="gi_grau_instrucao" Type="String" MaxLength="30" FixedLength="true" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_municipio">
+          <Key>
+            <PropertyRef Name="mc_cod" />
+          </Key>
+          <Property Name="mc_cod" Type="Int32" Nullable="false" />
+          <Property Name="mc_municipio" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+          <Property Name="mc_cod_uf" Type="String" MaxLength="2" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_superior">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="Int32" Nullable="false" />
+          <Property Name="os_orgao" Type="String" MaxLength="100" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_provimento">
+          <Key>
+            <PropertyRef Name="pr_cod" />
+          </Key>
+          <Property Name="pr_cod" Type="Int32" Nullable="false" />
+          <Property Name="pr_provimento" Type="String" MaxLength="30" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_sexo">
+          <Key>
+            <PropertyRef Name="sx_cod" />
+          </Key>
+          <Property Name="sx_cod" Type="Int32" Nullable="false" />
+          <Property Name="sx_sexo" Type="String" MaxLength="15" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_situacao_funcional">
+          <Key>
+            <PropertyRef Name="sf_cod" />
+          </Key>
+          <Property Name="sf_cod" Type="Int32" Nullable="false" />
+          <Property Name="sf_situacao_funcional" Type="String" MaxLength="150" FixedLength="false" Unicode="true" Nullable="false" />
+        </EntityType>
+        <EntityType Name="rhfp_status">
+          <Key>
+            <PropertyRef Name="st_cod" />
+          </Key>
+          <Property Name="st_cod" Type="Int32" Nullable="false" />
+          <Property Name="st_status" Type="String" MaxLength="15" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="sysdiagrams">
+          <Key>
+            <PropertyRef Name="diagram_id" />
+          </Key>
+          <Property Name="name" Type="String" MaxLength="128" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="principal_id" Type="Int32" Nullable="false" />
+          <Property Name="diagram_id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="version" Type="Int32" />
+          <Property Name="definition" Type="Binary" MaxLength="Max" FixedLength="false" />
+        </EntityType>
+        <EntityContainer Name="RHFPContext" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="rhfp_cargo_simbolo" EntityType="Self.rhfp_cargo_simbolo" />
+          <EntitySet Name="rhfp_cbo" EntityType="Self.rhfp_cbo" />
+          <EntitySet Name="rhfp_codigo_atos_eventos" EntityType="Self.rhfp_codigo_atos_eventos" />
+          <EntitySet Name="rhfp_estado_civil" EntityType="Self.rhfp_estado_civil" />
+          <EntitySet Name="rhfp_grau_instrucao" EntityType="Self.rhfp_grau_instrucao" />
+          <EntitySet Name="rhfp_municipio" EntityType="Self.rhfp_municipio" />
+          <EntitySet Name="rhfp_orgao_superior" EntityType="Self.rhfp_orgao_superior" />
+          <EntitySet Name="rhfp_provimento" EntityType="Self.rhfp_provimento" />
+          <EntitySet Name="rhfp_sexo" EntityType="Self.rhfp_sexo" />
+          <EntitySet Name="rhfp_situacao_funcional" EntityType="Self.rhfp_situacao_funcional" />
+          <EntitySet Name="rhfp_status" EntityType="Self.rhfp_status" />
+          <EntitySet Name="sysdiagrams" EntityType="Self.sysdiagrams" />
+          <EntitySet Name="rhfp_banco" EntityType="RHFPModel.rhfp_banco" />
+          <EntitySet Name="rhfp_banco_agencia" EntityType="RHFPModel.rhfp_banco_agencia" />
+          <EntitySet Name="rhfp_faixas_imposto_renda" EntityType="RHFPModel.rhfp_faixas_imposto_renda" />
+          <EntitySet Name="rhfp_financeiro" EntityType="RHFPModel.rhfp_financeiro" />
+          <EntitySet Name="rhfp_grau_parentesco" EntityType="RHFPModel.rhfp_grau_parentesco" />
+          <EntitySet Name="rhfp_orgao_externo" EntityType="RHFPModel.rhfp_orgao_externo" />
+          <EntitySet Name="rhfp_orgao_unidade_orcamentaria" EntityType="RHFPModel.rhfp_orgao_unidade_orcamentaria" />
+          <EntitySet Name="rhfp_paises" EntityType="RHFPModel.rhfp_paises" />
+          <EntitySet Name="rhfp_quadro_cargo_original" EntityType="RHFPModel.rhfp_quadro_cargo_original" />
+          <EntitySet Name="rhfp_reparticao" EntityType="RHFPModel.rhfp_reparticao" />
+          <EntitySet Name="rhfp_rubricas" EntityType="RHFPModel.rhfp_rubricas" />
+          <EntitySet Name="rhfp_seguradoras" EntityType="RHFPModel.rhfp_seguradoras" />
+          <EntitySet Name="rhfp_tipo_ato_funcional" EntityType="RHFPModel.rhfp_tipo_ato_funcional" />
+          <EntitySet Name="rhfp_tipo_dependencia" EntityType="RHFPModel.rhfp_tipo_dependencia" />
+          <EntitySet Name="rhfp_valores_mensais" EntityType="RHFPModel.rhfp_valores_mensais" />
+        </EntityContainer>
+        <EntityType Name="rhfp_banco">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="Int32" Nullable="false" />
+          <Property Name="os_banco" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_banco_agencia">
+          <Key>
+            <PropertyRef Name="os_cod_banco" />
+            <PropertyRef Name="os_cod_agencia" />
+          </Key>
+          <Property Name="os_cod_banco" Type="Int32" Nullable="false" />
+          <Property Name="os_cod_agencia" Type="Int32" Nullable="false" />
+          <Property Name="os_agencia" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_faixas_imposto_renda">
+          <Key>
+            <PropertyRef Name="fi_cod" />
+          </Key>
+          <Property Name="fi_cod" Type="Int32" Nullable="false" />
+          <Property Name="fi_faixa_imposto_renda" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_financeiro">
+          <Key>
+            <PropertyRef Name="fin_id" />
+          </Key>
+          <Property Name="fin_id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="ala_fi_MATRICULA" Type="Int32" Nullable="false" />
+          <Property Name="tipo_cargo_fi" Type="Int32" Nullable="false" />
+          <Property Name="ALA_DP_NOME_SERVIDOR" Type="String" MaxLength="70" FixedLength="false" Unicode="false" />
+          <Property Name="ALA_DP_CPF_SERVIDOR" Type="String" MaxLength="11" FixedLength="false" Unicode="false" />
+          <Property Name="COMPETENCIA_FI" Type="String" Nullable="false" MaxLength="6" FixedLength="true" Unicode="false" />
+          <Property Name="cod_rubrica_fi" Type="Int32" Nullable="false" />
+          <Property Name="pr_Rubrica" Type="String" MaxLength="150" FixedLength="false" Unicode="true" />
+          <Property Name="data_inicio_fi" Type="String" MaxLength="8" FixedLength="true" Unicode="false" />
+          <Property Name="ala_fi_valor" Type="Decimal" Precision="12" Scale="2" />
+          <Property Name="ala_fi_perc_pont_dia_hora" Type="Decimal" Precision="8" Scale="2" />
+          <Property Name="ala_fi_QTDE_URV" Type="Decimal" Precision="12" Scale="2" />
+        </EntityType>
+        <EntityType Name="rhfp_grau_parentesco">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="Int32" Nullable="false" />
+          <Property Name="gi_grau_parentesco" Type="String" Nullable="false" MaxLength="30" FixedLength="true" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_externo">
+          <Key>
+            <PropertyRef Name="os_cod" />
+          </Key>
+          <Property Name="os_cod" Type="Int32" Nullable="false" />
+          <Property Name="os_orgao_externo" Type="String" Nullable="false" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_orgao_unidade_orcamentaria">
+          <Key>
+            <PropertyRef Name="os_cod_orgao" />
+            <PropertyRef Name="os_cod_unidade" />
+          </Key>
+          <Property Name="os_cod_orgao" Type="Int32" Nullable="false" />
+          <Property Name="os_cod_unidade" Type="Int32" Nullable="false" />
+          <Property Name="os_unidade_ordamentaria" Type="String" MaxLength="100" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_paises">
+          <Key>
+            <PropertyRef Name="st_cod" />
+          </Key>
+          <Property Name="st_cod" Type="Int32" Nullable="false" />
+          <Property Name="st_paises" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_quadro_cargo_original">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="Int32" Nullable="false" />
+          <Property Name="gi_quadro_cargo_original" Type="String" Nullable="false" MaxLength="30" FixedLength="true" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_reparticao">
+          <Key>
+            <PropertyRef Name="sf_cod" />
+          </Key>
+          <Property Name="sf_cod" Type="Int32" Nullable="false" />
+          <Property Name="sf_reparticao" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_rubricas">
+          <Key>
+            <PropertyRef Name="pr_cod" />
+          </Key>
+          <Property Name="pr_cod" Type="Int32" Nullable="false" />
+          <Property Name="pr_rubrica" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_seguradoras">
+          <Key>
+            <PropertyRef Name="sx_cod" />
+          </Key>
+          <Property Name="sx_cod" Type="Int32" Nullable="false" />
+          <Property Name="sx_seguradora" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_tipo_ato_funcional">
+          <Key>
+            <PropertyRef Name="taf_codigo" />
+          </Key>
+          <Property Name="taf_codigo" Type="Int16" Nullable="false" />
+          <Property Name="taf_tipo_ato_funcional" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+        </EntityType>
+        <EntityType Name="rhfp_tipo_dependencia">
+          <Key>
+            <PropertyRef Name="gi_cod" />
+          </Key>
+          <Property Name="gi_cod" Type="Int32" Nullable="false" />
+          <Property Name="gi_tipo_dependencia" Type="String" Nullable="false" MaxLength="30" FixedLength="true" Unicode="true" />
+        </EntityType>
+        <EntityType Name="rhfp_valores_mensais">
+          <Key>
+            <PropertyRef Name="vm_cod" />
+          </Key>
+          <Property Name="vm_cod" Type="Int32" Nullable="false" />
+          <Property Name="vm_descricao" Type="String" Nullable="false" MaxLength="150" FixedLength="false" Unicode="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="RHFPModelStoreContainer" CdmEntityContainer="RHFPContext">
+          <EntitySetMapping Name="rhfp_cargo_simbolo">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_cargo_simbolo">
+              <MappingFragment StoreEntitySet="rhfp_cargo_simbolo">
+                <ScalarProperty Name="cs_incidencias" ColumnName="cs_incidencias" />
+                <ScalarProperty Name="cs_cod_orcamentario" ColumnName="cs_cod_orcamentario" />
+                <ScalarProperty Name="cs_valor_auxiliar" ColumnName="cs_valor_auxiliar" />
+                <ScalarProperty Name="cs_ind_cargo" ColumnName="cs_ind_cargo" />
+                <ScalarProperty Name="cs_carga_horaria" ColumnName="cs_carga_horaria" />
+                <ScalarProperty Name="cs_valor_referencia" ColumnName="cs_valor_referencia" />
+                <ScalarProperty Name="cs_cod" ColumnName="cs_cod" />
+                <ScalarProperty Name="cs_cargo" ColumnName="cs_cargo" />
+                <ScalarProperty Name="cs_simbolo" ColumnName="cs_simbolo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_cbo">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_cbo">
+              <MappingFragment StoreEntitySet="rhfp_cbo">
+                <ScalarProperty Name="cb_cod" ColumnName="cb_cod" />
+                <ScalarProperty Name="cb_cbo" ColumnName="cb_cbo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_codigo_atos_eventos">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_codigo_atos_eventos">
+              <MappingFragment StoreEntitySet="rhfp_codigo_atos_eventos">
+                <ScalarProperty Name="ae_conta_vida_funcional" ColumnName="ae_conta_vida_funcional" />
+                <ScalarProperty Name="ae_cod" ColumnName="ae_cod" />
+                <ScalarProperty Name="ae_atos_eventos" ColumnName="ae_atos_eventos" />
+                <ScalarProperty Name="ae_status" ColumnName="ae_status" />
+                <ScalarProperty Name="ae_ato_texto" ColumnName="ae_ato_texto" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_estado_civil">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_estado_civil">
+              <MappingFragment StoreEntitySet="rhfp_estado_civil">
+                <ScalarProperty Name="ec_cod" ColumnName="ec_cod" />
+                <ScalarProperty Name="ec_estado_civil" ColumnName="ec_estado_civil" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_grau_instrucao">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_grau_instrucao">
+              <MappingFragment StoreEntitySet="rhfp_grau_instrucao">
+                <ScalarProperty Name="gi_cod" ColumnName="gi_cod" />
+                <ScalarProperty Name="gi_grau_instrucao" ColumnName="gi_grau_instrucao" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_municipio">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_municipio">
+              <MappingFragment StoreEntitySet="rhfp_municipio">
+                <ScalarProperty Name="mc_cod_uf" ColumnName="mc_cod_uf" />
+                <ScalarProperty Name="mc_cod" ColumnName="mc_cod" />
+                <ScalarProperty Name="mc_municipio" ColumnName="mc_municipio" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_orgao_superior">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_orgao_superior">
+              <MappingFragment StoreEntitySet="rhfp_orgao_superior">
+                <ScalarProperty Name="os_cod" ColumnName="os_cod" />
+                <ScalarProperty Name="os_orgao" ColumnName="os_orgao" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_provimento">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_provimento">
+              <MappingFragment StoreEntitySet="rhfp_provimento">
+                <ScalarProperty Name="pr_cod" ColumnName="pr_cod" />
+                <ScalarProperty Name="pr_provimento" ColumnName="pr_provimento" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_sexo">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_sexo">
+              <MappingFragment StoreEntitySet="rhfp_sexo">
+                <ScalarProperty Name="sx_cod" ColumnName="sx_cod" />
+                <ScalarProperty Name="sx_sexo" ColumnName="sx_sexo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_situacao_funcional">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_situacao_funcional">
+              <MappingFragment StoreEntitySet="rhfp_situacao_funcional">
+                <ScalarProperty Name="sf_cod" ColumnName="sf_cod" />
+                <ScalarProperty Name="sf_situacao_funcional" ColumnName="sf_situacao_funcional" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_status">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_status">
+              <MappingFragment StoreEntitySet="rhfp_status">
+                <ScalarProperty Name="st_cod" ColumnName="st_cod" />
+                <ScalarProperty Name="st_status" ColumnName="st_status" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="sysdiagrams">
+            <EntityTypeMapping TypeName="RHFPModel.sysdiagrams">
+              <MappingFragment StoreEntitySet="sysdiagrams">
+                <ScalarProperty Name="name" ColumnName="name" />
+                <ScalarProperty Name="principal_id" ColumnName="principal_id" />
+                <ScalarProperty Name="diagram_id" ColumnName="diagram_id" />
+                <ScalarProperty Name="version" ColumnName="version" />
+                <ScalarProperty Name="definition" ColumnName="definition" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_banco">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_banco">
+              <MappingFragment StoreEntitySet="rhfp_banco">
+                <ScalarProperty Name="os_banco" ColumnName="os_banco" />
+                <ScalarProperty Name="os_cod" ColumnName="os_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_banco_agencia">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_banco_agencia">
+              <MappingFragment StoreEntitySet="rhfp_banco_agencia">
+                <ScalarProperty Name="os_agencia" ColumnName="os_agencia" />
+                <ScalarProperty Name="os_cod_agencia" ColumnName="os_cod_agencia" />
+                <ScalarProperty Name="os_cod_banco" ColumnName="os_cod_banco" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_faixas_imposto_renda">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_faixas_imposto_renda">
+              <MappingFragment StoreEntitySet="rhfp_faixas_imposto_renda">
+                <ScalarProperty Name="fi_faixa_imposto_renda" ColumnName="fi_faixa_imposto_renda" />
+                <ScalarProperty Name="fi_cod" ColumnName="fi_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_financeiro">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_financeiro">
+              <MappingFragment StoreEntitySet="rhfp_financeiro">
+                <ScalarProperty Name="ala_fi_QTDE_URV" ColumnName="ala-fi-QTDE-URV" />
+                <ScalarProperty Name="ala_fi_perc_pont_dia_hora" ColumnName="ala-fi-perc-pont-dia-hora" />
+                <ScalarProperty Name="ala_fi_valor" ColumnName="ala-fi-valor" />
+                <ScalarProperty Name="data_inicio_fi" ColumnName="data-inicio-fi" />
+                <ScalarProperty Name="pr_Rubrica" ColumnName="pr_Rubrica" />
+                <ScalarProperty Name="cod_rubrica_fi" ColumnName="cod-rubrica-fi" />
+                <ScalarProperty Name="COMPETENCIA_FI" ColumnName="COMPETENCIA-FI" />
+                <ScalarProperty Name="ALA_DP_CPF_SERVIDOR" ColumnName="ALA-DP-CPF-SERVIDOR" />
+                <ScalarProperty Name="ALA_DP_NOME_SERVIDOR" ColumnName="ALA-DP-NOME-SERVIDOR" />
+                <ScalarProperty Name="tipo_cargo_fi" ColumnName="tipo-cargo-fi" />
+                <ScalarProperty Name="ala_fi_MATRICULA" ColumnName="ala-fi-MATRICULA" />
+                <ScalarProperty Name="fin_id" ColumnName="fin_id" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_grau_parentesco">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_grau_parentesco">
+              <MappingFragment StoreEntitySet="rhfp_grau_parentesco">
+                <ScalarProperty Name="gi_grau_parentesco" ColumnName="gi_grau_parentesco" />
+                <ScalarProperty Name="gi_cod" ColumnName="gi_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_orgao_externo">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_orgao_externo">
+              <MappingFragment StoreEntitySet="rhfp_orgao_externo">
+                <ScalarProperty Name="os_orgao_externo" ColumnName="os_orgao_externo" />
+                <ScalarProperty Name="os_cod" ColumnName="os_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_orgao_unidade_orcamentaria">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_orgao_unidade_orcamentaria">
+              <MappingFragment StoreEntitySet="rhfp_orgao_unidade_orcamentaria">
+                <ScalarProperty Name="os_unidade_ordamentaria" ColumnName="os_unidade_ordamentaria" />
+                <ScalarProperty Name="os_cod_unidade" ColumnName="os_cod_unidade" />
+                <ScalarProperty Name="os_cod_orgao" ColumnName="os_cod_orgao" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_paises">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_paises">
+              <MappingFragment StoreEntitySet="rhfp_paises">
+                <ScalarProperty Name="st_paises" ColumnName="st_paises" />
+                <ScalarProperty Name="st_cod" ColumnName="st_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_quadro_cargo_original">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_quadro_cargo_original">
+              <MappingFragment StoreEntitySet="rhfp_quadro_cargo_original">
+                <ScalarProperty Name="gi_quadro_cargo_original" ColumnName="gi_quadro_cargo_original" />
+                <ScalarProperty Name="gi_cod" ColumnName="gi_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_reparticao">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_reparticao">
+              <MappingFragment StoreEntitySet="rhfp_reparticao">
+                <ScalarProperty Name="sf_reparticao" ColumnName="sf_reparticao" />
+                <ScalarProperty Name="sf_cod" ColumnName="sf_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_rubricas">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_rubricas">
+              <MappingFragment StoreEntitySet="rhfp_rubricas">
+                <ScalarProperty Name="pr_rubrica" ColumnName="pr_rubrica" />
+                <ScalarProperty Name="pr_cod" ColumnName="pr_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_seguradoras">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_seguradoras">
+              <MappingFragment StoreEntitySet="rhfp_seguradoras">
+                <ScalarProperty Name="sx_seguradora" ColumnName="sx_seguradora" />
+                <ScalarProperty Name="sx_cod" ColumnName="sx_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_tipo_ato_funcional">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_tipo_ato_funcional">
+              <MappingFragment StoreEntitySet="rhfp_tipo_ato_funcional">
+                <ScalarProperty Name="taf_tipo_ato_funcional" ColumnName="taf_tipo_ato_funcional" />
+                <ScalarProperty Name="taf_codigo" ColumnName="taf_codigo" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_tipo_dependencia">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_tipo_dependencia">
+              <MappingFragment StoreEntitySet="rhfp_tipo_dependencia">
+                <ScalarProperty Name="gi_tipo_dependencia" ColumnName="gi_tipo_dependencia" />
+                <ScalarProperty Name="gi_cod" ColumnName="gi_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+          <EntitySetMapping Name="rhfp_valores_mensais">
+            <EntityTypeMapping TypeName="RHFPModel.rhfp_valores_mensais">
+              <MappingFragment StoreEntitySet="rhfp_valores_mensais">
+                <ScalarProperty Name="vm_descricao" ColumnName="vm_descricao" />
+                <ScalarProperty Name="vm_cod" ColumnName="vm_cod" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="None" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

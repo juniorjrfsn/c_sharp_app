@@ -1,0 +1,14 @@
+!/**
+ * Highstock JS v13.0.0 (2026-06-11)
+ * @module highcharts/indicators/accumulation-distribution
+ * @requires highcharts
+ * @requires highcharts/modules/stock
+ *
+ * Indicator series type for Highcharts Stock
+ *
+ * (c) 2010-2026 Highsoft AS
+ * Author: Sebastian Bochan
+ *
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
+ */function(t,e){"object"==typeof exports&&"object"==typeof module?module.exports=e(t._Highcharts,t._Highcharts.SeriesRegistry):"function"==typeof define&&define.amd?define("highcharts/indicators/accumulation-distribution",["highcharts/highcharts"],function(t){return e(t,t.SeriesRegistry)}):"object"==typeof exports?exports["highcharts/indicators/accumulation-distribution"]=e(t._Highcharts,t._Highcharts.SeriesRegistry):t.Highcharts=e(t.Highcharts,t.Highcharts.SeriesRegistry)}("u"<typeof window?this:window,function(t,e){return function(){"use strict";var r,n={512:function(t){t.exports=e},944:function(e){e.exports=t}},o={};function i(t){var e=o[t];if(void 0!==e)return e.exports;var r=o[t]={exports:{}};return n[t](r,r.exports,i),r.exports}i.n=function(t){var e=t&&t.__esModule?function(){return t.default}:function(){return t};return i.d(e,{a:e}),e},i.d=function(t,e){for(var r in e)i.o(e,r)&&!i.o(t,r)&&Object.defineProperty(t,r,{enumerable:!0,get:e[r]})},i.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)};var u={};i.d(u,{default:function(){return d}});var a=i(944),s=i.n(a),c=i(512),p=i.n(c),f=(r=function(t,e){return(r=Object.setPrototypeOf||({__proto__:[]})instanceof Array&&function(t,e){t.__proto__=e}||function(t,e){for(var r in e)e.hasOwnProperty(r)&&(t[r]=e[r])})(t,e)},function(t,e){function n(){this.constructor=t}r(t,e),t.prototype=null===e?Object.create(e):(n.prototype=e.prototype,new n)}),h=p().seriesTypes.sma,l=function(t){function e(){return null!==t&&t.apply(this,arguments)||this}return f(e,t),e.populateAverage=function(t,e,r,n,o){var i=e[n][1],u=e[n][2],a=e[n][3],s=r[n],c=a===i&&a===u||i===u?0:(2*a-u-i)/(i-u)*s;return[t[n],c]},e.prototype.getValues=function(t,r){var n,o,i,u=r.period,s=t.xData,c=t.yData,p=r.volumeSeriesID,f=t.chart.get(p),h=null==f?void 0:f.getColumn("y"),l=c?c.length:0,d=[],g=[],y=[];if(!(s.length<=u)||!l||4===c[0].length){if(!f)return void(0,a.error)("Series "+p+" not found! Check `volumeSeriesID`.",!0,t.chart);for(o=u;o<l;o++)n=d.length,i=e.populateAverage(s,c,h,o,u),n>0&&(i[1]+=d[n-1][1]),d.push(i),g.push(i[0]),y.push(i[1]);return{values:d,xData:g,yData:y}}},e.defaultOptions=(0,a.merge)(h.defaultOptions,{params:{index:void 0,volumeSeriesID:"volume"}}),e}(h);(0,a.extend)(l.prototype,{nameComponents:!1,nameBase:"Accumulation/Distribution"}),p().registerSeriesType("ad",l);var d=s();return u.default}()});

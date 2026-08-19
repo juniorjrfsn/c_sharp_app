@@ -1,0 +1,190 @@
+﻿@{
+    ViewBag.Title = "Atos e Eventos";
+}
+
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js"></script>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Atos e Eventos</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Atos e Eventos</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="container-fluid" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="body-content">
+                        
+                        <div class="process-info">
+                            <div class="form-group" style="display:none;">
+                                <h1>Detalhes do Movimento</h1>
+
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+                                @*<h1 class="mb-4">Questionario</h1>*@
+
+                                @*<div id="eventos-questionario"></div>*@
+ 
+                                <div id="div-filtro">
+                                    <form name="formRelAtoEvento" id="formRelAtoEvento" action="/Relatorios/AtoEventos" method="post" style="width:100%;">
+
+
+                                        <div class="form-group">
+                                            <div class="form-row">
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">CPF</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonCPF"
+                                                               name="per_cpf" id="per_cpf">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">Matrícula</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonMatricula"
+                                                               name="per_matricula" id="per_matricula">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6 mb-3">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">Nome</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonNome"
+                                                               name="per_nome" id="per_nome" style="width: 400px; max-width: 400px;">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-3">
+                                                    <h6>Período</h6>
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-3">
+
+                                                    <table>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text" id="basic-addon1">Início</span>
+                                                                    </div>
+                                                                    <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonDtIni"
+                                                                           name="per_dt_ini" id="per_dt_ini" style="width: 150px; max-width: 150px;">
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text" id="basic-addon1">Fim</span>
+                                                                    </div>
+                                                                    <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonDtFim"
+                                                                           name="per_dt_fim" id="per_dt_fim" style="width: 150px; max-width: 150px;">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="form-row">
+
+
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td>
+                                                            <div class="form-group">
+                                                                <div class="input-group mb-3">
+                                                                    <button type="button" class="btn btn-primary" name="btnBuscar" id="btnBuscar">
+                                                                        <i class="fa-solid fa-magnifying-glass fa-lg"></i> Consultar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td style="text-align:right;">
+                                                            <button class="btn btn-primary" name="btn-fechar-cadastro" id="btn-fechar-cadastro" type="submit">
+                                                                <i class="fa-solid fa-left-long"></i>   Voltar
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+
+                  
+ 
+
+                                </div>
+                            </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                <div class="buttons">
+                                    <!--<button type="submit" name="btnReload" id="btnReload" style="display:none;"></button>
+                                    <button type="submit" class="btn btn-primary" name="btnAvancar" style="display:none;">Avançar</button>
+                                    <button type="button" class="btn btn-primary" name="btnVoltarItemMovimento" id="btnVoltarItemMovimento">Voltar</button>
+                                    <button type="button" class="btn btn-primary" name="btnSalvarItemMovimento" id="btnSalvarItemMovimento">Salvar</button>-->
+                                    <!--button type="button" class="btn btn-primary" name="btnAtualizarResumo" id="btnAtualizarResumo">Atualizar Resumo</button-->
+                                    <!--<button type="button" class="btn btn-primary" name="btnGerarPlanilha" id="btnGerarPlanilha">Gerar Planilha</button>
+                                    <button type="button" class="btn btn-primary" name="btnSairItemMovimento" id="btnSairItemMovimento">Sair</button>-->
+                                </div>
+                            </div>
+                                @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                                <button type="button" name="gerar-novo-item" id="gerar-novo-item" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Item</button>
+                                </div>*@
+                        </div>
+                            
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/Content/controls/js/script-page/relatorios-ato-eventos.js?v=0.000000000000000005"></script>
+<style type="text/css">
+    .footer {
+         position:page;
+        bottom: 0;
+    }
+</style>
+ 

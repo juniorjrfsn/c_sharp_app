@@ -1,0 +1,102 @@
+﻿@{
+    ViewBag.Title = "Início";
+}
+
+<script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js"></script>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            @*<h4 class="page-title">Home</h4>*@
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        @*<li class="breadcrumb-item active" aria-current="page">Home</li>*@
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="form-group" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="container-fluid body-content">
+                        <div class="container">
+
+
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+
+                                    <h3 class="text-center"><b>Bem vindo ao RHFP Legado</b></h3>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="form-group" style="padding-top: 2px; position: relative; scrollbar-width: thin;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="body-content">
+                        <div class="container-fluid" style="overflow-y: visible; scrollbar-width: thin; min-height: 500px; ">
+                            <form name="formHomeIndex" id="formHomeIndex" method="post" action="/Cadastro/IniciarCadastro" style="width:100%;">
+
+                            
+                                <div class="row">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:center;">
+
+                                        <img width="600" src="~/Content/img/logo-ageprev-m-responsive.svg" />
+
+                                    </div>
+                                </div>
+                      
+
+                                <input type="submit" name="btnSubmit" id="btnSubmit" style="display:none;" />
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/Content/controls/js/script-page/home-index.js?v=0.000000000000000005"></script>
+<style type="text/css">
+    .footer {
+         position:page;
+        bottom: 0;
+    }
+</style>
+ 
