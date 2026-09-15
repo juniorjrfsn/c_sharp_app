@@ -897,8 +897,9 @@ namespace RHFPMVC.Controllers
                 foreach (var questionario in questionariosDto)
                 {
                     questionarios.Add(new
-                    {
+                    { 
                         eve_num_evento = questionario.eve_num_evento,
+                        eve_nome = questionario.eve_nome,
                         que_num_questionario = questionario.que_num_questionario,
                         que_contexto = questionario.que_contexto,
                         que_publico_alvo = questionario.que_publico_alvo,

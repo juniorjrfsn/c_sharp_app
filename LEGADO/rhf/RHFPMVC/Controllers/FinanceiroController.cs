@@ -25,7 +25,7 @@ using RHFPMVC.Controllers;
 
 namespace RHFPMVC.Controllers
 {
-    public static class RelatorioViewModel
+    public static class FinanceiroViewModel
     {
         public static int Versao { get; set; }
         public static string Relatorio { get; set; }
@@ -56,7 +56,7 @@ namespace RHFPMVC.Controllers
         public static string RelatorioPageHeadContent { get; set; }
     }
 
-    public class RelatoriosController : GSIController
+    public class FinanceiroController : GSIController
     {
         // GET: Relatorios
 
@@ -71,7 +71,7 @@ namespace RHFPMVC.Controllers
 
         public CarregaLayoutBusiness carregaLayout;
 
-        public RelatoriosController()
+        public FinanceiroController()
         {
             _legadoFinanceiroBusiness = new rhfp_legado_financeiroBusiness();
             _dadosPessoaisBusiness = new rhfp_legado_dados_pessoaisBusiness();
@@ -85,7 +85,22 @@ namespace RHFPMVC.Controllers
         {
             return View();
         }
-        
+
+        public ActionResult Relatorio()
+        {
+            try
+            {
+
+                return View("Relatorio");
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return View("Relatorio");
+            }
+        }
+
+
         public ActionResult AtoEventos()
         {
             try
@@ -140,17 +155,14 @@ namespace RHFPMVC.Controllers
             }
         }
 
-
-
-
-
+        
         #region Financeiro
         public ActionResult abrirPdfFinanceiroGerado()
         {
-            string htmlContent = RelatorioViewModel.RelatorioFinanceiro.ToString();
-            string nome = RelatorioViewModel.nome;
-            string cpf = RelatorioViewModel.cpf;
-            string matricula = RelatorioViewModel.matricula;
+            string htmlContent = FinanceiroViewModel.RelatorioFinanceiro.ToString();
+            string nome = FinanceiroViewModel.nome;
+            string cpf = FinanceiroViewModel.cpf;
+            string matricula = FinanceiroViewModel.matricula;
 
             // Converter HTML para PDF 
             var converter = new HtmlToPdfConverter
@@ -235,18 +247,22 @@ namespace RHFPMVC.Controllers
         {
             if (string.IsNullOrWhiteSpace(cpf))
             {
-                cpf = RelatorioViewModel.cpf ?? FinanceiroViewModel.cpf ?? string.Empty;
+                cpf = FinanceiroViewModel.cpf ?? RelatorioViewModel.cpf ?? string.Empty;
             }
             if (string.IsNullOrWhiteSpace(matricula))
             {
-                matricula = RelatorioViewModel.matricula ?? FinanceiroViewModel.matricula ?? string.Empty;
+                matricula = FinanceiroViewModel.matricula ?? RelatorioViewModel.matricula ?? string.Empty;
             }
             if (string.IsNullOrWhiteSpace(nome))
             {
-                nome = RelatorioViewModel.nome ?? FinanceiroViewModel.nome ?? string.Empty;
+                nome = FinanceiroViewModel.nome ?? RelatorioViewModel.nome ?? string.Empty;
             }
 
-            string pageHeader = RelatorioViewModel.RelatorioPageHeader;
+            string pageHeader = FinanceiroViewModel.RelatorioPageHeader;
+            if (string.IsNullOrWhiteSpace(pageHeader))
+            {
+                pageHeader = RelatorioViewModel.RelatorioPageHeader;
+            }
             if (string.IsNullOrWhiteSpace(pageHeader))
             {
                 var carrega = new CarregaLayoutBusiness(_contentRootPath);
@@ -254,10 +270,14 @@ namespace RHFPMVC.Controllers
             }
             if (!string.IsNullOrWhiteSpace(pageHeader))
             {
-                pageHeader = pageHeader.Replace("{tprel}", "Relatório Financeiro");
+                pageHeader = pageHeader.Replace("{tprel}", "Dados Financeiro");
             }
 
-            string pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
+            string pageHeadContent = FinanceiroViewModel.RelatorioPageHeadContent;
+            if (string.IsNullOrWhiteSpace(pageHeadContent))
+            {
+                pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
+            }
             if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
             {
                 pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
@@ -282,8 +302,8 @@ namespace RHFPMVC.Controllers
             }
 
             string barHtml = textoServidor.Length > 0 
-                ? "<div class='header-bottom-bar'>" + textoServidor.ToString() + "</div>"
-                : (!string.IsNullOrWhiteSpace(nome) ? "<div class='header-bottom-bar'><strong>Servidor:</strong> " + nome + "</div>" : "");
+                ? "<div class='header-bottom-bar'  style='padding: 10px 10px 2px 10px;border-radius:5px'><h2>" + textoServidor.ToString() + "</h2></div>"
+                : (!string.IsNullOrWhiteSpace(nome) ? "<div class='header-bottom-bar'  style='padding: 10px 10px 2px 10px;border-radius:5px'><h2><strong>Servidor:</strong> " + nome + "</h2></div>" : "");
 
             return @"<!DOCTYPE html>
             <html>
@@ -292,12 +312,14 @@ namespace RHFPMVC.Controllers
                 " + pageHeadContent + @"
                 <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { margin: 0; padding: 0; font-family: Verdana, sans-serif; width: 100%; background: transparent; }
+                    body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
                     #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
-                    #header td:nth-child(1) { width: 220px !important; text-align: left !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
-                    #header td:nth-child(3) { width: 220px !important; text-align: right !important; vertical-align: middle !important; }
-                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: Verdana, sans-serif; }
+
+                    #header td:nth-child(1) { width: 280px !important; text-align: right !important; vertical-align: middle !important; }
+                    #header td:nth-child(2) { width: 440px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
+                    #header td:nth-child(3) { text-align: left !important; vertical-align: middle !important; }
+                    
+                    .header-bottom-bar { background-color: #004F9F; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
                     .header-bottom-bar strong { margin-right: 5px; }
                 </style>
             </head>
@@ -334,7 +356,7 @@ namespace RHFPMVC.Controllers
                 if (relatorioGerado != null && relatorioGerado.GetType().GetProperty("sucesso").GetValue(relatorioGerado, null).ToString() == "true")
                 {
                     sucesso = true;
-                    RelatorioViewModel.RelatorioFinanceiro = relatorioGerado.GetType().GetProperty("htmlFinal").GetValue(relatorioGerado, null).ToString();
+                    FinanceiroViewModel.RelatorioFinanceiro = relatorioGerado.GetType().GetProperty("htmlFinal").GetValue(relatorioGerado, null).ToString();
                 }
                 else
                 {
@@ -394,7 +416,7 @@ namespace RHFPMVC.Controllers
                 if (relatorioGerado != null && sucessoRel)
                 {
                     sucesso = true;
-                    RelatorioViewModel.RelatorioFinanceiro = relatorioGerado.GetType().GetProperty("htmlFinal").GetValue(relatorioGerado, null).ToString();
+                    FinanceiroViewModel.RelatorioFinanceiro = relatorioGerado.GetType().GetProperty("htmlFinal").GetValue(relatorioGerado, null).ToString();
                 }
                 else
                 {
@@ -467,6 +489,7 @@ namespace RHFPMVC.Controllers
                             dpe_matricula = fin.dpe_matricula,
                             ala_fi_MATRICULA = fin.dpe_matricula,
                             dfu_tp_cargo = fin.dfu_tp_cargo,
+                            dfu_desc_tp_cargo = fin.dfu_desc_tp_cargo,
                             tipo_cargo_fi = fin.dfu_tp_cargo,
                             fin_competencia_ano_mes = fin.fin_competencia_ano_mes,
                             COMPETENCIA_FI = fin.fin_competencia_ano_mes,
@@ -525,8 +548,8 @@ namespace RHFPMVC.Controllers
         #region Dados Pessoais
         public ActionResult abrirPdfDadosPessoaisGerado()
         {
-            string htmlContent = RelatorioViewModel.RelatorioDadosPessoais ?? string.Empty;
-            string nome = RelatorioViewModel.nome ?? "DadosPessoais";
+            string htmlContent = FinanceiroViewModel.RelatorioDadosPessoais ?? string.Empty;
+            string nome = FinanceiroViewModel.nome ?? "DadosPessoais";
 
             if (string.IsNullOrWhiteSpace(htmlContent))
             {
@@ -611,8 +634,8 @@ namespace RHFPMVC.Controllers
 
                 var pessoa = dados.First();
                 var relatorio = new RelHtmlPDF_DadosPessoais();
-                RelatorioViewModel.RelatorioDadosPessoais = relatorio.geraHtmlPdfDadosPessoais(pessoa, DateTime.Now.ToString("dd/MM/yyyy"));
-                RelatorioViewModel.nome = pessoa.dpe_nome_servidor ?? pessoa.dpe_cpf_servidor ?? "DadosPessoais";
+                FinanceiroViewModel.RelatorioDadosPessoais = relatorio.geraHtmlPdfDadosPessoais(pessoa, DateTime.Now.ToString("dd/MM/yyyy"));
+                FinanceiroViewModel.nome = pessoa.dpe_nome_servidor ?? pessoa.dpe_cpf_servidor ?? "DadosPessoais";
 
                 return Json(new { sucesso = true, msg = string.Empty, caminhoPDF = "" });
             }
@@ -761,7 +784,11 @@ namespace RHFPMVC.Controllers
         /// </summary>
         private string CriarHeaderHtmlParaAtosEventos(string nome)
         {
-            string pageHeader = RelatorioViewModel.RelatorioPageHeader;
+            string pageHeader = FinanceiroViewModel.RelatorioPageHeader;
+            if (string.IsNullOrWhiteSpace(pageHeader))
+            {
+                pageHeader = RelatorioViewModel.RelatorioPageHeader;
+            }
             if (string.IsNullOrWhiteSpace(pageHeader))
             {
                 var carrega = new CarregaLayoutBusiness(_contentRootPath);
@@ -772,7 +799,11 @@ namespace RHFPMVC.Controllers
                 pageHeader = pageHeader.Replace("{tprel}", "Relatório de Atos e Eventos");
             }
 
-            string pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
+            string pageHeadContent = FinanceiroViewModel.RelatorioPageHeadContent;
+            if (string.IsNullOrWhiteSpace(pageHeadContent))
+            {
+                pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
+            }
             if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
             {
                 pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
@@ -787,12 +818,12 @@ namespace RHFPMVC.Controllers
                 " + pageHeadContent + @"
                 <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { margin: 0; padding: 0; font-family: Verdana, sans-serif; width: 100%; background: transparent; }
+                    body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
                     #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
-                    #header td:nth-child(1) { width: 220px !important; text-align: left !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
-                    #header td:nth-child(3) { width: 220px !important; text-align: right !important; vertical-align: middle !important; }
-                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: Verdana, sans-serif; }
+                    #header td:nth-child(1) { width: 280px !important; text-align: left !important; vertical-align: middle !important; }
+                    #header td:nth-child(2) { width: 440px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
+                    #header td:nth-child(3) { text-align: right !important; vertical-align: middle !important; }
+                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
                     .header-bottom-bar strong { margin-right: 5px; }
                 </style>
             </head>
@@ -803,11 +834,11 @@ namespace RHFPMVC.Controllers
             </html>";
         }
 
-     
+
         public ActionResult abrirPdfAtosEventosGerado()
         {
-            string htmlContent = RelatorioViewModel.RelatorioAtosEventos ?? string.Empty;
-            string nome = RelatorioViewModel.nome ?? "AtosEventos";
+            string htmlContent = FinanceiroViewModel.RelatorioAtosEventos ?? RelatorioViewModel.RelatorioAtosEventos ?? string.Empty;
+            string nome = FinanceiroViewModel.nome ?? RelatorioViewModel.nome ?? "AtosEventos";
 
             if (string.IsNullOrWhiteSpace(htmlContent))
             {
@@ -949,8 +980,8 @@ namespace RHFPMVC.Controllers
                 }
 
                 var relatorio = new RelHtmlPDF_AtosEventos();
-                RelatorioViewModel.RelatorioAtosEventos = relatorio.geraHtmlPdfAtosEventos(eventos, DateTime.Now.ToString("dd/MM/yyyy"));
-                RelatorioViewModel.nome = eventos.First().ate_nome ?? eventos.First().ate_cpf_servidor ?? "AtosEventos";
+                FinanceiroViewModel.RelatorioAtosEventos = relatorio.geraHtmlPdfAtosEventos(eventos, DateTime.Now.ToString("dd/MM/yyyy"));
+                FinanceiroViewModel.nome = eventos.First().ate_nome ?? eventos.First().ate_cpf_servidor ?? "AtosEventos";
 
                 return Json(new { sucesso = true, msg = string.Empty, caminhoPDF = "" });
             }
@@ -1080,8 +1111,8 @@ namespace RHFPMVC.Controllers
         #region Dados Funcionais
         public ActionResult abrirPdfDadosFuncionaisGerado()
         {
-            string htmlContent = RelatorioViewModel.RelatorioDadosFuncionais ?? string.Empty;
-            string nome = RelatorioViewModel.nome ?? "DadosFuncionais";
+            string htmlContent = FinanceiroViewModel.RelatorioDadosFuncionais ?? string.Empty;
+            string nome = FinanceiroViewModel.nome ?? "DadosFuncionais";
 
             if (string.IsNullOrWhiteSpace(htmlContent))
             {
@@ -1168,8 +1199,8 @@ namespace RHFPMVC.Controllers
                 var funcionario = dados.First();
                 // TODO: conferir a classe/método reais de geração do HTML do relatório
                 var relatorio = new RelHtmlPDF_DadosFuncionais();
-                RelatorioViewModel.RelatorioDadosFuncionais = relatorio.geraHtmlPdfDadosFuncionais(funcionario, DateTime.Now.ToString("dd/MM/yyyy"));
-                RelatorioViewModel.nome = funcionario.dpe_nome_servidor ?? funcionario.dpe_cpf_servidor ?? "DadosFuncionais";
+                FinanceiroViewModel.RelatorioDadosFuncionais = relatorio.geraHtmlPdfDadosFuncionais(funcionario, DateTime.Now.ToString("dd/MM/yyyy"));
+                FinanceiroViewModel.nome = funcionario.dpe_nome_servidor ?? funcionario.dpe_cpf_servidor ?? "DadosFuncionais";
 
                 return Json(new { sucesso = true, msg = string.Empty, caminhoPDF = "" });
             }
@@ -1226,7 +1257,6 @@ namespace RHFPMVC.Controllers
                         // TODO: ajustar os campos abaixo para os nomes reais de rhfp_legado_dados_funcionaisDTO
                         lista.Add(new
                         {
-                 
                             fun_numero = func.fun_numero,
                             dpe_matricula = func.dpe_matricula,
                             dpe_nome_servidor = func.dpe_nome_servidor,
@@ -1249,8 +1279,6 @@ namespace RHFPMVC.Controllers
                             fun_nome_reparticao = func.fun_nome_reparticao,
                             fun_cod_municipio = func.fun_cod_municipio,
                             fun_nome_municipio = func.fun_nome_municipio
-
-                           
                         });
                     }
                 }

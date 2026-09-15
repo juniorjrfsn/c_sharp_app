@@ -23,6 +23,8 @@ namespace RHFP.Business
         public string msg { get; set; }
         public string PageHead { get; set; }
 
+        public string MiniFormAtosEventos { get; set; }
+
         public CarregaLayoutBusiness(string contentRootPath)
         {
             try
@@ -34,6 +36,7 @@ namespace RHFP.Business
                 this.RelatorioPageHeader = string.Empty;
                 this.RelatorioPageResumo = string.Empty;
                 this.RelatorioPageContent = string.Empty;
+                this.MiniFormAtosEventos = string.Empty;
 
                 this.layout = string.Empty;
 
@@ -97,6 +100,18 @@ namespace RHFP.Business
                         this.RelatorioPageContent = fileContentcsrPC.ToString().Replace("\r\n", " ");
                     }
                 }
+
+
+                var filePathTcsMFAE = Path.Combine(webRootPath, "Content/html", "MiniFormAtosEventos.html");
+                using (FileStream tcsMFAE = new FileStream(filePathTcsMFAE.Replace("\\", "/"), FileMode.Open, FileAccess.Read))
+                {
+                    using (StreamReader readerMFAE = new StreamReader(tcsMFAE))
+                    {
+                        string fileContentMFAE = readerMFAE.ReadToEnd();
+                        this.MiniFormAtosEventos = fileContentMFAE.ToString().Replace("\r\n", " ");
+                    }
+                }
+         
 
                 sucesso = true;
             }

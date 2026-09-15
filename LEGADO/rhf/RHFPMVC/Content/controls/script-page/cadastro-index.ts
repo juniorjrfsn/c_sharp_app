@@ -11,6 +11,7 @@
 namespace CadIndex {
 
     export let msgValido: string = '';
+ 
 
     export function validateEmail(email) {
         const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

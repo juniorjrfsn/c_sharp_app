@@ -88,10 +88,20 @@ namespace SGI.Framework.MVC.Architecture.Controller
         {
             get
             {
-                string[] rota = base.Request.Url.AbsolutePath.Split('/');
+                if (UsuarioLogado == null)
+                {
+                    return false;
+                }
+
+                string[] rota = base.Request.Url?.AbsolutePath.Split('/') ?? Array.Empty<string>();
                 if (rota.Length <= 2)
                 {
-                    return UsuarioLogado.ObterPermissoes().Any((string li) => li.Equals($"/{rota[1]}"));
+                    if (rota.Length >= 2)
+                    {
+                        return UsuarioLogado.ObterPermissoes().Any((string li) => li.Equals($"/{rota[1]}"));
+                    }
+
+                    return false;
                 }
 
                 return UsuarioLogado.ObterPermissoes().Any((string li) => li.Equals($"/{rota[1]}/{rota[2]}"));
@@ -112,6 +122,21 @@ namespace SGI.Framework.MVC.Architecture.Controller
         {
             this.deveLogar = deveLogar;
             this.devePermissionar = devePermissionar;
+        }
+
+        private ActionResult CriarResultadoAjaxNaoAutorizado(string mensagem)
+        {
+            return new JsonResult
+            {
+                Data = new
+                {
+                    sucesso = false,
+                    msg = mensagem,
+                    lista = new object[0],
+                    qtd = 0
+                },
+                JsonRequestBehavior = JsonRequestBehavior.AllowGet
+            };
         }
 
         protected void Login(int id, string nome, string matricula, int geoEstruturaID, int grupoID, List<No> arvoreMenu, List<string> permissoes, List<EstruturaOrganizacional> lotacao)
@@ -168,12 +193,12 @@ namespace SGI.Framework.MVC.Architecture.Controller
             base.Session["USUARIOLOGADO"] = usuario;
         }
 
-        public ActionResult AcessoNegado()
+        public virtual ActionResult AcessoNegado()
         {
             return View();
         }
 
-        public ActionResult SessaoExpirada()
+        public virtual ActionResult SessaoExpirada()
         {
             return View();
         }
@@ -187,86 +212,133 @@ namespace SGI.Framework.MVC.Architecture.Controller
 
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            base.OnActionExecuting(filterContext);
-
-            // Define o tempo de expiração 
-            Session.Timeout = 90;
-
-            // Verifica e ajusta abaIdx na sessão
-            if (filterContext.HttpContext.Request.QueryString["abaIdx"] != null)
+            try
             {
-                base.Session["AbaCorrente"] = filterContext.HttpContext.Request.QueryString["abaIdx"];
-            }
+                base.OnActionExecuting(filterContext);
 
-            // Realiza login automático em ambiente de desenvolvimento se não estiver logado
-            if (!EstaLogado && DeveLogar && Configuracao.AppAmbiente.Equals("desenvolvimento"))
-            {
-                try
+                // Define o tempo de expiração 
+                Session.Timeout = 90;
+
+                // Verifica e ajusta abaIdx na sessão
+                if (filterContext.HttpContext.Request.QueryString["abaIdx"] != null)
                 {
-                    EfetuarLoginDesenvolvimento();
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Trace.WriteLine("Erro ao efetuar login de desenvolvimento automático: " + ex.Message);
-                }
-            }
-
-            // Verificação de login e redirecionamento
-            if (!EstaLogado && DeveLogar)
-            {
-                string ta = filterContext.HttpContext.Request.QueryString["ta"];
-                string h = filterContext.HttpContext.Request.QueryString["h"];
-                string currentAction = filterContext.RouteData.Values["action"]?.ToString();
-                string currentController = filterContext.RouteData.Values["controller"]?.ToString();
-
-                bool isLocalRequest = filterContext.HttpContext.Request.IsLocal;
-                string requestedPath = filterContext.HttpContext.Request.Url?.AbsolutePath ?? string.Empty;
-                bool isPublicIndex = (string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase)
-                    && (string.Equals(currentController, "Home", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(currentController, "Cadastro", StringComparison.OrdinalIgnoreCase)
-                        || string.Equals(currentController, "Questionario", StringComparison.OrdinalIgnoreCase)))
-                    || string.Equals(requestedPath, "/", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(requestedPath, "/Home", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(requestedPath, "/Cadastro", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(requestedPath, "/Questionario", StringComparison.OrdinalIgnoreCase);
-
-                if (isPublicIndex)
-                {
-                    return;
+                    base.Session["AbaCorrente"] = filterContext.HttpContext.Request.QueryString["abaIdx"];
                 }
 
-                if ((!string.IsNullOrEmpty(ta) && !string.IsNullOrEmpty(h) &&
-                     !string.Equals(currentAction, "AutenticarGSI", StringComparison.OrdinalIgnoreCase))
-                    || (isLocalRequest && !string.Equals(currentAction, "AutenticarGSI", StringComparison.OrdinalIgnoreCase)))
+                // Realiza login automático em ambiente de desenvolvimento se não estiver logado
+                if (!EstaLogado && DeveLogar && Configuracao.AppAmbiente.Equals("desenvolvimento"))
                 {
-                    filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                    try
                     {
-                        controller = filterContext.RouteData.Values["controller"],
-                        action = "AutenticarGSI",
-                        ta,
-                        h
-                    }));
+                        EfetuarLoginDesenvolvimento();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Trace.WriteLine("Erro ao efetuar login de desenvolvimento automático: " + ex.Message);
+                        RegistrarErroDeAutenticacao("Não foi possível autenticar automaticamente no ambiente de desenvolvimento.", ex);
+                    }
                 }
-                else
+
+                bool isAjaxRequest = filterContext.HttpContext.Request.IsAjaxRequest();
+
+                // Verificação de login e redirecionamento
+                if (!EstaLogado && DeveLogar)
                 {
+                    string ta = filterContext.HttpContext.Request.QueryString["ta"];
+                    string h = filterContext.HttpContext.Request.QueryString["h"];
+                    string currentAction = filterContext.RouteData.Values["action"]?.ToString();
+                    string currentController = filterContext.RouteData.Values["controller"]?.ToString();
+
+                    bool hasGsiToken = !string.IsNullOrWhiteSpace(ta) && !string.IsNullOrWhiteSpace(h);
+                    bool isLocalRequest = filterContext.HttpContext.Request.IsLocal;
+                    string requestedPath = filterContext.HttpContext.Request.Url?.AbsolutePath ?? string.Empty;
+
+                    if (isAjaxRequest)
+                    {
+                        filterContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        filterContext.Result = CriarResultadoAjaxNaoAutorizado("Sua sessão expirou ou você não está autenticado.");
+                        return;
+                    }
+
+                    if (isLocalRequest && !string.Equals(currentAction, "AutenticarGSI", StringComparison.OrdinalIgnoreCase))
+                    {
+                        filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                        {
+                            controller = "Login",
+                            action = "AutenticarGSI",
+                            ta,
+                            h
+                        }));
+                        return;
+                    }
+
+                    if (hasGsiToken && !string.Equals(currentAction, "AutenticarGSI", StringComparison.OrdinalIgnoreCase))
+                    {
+                        filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                        {
+                            controller = "Login",
+                            action = "AutenticarGSI",
+                            ta,
+                            h
+                        }));
+                        return;
+                    }
+
+                    bool isPublicIndex = (string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentController, "Cadastro", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(currentController, "Questionario", StringComparison.OrdinalIgnoreCase)))
+                        || string.Equals(requestedPath, "/Cadastro", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(requestedPath, "/Questionario", StringComparison.OrdinalIgnoreCase);
+
+                    if (isPublicIndex)
+                    {
+                        return;
+                    }
+
+                    // Sem sessão e sem token GSI: não é uma sessão que expirou, é um
+                    // acesso que ainda não passou pelo login. Encaminha para a página
+                    // de login do GSI para que o usuário se autentique e retorne com ta/h.
+                    if (Configuracao.CodModuloGsi != 0)
+                    {
+                        filterContext.Result = new RedirectResult("https://www.gsi.ms.gov.br/");
+                        return;
+                    }
+
                     filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
                     {
                         controller = "Login",
                         action = "SessaoExpirada"
                     }));
                 }
+                else if (DevePermissionar && !EhPermissionado)
+                {
+                    if (isAjaxRequest)
+                    {
+                        filterContext.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                        filterContext.Result = CriarResultadoAjaxNaoAutorizado("Você não tem permissão para acessar este recurso.");
+                        return;
+                    }
+
+                    filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                    {
+                        controller = "Login",
+                        action = "AcessoNegado"
+                    }));
+                }
+                else
+                {
+                    MontarMenuPrincipal();
+                }
             }
-            else if (DevePermissionar && !EhPermissionado)
+            catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine("Erro em GSIController.OnActionExecuting: " + ex);
+                RegistrarErroDeAutenticacao("Não foi possível processar a requisição. Verifique os dados de autenticação e tente novamente.", ex);
+
                 filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
                 {
                     controller = "Login",
-                    action = "AcessoNegado"
+                    action = "SessaoExpirada"
                 }));
-            }
-            else
-            {
-                MontarMenuPrincipal();
             }
         }
 
@@ -346,6 +418,39 @@ namespace SGI.Framework.MVC.Architecture.Controller
             EmitirMensagem(text, tipo);
         }
 
+        private bool ValidarTokenGsi(int? ta, string h, out string mensagemErro)
+        {
+            mensagemErro = string.Empty;
+
+            if (!ta.HasValue || ta.Value <= 0)
+            {
+                mensagemErro = "O token de autenticação do GSI não foi informado ou está inválido.";
+                return false;
+            }
+
+            if (string.IsNullOrWhiteSpace(h))
+            {
+                mensagemErro = "A chave de autenticação do GSI não foi informada.";
+                return false;
+            }
+
+            return true;
+        }
+
+        private void RegistrarErroDeAutenticacao(string mensagem, Exception ex = null)
+        {
+            string mensagemFinal = string.IsNullOrWhiteSpace(mensagem)
+                ? "Não foi possível concluir a autenticação no momento."
+                : mensagem;
+
+            if (ex != null)
+            {
+                mensagemFinal += " Detalhe: " + ex.Message;
+            }
+
+            EmitirMensagem(mensagemFinal, ETipoMensagem.Erro);
+        }
+
         public virtual ActionResult Erro()
         {
             return View();
@@ -363,6 +468,10 @@ namespace SGI.Framework.MVC.Architecture.Controller
 
             WSGSI wSGSI = new WSGSI();
             WSSGE wSSGE = new WSSGE();
+
+            // Configurar autenticação HTTP Basic para os serviços web GSI
+            wSGSI.Credentials = new System.Net.NetworkCredential(usuarioGsi, senhaGsi);
+            wSSGE.Credentials = new System.Net.NetworkCredential(usuarioGsi, senhaGsi);
 
             wSGSI.Url = wSGSI.Url.Replace("http://", "https://");
             wSSGE.Url = wSSGE.Url.Replace("http://", "https://");
@@ -394,106 +503,143 @@ namespace SGI.Framework.MVC.Architecture.Controller
             Login(usuarioWS.UsuarioID, usuarioWS.NomeUsuario, usuarioWS.Matricula, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioAutenticacaoCompletoWS.NomeEstrutura, usuarioAutenticacaoCompletoWS.CodigoHierarquia, usuarioAutenticacaoCompletoWS.GrupoID, usuarioWS.LoginAD, usuarioWS.NomeDominio, usuarioWS.Email, usuarioWS.TelefoneResidencial, usuarioWS.TelefoneCelular, usuarioWS.TelefoneComercial, usuarioWS.CPF, usuarioWS.DataNascimento, usuarioWS.Endereco, usuarioWS.Bairro, usuarioWS.Cidade, arvoreUsuario, list2, list);
         }
 
-        public ActionResult AutenticarGSI(int? ta, string h)
+        public virtual ActionResult AutenticarGSI(int? ta, string h)
         {
-            // Configurar protocolos TLS
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 |
-                                                   SecurityProtocolType.Tls11 |
-                                                   SecurityProtocolType.Tls;
-
-            base.Session["USUARIOLOGADO"] = null;
-            int codModuloGsi = Configuracao.CodModuloGsi;
-            string usuarioGsi = Configuracao.UsuarioGsi;
-            string senhaGsi = Configuracao.SenhaGsi;
-            string appAmbiente = Configuracao.AppAmbiente;
-            UltimoMenuSelecionado = 0;
-
-            WSGSI wSGSI = new WSGSI();
-            WSSGE wSSGE = new WSSGE();
-
-            wSGSI.Url = wSGSI.Url.Replace("http://", "https://");
-            wSSGE.Url = wSSGE.Url.Replace("http://", "https://");
-
-            UsuarioAutenticacaoCompletoWS usuarioAutenticacaoCompletoWS = new UsuarioAutenticacaoCompletoWS();
-            UsuarioWS usuarioWS = new UsuarioWS();
-            string absoluteUri = base.Request.Url.AbsoluteUri;
-            EstruturaWS[] array;
-
-            if (ta.HasValue && !string.IsNullOrEmpty(h))
+            try
             {
-                int value = ta.Value;
-                usuarioAutenticacaoCompletoWS = wSGSI.GSI_SelecionarUsuarioAutenticacaoCompleto_SO(value, h, usuarioGsi, senhaGsi);
-                usuarioWS = wSGSI.GSI_SelecionaUsuarioID_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioGsi, senhaGsi);
-                array = wSSGE.SGE_SelecionaEstruturaHierarquiaOrganogramaAcima_SO(1, usuarioAutenticacaoCompletoWS.CodigoHierarquia, usuarioGsi, senhaGsi);
-                if (!absoluteUri.StartsWith("http://localhost") && appAmbiente == "desenvolvimento")
-                {
-                    EmitirMensagem("<span style=\"color:red;\">Verifique a propriedade de AppAmbiente no Web.config<br />A mesma está com conexões de desenvolvimento.</span>");
-                }
-            }
-            else
-            {
-                if (!appAmbiente.Equals("desenvolvimento") && !Request.IsLocal)
-                {
-                    string requestedPath = Request.Url?.AbsolutePath ?? string.Empty;
-                    bool isPublicPage = string.Equals(requestedPath, "/", StringComparison.OrdinalIgnoreCase)
-                        || requestedPath.StartsWith("/Home", StringComparison.OrdinalIgnoreCase)
-                        || requestedPath.StartsWith("/Cadastro", StringComparison.OrdinalIgnoreCase)
-                        || requestedPath.StartsWith("/Questionario", StringComparison.OrdinalIgnoreCase);
+                // Configurar protocolos TLS
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 |
+                                                       SecurityProtocolType.Tls11 |
+                                                       SecurityProtocolType.Tls;
 
-                    if (isPublicPage)
+                string requestedPath = Request.Url?.AbsolutePath ?? string.Empty;
+                //if (string.Equals(requestedPath, "/", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(requestedPath))
+                //{
+                //    if (!ValidarTokenGsi(ta, h, out string mensagemErro))
+                //    {
+                //        EmitirMensagem(mensagemErro, ETipoMensagem.Erro);
+                //        return RedirectToAction("SessaoExpirada", "Login");
+                //    }
+                //}
+
+                base.Session["USUARIOLOGADO"] = null;
+                int codModuloGsi = Configuracao.CodModuloGsi;
+                string usuarioGsi = Configuracao.UsuarioGsi;
+                string senhaGsi = Configuracao.SenhaGsi;
+                string appAmbiente = Configuracao.AppAmbiente;
+                UltimoMenuSelecionado = 0;
+
+                WSGSI wSGSI = new WSGSI();
+                WSSGE wSSGE = new WSSGE();
+
+                // Configurar autenticação HTTP Basic para os serviços web GSI
+                wSGSI.Credentials = new System.Net.NetworkCredential(usuarioGsi, senhaGsi);
+                wSSGE.Credentials = new System.Net.NetworkCredential(usuarioGsi, senhaGsi);
+
+                wSGSI.Url = wSGSI.Url.Replace("http://", "https://");
+                wSSGE.Url = wSSGE.Url.Replace("http://", "https://");
+
+                UsuarioAutenticacaoCompletoWS usuarioAutenticacaoCompletoWS = new UsuarioAutenticacaoCompletoWS();
+                UsuarioWS usuarioWS = new UsuarioWS();
+                string absoluteUri = base.Request.Url?.AbsoluteUri ?? string.Empty;
+                EstruturaWS[] array;
+
+                if (ta.HasValue && !string.IsNullOrEmpty(h))
+                {
+                    if (!ValidarTokenGsi(ta, h, out string mensagemErro))
                     {
-                        if (string.Equals(requestedPath, "/", StringComparison.OrdinalIgnoreCase) || requestedPath.StartsWith("/Home", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return RedirectToAction("Index", "Home");
-                        } else if (requestedPath.StartsWith("/Cadastro", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return RedirectToAction("Index", "Cadastro");
-                        }
-                        else if (requestedPath.StartsWith("/Questionario", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return RedirectToAction("Index", "Questionario");
-                        }
-                    }
-                    else
-                    {
+                        EmitirMensagem(mensagemErro, ETipoMensagem.Erro);
                         return RedirectToAction("SessaoExpirada", "Login");
                     }
+
+                    int value = ta.Value;
+                    usuarioAutenticacaoCompletoWS = wSGSI.GSI_SelecionarUsuarioAutenticacaoCompleto_SO(value, h, usuarioGsi, senhaGsi);
+                    usuarioWS = wSGSI.GSI_SelecionaUsuarioID_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioGsi, senhaGsi);
+                    array = wSSGE.SGE_SelecionaEstruturaHierarquiaOrganogramaAcima_SO(1, usuarioAutenticacaoCompletoWS.CodigoHierarquia, usuarioGsi, senhaGsi);
+                    if (!absoluteUri.StartsWith("http://localhost") && appAmbiente == "desenvolvimento")
+                    {
+                        EmitirMensagem("<span style=\"color:red;\">Verifique a propriedade de AppAmbiente no Web.config<br />A mesma está com conexões de desenvolvimento.</span>");
+                    }
                 }
-
-                usuarioAutenticacaoCompletoWS.UsuarioID = Configuracao.UsuarioIDDesenvolvimento;
-                usuarioAutenticacaoCompletoWS.GrupoID = Configuracao.GrupoIDDesenvolvimento;
-                usuarioAutenticacaoCompletoWS.EstruturaID = Configuracao.GeoEstruturaIDDesenvolvimento;
-                usuarioWS = wSGSI.GSI_SelecionaUsuarioID_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioGsi, senhaGsi);
-                EstruturaWS estruturaWS = wSSGE.SGE_SelecionaEstruturaID_SO(1, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioGsi, senhaGsi);
-                usuarioAutenticacaoCompletoWS.NomeEstrutura = estruturaWS.NomeEstrutura;
-                array = wSSGE.SGE_SelecionaEstruturaHierarquiaOrganogramaAcima_SO(1, estruturaWS.CodigoHierarquia, usuarioGsi, senhaGsi);
-                usuarioAutenticacaoCompletoWS.CodigoHierarquia = estruturaWS.CodigoHierarquia;
-
-                if (!appAmbiente.Equals("desenvolvimento") && Request.IsLocal)
+                else
                 {
-                    EmitirMensagem("<span style=\"color:orange;\">Ambiente local detectado: autenticação GSI usando credenciais de desenvolvimento do Web.config.</span>");
+                    if (!appAmbiente.Equals("desenvolvimento") && !Request.IsLocal)
+                    {
+                        string requestedPath2 = Request.Url?.AbsolutePath ?? string.Empty;
+                        bool isPublicPage = string.Equals(requestedPath2, "Cadastro", StringComparison.OrdinalIgnoreCase)
+                            || requestedPath2.StartsWith("/Questionario", StringComparison.OrdinalIgnoreCase);
+
+                        if (isPublicPage)
+                        {
+                            if (requestedPath2.StartsWith("/Cadastro", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Cadastro");
+                            }
+                            else if (requestedPath2.StartsWith("/Questionario", StringComparison.OrdinalIgnoreCase))
+                            {
+                                return RedirectToAction("Index", "Questionario");
+                            }
+                        }
+                        else
+                        {
+                            // Acesso direto sem ta/h: manda para a página de login do GSI
+                            // em vez de "sessão expirada", já que nunca houve sessão aqui.
+                            if (Configuracao.CodModuloGsi != 0)
+                            {
+                                return Redirect("https://www.gsi.ms.gov.br/");
+                            }
+
+                            EmitirMensagem("A autenticação do GSI não foi enviada corretamente. Verifique o link de acesso ao sistema.", ETipoMensagem.Erro);
+                            return RedirectToAction("SessaoExpirada", "Login");
+                        }
+                    }
+
+                    usuarioAutenticacaoCompletoWS.UsuarioID = Configuracao.UsuarioIDDesenvolvimento;
+                    usuarioAutenticacaoCompletoWS.GrupoID = Configuracao.GrupoIDDesenvolvimento;
+                    usuarioAutenticacaoCompletoWS.EstruturaID = Configuracao.GeoEstruturaIDDesenvolvimento;
+                    usuarioWS = wSGSI.GSI_SelecionaUsuarioID_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioGsi, senhaGsi);
+                    EstruturaWS estruturaWS = wSSGE.SGE_SelecionaEstruturaID_SO(1, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioGsi, senhaGsi);
+                    usuarioAutenticacaoCompletoWS.NomeEstrutura = estruturaWS.NomeEstrutura;
+                    array = wSSGE.SGE_SelecionaEstruturaHierarquiaOrganogramaAcima_SO(1, estruturaWS.CodigoHierarquia, usuarioGsi, senhaGsi);
+                    usuarioAutenticacaoCompletoWS.CodigoHierarquia = estruturaWS.CodigoHierarquia;
+
+                    if (!appAmbiente.Equals("desenvolvimento") && Request.IsLocal)
+                    {
+                        EmitirMensagem("<span style=\"color:orange;\">Ambiente local detectado: autenticação GSI usando credenciais de desenvolvimento do Web.config.</span>");
+                    }
                 }
-            }
 
-            List<EstruturaOrganizacional> list = new List<EstruturaOrganizacional>();
-            EstruturaWS[] array2 = array;
-            foreach (EstruturaWS estruturaWS2 in array2)
+                if (usuarioAutenticacaoCompletoWS == null || usuarioWS == null || array == null)
+                {
+                    EmitirMensagem("Não foi possível carregar os dados de autenticação do GSI. Tente novamente mais tarde.", ETipoMensagem.Erro);
+                    return RedirectToAction("SessaoExpirada", "Login");
+                }
+
+                List<EstruturaOrganizacional> list = new List<EstruturaOrganizacional>();
+                EstruturaWS[] array2 = array;
+                foreach (EstruturaWS estruturaWS2 in array2)
+                {
+                    EstruturaOrganizacional item = new EstruturaOrganizacional(estruturaWS2.EstruturaID, estruturaWS2.NomeEstrutura, estruturaWS2.Bairro, estruturaWS2.CEP, estruturaWS2.Cidade, estruturaWS2.Logradouro, estruturaWS2.RegistroEstruturaID, estruturaWS2.SiglaEstrutura, estruturaWS2.CodigoHierarquia);
+                    list.Add(item);
+                }
+
+                List<string> list2 = new List<string>();
+                OperacaoWS[] source = wSGSI.GSI_SelecionaOperacoesGrupo_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioAutenticacaoCompletoWS.GrupoID, usuarioGsi, senhaGsi);
+                list2.AddRange(source.Select((OperacaoWS o) => o.NomeOperacao));
+                MontarArvoreMenu(usuarioAutenticacaoCompletoWS.EstruturaID, wSGSI, usuarioWS, out var arvoreUsuario);
+                Login(usuarioWS.UsuarioID, usuarioWS.NomeUsuario, usuarioWS.Matricula, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioAutenticacaoCompletoWS.NomeEstrutura, usuarioAutenticacaoCompletoWS.CodigoHierarquia, usuarioAutenticacaoCompletoWS.GrupoID, usuarioWS.LoginAD, usuarioWS.NomeDominio, usuarioWS.Email, usuarioWS.TelefoneResidencial, usuarioWS.TelefoneCelular, usuarioWS.TelefoneComercial, usuarioWS.CPF, usuarioWS.DataNascimento, usuarioWS.Endereco, usuarioWS.Bairro, usuarioWS.Cidade, arvoreUsuario, list2, list);
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
             {
-                EstruturaOrganizacional item = new EstruturaOrganizacional(estruturaWS2.EstruturaID, estruturaWS2.NomeEstrutura, estruturaWS2.Bairro, estruturaWS2.CEP, estruturaWS2.Cidade, estruturaWS2.Logradouro, estruturaWS2.RegistroEstruturaID, estruturaWS2.SiglaEstrutura, estruturaWS2.CodigoHierarquia);
-                list.Add(item);
+                string erroMsg = "Erro na autenticação do GSI: " + ex.ToString();
+                System.Diagnostics.Trace.WriteLine(erroMsg);
+                System.Diagnostics.Debug.WriteLine(erroMsg);
+
+                RegistrarErroDeAutenticacao("Não foi possível autenticar o usuário no GSI. Verifique os dados informados e tente novamente. " + ex.Message, ex);
+                return RedirectToAction("SessaoExpirada", "Login");
             }
-
-            List<string> list2 = new List<string>();
-            OperacaoWS[] source = wSGSI.GSI_SelecionaOperacoesGrupo_SO(usuarioAutenticacaoCompletoWS.UsuarioID, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioAutenticacaoCompletoWS.GrupoID, usuarioGsi, senhaGsi);
-            list2.AddRange(source.Select((OperacaoWS o) => o.NomeOperacao));
-            MontarArvoreMenu(usuarioAutenticacaoCompletoWS.EstruturaID, wSGSI, usuarioWS, out var arvoreUsuario);
-            Login(usuarioWS.UsuarioID, usuarioWS.NomeUsuario, usuarioWS.Matricula, usuarioAutenticacaoCompletoWS.EstruturaID, usuarioAutenticacaoCompletoWS.NomeEstrutura, usuarioAutenticacaoCompletoWS.CodigoHierarquia, usuarioAutenticacaoCompletoWS.GrupoID, usuarioWS.LoginAD, usuarioWS.NomeDominio, usuarioWS.Email, usuarioWS.TelefoneResidencial, usuarioWS.TelefoneCelular, usuarioWS.TelefoneComercial, usuarioWS.CPF, usuarioWS.DataNascimento, usuarioWS.Endereco, usuarioWS.Bairro, usuarioWS.Cidade, arvoreUsuario, list2, list);
-            return RedirectToAction("Index", "Home");
         }
-
-
-
-
 
 
 
@@ -571,8 +717,8 @@ namespace SGI.Framework.MVC.Architecture.Controller
 
             StringBuilder _submenu_home = new StringBuilder();
             StringBuilder _submenu_cad = new StringBuilder();
-            StringBuilder _submenu_quest= new StringBuilder();
-            
+            StringBuilder _submenu_quest = new StringBuilder();
+
             StringBuilder _submenu_tb = new StringBuilder();
             StringBuilder _submenu_tos = new StringBuilder();
             StringBuilder _submenu_precat = new StringBuilder();
@@ -596,7 +742,7 @@ namespace SGI.Framework.MVC.Architecture.Controller
                         _submenu_home.Append("<a class=\"sidebar-link waves-effect waves-dark sidebar-link\" href=\"" + item2.Url + "\" >" + icone + "<span class=\"hide-menu\">" + item2.Nome + "</span></a>");
                         _submenu_home.Append("</li>");
                     }
-                    
+
                     if (item.Nome == "Tabelas Básicas")
                     {
                         _submenu_tb.Append("<li class=\"sidebar-item\" style=\"background:#ffffff;\">");

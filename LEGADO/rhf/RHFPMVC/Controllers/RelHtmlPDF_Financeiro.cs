@@ -13,16 +13,59 @@ namespace RHFPMVC.Controllers
     {
         private readonly string _contentRootPath = AppDomain.CurrentDomain.BaseDirectory;
 
+        private static readonly Dictionary<int, string> TiposCargo = new Dictionary<int, string>
+        {
+            { 1, "Cargo Efetivo" },
+            { 2, "Cargo Acumulado (2º efetivo)" },
+            { 3, "Cargo em Comissão" },
+            { 4, "Função Gratificada" }
+        };
+
+        private static string GetDescricaoTipoCargo(object tipoCargo, object descricaoTipoCargo = null)
+        {
+            if (descricaoTipoCargo != null && descricaoTipoCargo != DBNull.Value)
+            {
+                var descricao = Convert.ToString(descricaoTipoCargo, CultureInfo.InvariantCulture)?.Trim();
+                if (!string.IsNullOrWhiteSpace(descricao))
+                    return descricao;
+            }
+
+            if (tipoCargo == null || tipoCargo == DBNull.Value)
+                return string.Empty;
+
+            var valor = Convert.ToString(tipoCargo, CultureInfo.InvariantCulture)?.Trim();
+            if (string.IsNullOrWhiteSpace(valor))
+                return string.Empty;
+
+            if (int.TryParse(valor, out var idTipoCargo) && TiposCargo.ContainsKey(idTipoCargo))
+                return TiposCargo[idTipoCargo];
+
+            return valor;
+        }
+
         public RelHtmlPDF_Financeiro() { }
 
-        public object geraHtmlPdfFinanceiro(string cpf = null, int? matricula = null, string nome=null, string dtIni = null, string dtFim = null, string dataGeracao = null)
+        public object geraHtmlPdfFinanceiro(string cpf = null, int? matricula = null, string nome = null, string dtIni = null, string dtFim = null, string dataGeracao = null)
         {
+            // Limpa o estado estático para evitar que uma header antiga seja reaproveitada entre requisições.
+            RelatorioViewModel.RelatorioPageHeader = string.Empty;
+            RelatorioViewModel.RelatorioPageHeadContent = string.Empty;
+            RelatorioViewModel.nome = string.Empty;
+            RelatorioViewModel.cpf = string.Empty;
+            RelatorioViewModel.matricula = string.Empty;
+
+            FinanceiroViewModel.RelatorioPageHeader = string.Empty;
+            FinanceiroViewModel.RelatorioPageHeadContent = string.Empty;
+            FinanceiroViewModel.nome = string.Empty;
+            FinanceiroViewModel.cpf = string.Empty;
+            FinanceiroViewModel.matricula = string.Empty;
+
             bool sucesso = false;
             var htmlFinal = string.Empty;
             try
             {
                 var carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
-                var financeiroBusiness = new rhfp_financeiroBusiness();
+                var financeiroBusiness = new rhfp_legado_financeiroBusiness();
                 var cpfFiltro = string.IsNullOrWhiteSpace(cpf) ? string.Empty : cpf.Trim();
                 var nomeFiltro = string.IsNullOrWhiteSpace(nome) ? string.Empty : nome.Trim();
                 var matriculaFiltro = matricula ?? 0;
@@ -33,46 +76,62 @@ namespace RHFPMVC.Controllers
                     competencia: null,
                     cod_rubrica: 0,
                     dtIni: dtIni,
-                    dtFim: dtFim) ?? new List<rhfp_financeiroDTO>();
+                    dtFim: dtFim
+                );
 
 
-                if(lista != null && lista.Count > 0)
+                if (lista != null && lista.Count > 0)
                 {
-                    sucesso = true; 
 
                     var agrupadoPorServidor = lista
-                    .GroupBy(f => new { CPF = f.ALA_DP_CPF_SERVIDOR, Matricula = f.ala_fi_MATRICULA, Nome = f.ALA_DP_NOME_SERVIDOR })
+                    .GroupBy(f => new { CPF = f.dpe_cpf_servidor, Matricula = f.dpe_matricula, Nome = f.dpe_nome_servidor })
                     .OrderBy(x => x.Key.CPF)
                     .ThenBy(x => x.Key.Matricula)
                     .ToList();
 
                     var sb = new StringBuilder();
                     // sb.Append("<div class=\"card mb-3\"><div class=\"card-body\" style=\"text-align:center;\"><h4 class=\"card-title\">Relatório Financeiro</h4></div></div>");
- 
+
                     foreach (var servidor in agrupadoPorServidor)
                     {
-                        RelatorioViewModel.nome = servidor.Key.Nome;
-                        sb.Append("<div class=\"card mb-4\">");
-                        sb.Append("<div class=\"card-header bg-primary text-white\">");
-                        sb.Append("<strong>CPF:</strong> " + UtilitariosHelper.MascararCpf(servidor.Key.CPF) + " &nbsp;|&nbsp; ");
-                        sb.Append("<strong>Nome:</strong> " + (string.IsNullOrWhiteSpace(servidor.Key.Nome) ? "" : servidor.Key.Nome) + " &nbsp;|&nbsp; ");
-                        sb.Append("<strong>Matrícula:</strong> " + servidor.Key.Matricula);
-                        sb.Append("</div>");
-                        sb.Append("</div>");
-                        sb.Append("</br>");
+                        var servidorCpf = Convert.ToString(servidor.Key.CPF, CultureInfo.InvariantCulture) ?? string.Empty;
+                        var servidorNome = Convert.ToString(servidor.Key.Nome, CultureInfo.InvariantCulture) ?? string.Empty;
+                        var servidorMatricula = Convert.ToString(servidor.Key.Matricula, CultureInfo.InvariantCulture) ?? string.Empty;
+
+                        var cpfMascarado = UtilitariosHelper.MascararCpf(servidorCpf);
+
+                        RelatorioViewModel.nome = servidorNome;
+                        RelatorioViewModel.cpf = cpfMascarado;
+                        RelatorioViewModel.matricula = servidorMatricula;
+
+                        FinanceiroViewModel.nome = servidorNome;
+                        FinanceiroViewModel.cpf = cpfMascarado;
+                        FinanceiroViewModel.matricula = servidorMatricula;
 
                         var grupos = servidor
-                            .GroupBy(g => new { Competencia = g.COMPETENCIA_FI, TipoCargo = g.tipo_cargo_fi })
+                            .GroupBy(g => new { Competencia = g.fin_competencia_ano_mes, TipoCargo = g.dfu_tp_cargo })
                             .OrderBy(x => x.Key.Competencia)
                             .ThenBy(x => x.Key.TipoCargo)
                             .ToList();
 
                         foreach (var grupo in grupos)
                         {
+                            var tipoCargoValor = grupo.Key.TipoCargo;
+                            var tipoCargoTexto = Convert.ToString(tipoCargoValor, CultureInfo.InvariantCulture);
+                            var descricaoTipoCargoDoGrupo = grupo
+                                .Select(x => x.dfu_desc_tp_cargo)
+                                .FirstOrDefault(x => x != null && x != DBNull.Value && !string.IsNullOrWhiteSpace(Convert.ToString(x, CultureInfo.InvariantCulture)));
+                            var tipoCargoDescricao = GetDescricaoTipoCargo(tipoCargoValor, descricaoTipoCargoDoGrupo);
+                            var tipoCargoLabel = !string.IsNullOrWhiteSpace(tipoCargoDescricao)
+                                ? tipoCargoDescricao
+                                : !string.IsNullOrWhiteSpace(tipoCargoTexto)
+                                    ? tipoCargoTexto
+                                    : string.Empty;
+
                             sb.Append("<div class=\"card mb-4\">");
                             sb.Append("<div class=\"card-header bg-secondary text-white\">");
-                            sb.Append("<strong>Competência:</strong> " + UtilitariosHelper.FormatarCompetencia(grupo.Key.Competencia) + " &nbsp;|&nbsp; ");
-                            sb.Append("<strong>Tipo de Cargo:</strong> " + Convert.ToString(grupo.Key.TipoCargo));
+                            sb.Append("<strong>Competência:</strong> " + UtilitariosHelper.FormatarCompetenciaMesAno(grupo.Key.Competencia) + " &nbsp;|&nbsp; ");
+                            sb.Append("<strong>Tipo de Cargo:</strong> " + tipoCargoLabel);
                             sb.Append("</div>");
                             sb.Append("<div class=\"card-body\">");
 
@@ -80,15 +139,15 @@ namespace RHFPMVC.Controllers
                             sb.Append("<th style=\"text-align:center;\">Cód. Rubrica</th><th style=\"text-align:center;\">Rubrica</th><th style=\"text-align:center;\">Data Início</th><th style=\"text-align:center;\">Valor</th><th style=\"text-align:center;\">% Pont./Dia/Hora</th><th style=\"text-align:center;\">QTDE URV</th><th style=\"text-align:center;\">PROVENTO</th><th>DESCONTO</th><th style=\"text-align:center;\">LIQUIDO</th>");
                             sb.Append("</tr></thead><tbody>");
 
-                            foreach (var item in grupo.OrderBy(x => x.cod_rubrica_fi))
+                            foreach (var item in grupo.OrderBy(x => x.rub_codigo))
                             {
                                 sb.Append("<tr>");
-                                sb.Append("<td style=\"text-align:center;\">" + item.cod_rubrica_fi + "</td>");
-                                sb.Append("<td>" + (item.pr_Rubrica ?? "") + "</td>");
-                                sb.Append("<td style=\"text-align:center;\">" + (item.data_inicio_fi != null && item.data_inicio_fi.Trim() != "0" && item.data_inicio_fi.Trim() != "00/00/0000" && item.data_inicio_fi.Trim() != "30/12/1899" && item.data_inicio_fi.Trim() != "01/01/1900" ? UtilitariosHelper.FormatarDateToBr(item.data_inicio_fi) : "") + "</td>");
-                                sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_valor) + "</td>");
-                                sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_perc_pont_dia_hora) + "</td>");
-                                sb.Append("<td style=\"text-align:right;\">" + (item.ala_fi_QTDE_URV != null ? item.ala_fi_QTDE_URV.ToString() : "") + "</td>");
+                                sb.Append("<td style=\"text-align:center;\">" + item.rub_codigo + "</td>");
+                                sb.Append("<td>" + (item.rub_descricao ?? "") + "</td>");
+                                sb.Append("<td style=\"text-align:center;\">" + (item.fin_dt_inicio != null && item.fin_dt_inicio.Trim() != "0" && item.fin_dt_inicio.Trim() != "00/00/0000" && item.fin_dt_inicio.Trim() != "30/12/1899" && item.fin_dt_inicio.Trim() != "01/01/1900" ? UtilitariosHelper.FormatarDateToBr(item.fin_dt_inicio) : "") + "</td>");
+                                sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.fin_valor) + "</td>");
+                                sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.fin_perc_pontos_dia_hora) + "</td>");
+                                sb.Append("<td style=\"text-align:right;\">" + (item.fin_qtd_urv != null ? item.fin_qtd_urv.ToString() : "") + "</td>");
                                 sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.PROVENTO) + "</td>");
                                 sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.DESCONTO) + "</td>");
                                 sb.Append("<td></td>");
@@ -112,9 +171,8 @@ namespace RHFPMVC.Controllers
                             sb.Append("</div>");
                             sb.Append("</div>");
                         }
-
-                        sb.Append("</div>");
-                        sb.Append("</div>");
+                        
+                        // Não adiciona quebra de página no fim para evitar página em branco
                     }
 
                     var template = carregaLayout.layout_3;
@@ -132,15 +190,21 @@ namespace RHFPMVC.Controllers
 
                     // Prepend the report header (logos/title) if available
                     var pageHeader = carregaLayout.RelatorioPageHeader ?? string.Empty;
-                    pageHeader = pageHeader.Replace("{tprel}", "Relatório Financeiro");
+                    pageHeader = pageHeader.Replace("{tprel}", "Dados Financeiro");
+                    
+                    // Store page header and CSS for use in PDF header
+                    RelatorioViewModel.RelatorioPageHeader = pageHeader;
+                    RelatorioViewModel.RelatorioPageHeadContent = pageHeadContent;
+                    FinanceiroViewModel.RelatorioPageHeader = pageHeader;
+                    FinanceiroViewModel.RelatorioPageHeadContent = pageHeadContent;
 
                     htmlFinal = template
                         .Replace("{PageTitle}", "Relatório Financeiro")
                         .Replace("{PageHead}", pageHeadContent)
-                        .Replace("{PageContent}", pageHeader + sb.ToString());
+                        .Replace("{PageContent}", sb.ToString().TrimEnd());
 
-                    // Remove leading whitespace which can produce a blank first page
-                    htmlFinal = htmlFinal.TrimStart();
+                    // Remove leading and trailing whitespace which can produce blank pages
+                    htmlFinal = htmlFinal.TrimStart().TrimEnd();
 
                     // Remove any absolute file:// base URI that might be injected/printed by the PDF engine
                     try
@@ -154,29 +218,31 @@ namespace RHFPMVC.Controllers
                     // The layout contains a static <link href="bootstrap.css" ... /> which may be resolved
                     // to a file:// URL by the converter — remove it because CSS is already inlined in PageHead
                     htmlFinal = htmlFinal.Replace("<link href=\"bootstrap.css\" rel=\"stylesheet\" />", string.Empty);
+
+                    sucesso = true;
                 }
                 else
                 {
                     sucesso = false;
                 }
-              
-                return new 
+
+                return new
                 {
                     sucesso = sucesso,
                     htmlFinal = htmlFinal,
-                    msg =  "<div class=\"alert alert-success\">Sucesso ao gerar relatório financeiro.</div>"
+                    msg = "<div class=\"alert alert-success\">Sucesso ao gerar relatório financeiro.</div>"
                 };
-                
+
             }
             catch (Exception ex)
             {
-                return new 
-                {   
+                return new
+                {
                     sucesso = false,
                     htmlFinal = string.Empty,
-                    msg =  "<div class=\"alert alert-danger\">Erro ao gerar relatório financeiro: " + ex.Message + "</div>"
+                    msg = "<div class=\"alert alert-danger\">Erro ao gerar relatório financeiro: " + ex.Message + "</div>"
                 };
-                
+
             }
         }
     }

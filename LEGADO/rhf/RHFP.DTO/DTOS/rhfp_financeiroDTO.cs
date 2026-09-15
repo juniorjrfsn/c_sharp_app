@@ -32,8 +32,7 @@ namespace RHFP.DTO.DTOS
         public string data_inicio_fi { get; set; }
         public int cod_rubrica_fi { get; set; }
         public string COMPETENCIA_FI { get; set; }
-        public string ALA_DP_CPF_SERVIDOR { get; set; }
-        public string ALA_DP_NOME_SERVIDOR { get; set; }
+ 
         public int tipo_cargo_fi { get; set; }
         public int ala_fi_MATRICULA { get; set; }
         public decimal PROVENTO { get; set; }
@@ -41,5 +40,7 @@ namespace RHFP.DTO.DTOS
         public decimal TOTAL_PROVENTO { get; set; }
         public decimal TOTAL_DESCONTO { get; set; }
         public decimal LIQUIDO { get; set; }
+        public object dpe_cpf_servidor { get; set; }
+        public object dpe_nome_servidor { get; set; }
     }
 }

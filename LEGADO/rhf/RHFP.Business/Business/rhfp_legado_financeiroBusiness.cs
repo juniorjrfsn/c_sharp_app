@@ -9,19 +9,19 @@ using System.Threading.Tasks;
 
 namespace RHFP.Business
 {
-    public class rhfp_financeiroBusiness
+    public class rhfp_legado_financeiroBusiness
     {
-
+       
 
         private readonly rhfp_legado_dados_financeirosRepository _repository;
 
-        public rhfp_financeiroBusiness()
+        public rhfp_legado_financeiroBusiness()
         {
             var context = new RHFPContext();
             _repository = new rhfp_legado_dados_financeirosRepository(context);
         }
 
-        public rhfp_financeiroBusiness(rhfp_legado_dados_financeirosRepository repository)
+        public rhfp_legado_financeiroBusiness(rhfp_legado_dados_financeirosRepository repository)
         {
             _repository = repository;
         }
@@ -30,6 +30,6 @@ namespace RHFP.Business
         {
             return _repository.GetFinanceiro(matricula, cpf, nome, competencia, cod_rubrica, dtIni, dtFim);
         }
-        
+
     }
 }

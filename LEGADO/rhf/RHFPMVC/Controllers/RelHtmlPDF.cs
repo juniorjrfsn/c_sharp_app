@@ -1,4 +1,4 @@
-﻿using SIGEVENTOS.Business;
+using SIGEVENTOS.Business;
 using SIGEVENTOS.DTO.DTOS;
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,6 @@ namespace SIGEVENTOSMVC.Controllers
             _contentRootPath = AppDomain.CurrentDomain.BaseDirectory;
             carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
         }
-   
 
         public string geraHtmlPdf(string usr_cpf, short eve_num_evento, short que_num_questionario, string dataGeracao)
         {
@@ -390,18 +389,32 @@ namespace SIGEVENTOSMVC.Controllers
 
                 foreach (var servidor in agrupadoPorServidor)
                 {
+                    var servidorCpf = Convert.ToString(servidor.Key.CPF, CultureInfo.InvariantCulture) ?? string.Empty;
+                    var servidorNome = Convert.ToString(servidor.Key.Nome, CultureInfo.InvariantCulture) ?? string.Empty;
+                    var servidorMatricula = Convert.ToString(servidor.Key.ala_fi_MATRICULA, CultureInfo.InvariantCulture) ?? string.Empty;
+
+                    sb.Append("<table style=\"width: 100%; border-collapse: collapse; border: none;\">");
+                    sb.Append("<thead style=\"display: table-header-group;\">");
+                    sb.Append("<tr><td style=\"border: none; padding: 0;\">");
                     sb.Append("<div class=\"card mb-4\">");
                     sb.Append("<div class=\"card-header bg-primary text-white\">");
-                    sb.Append($"<strong>CPF:</strong> {servidor.Key.CPF ?? ""} &nbsp;|&nbsp; <strong>Nome:</strong> {servidor.Key.Nome ?? ""} &nbsp;|&nbsp; <strong>Matrícula:</strong> {servidor.Key.ala_fi_MATRICULA}");
+                    sb.Append($"<strong>CPF:</strong> {servidorCpf} &nbsp;|&nbsp; <strong>Nome:</strong> {servidorNome} &nbsp;|&nbsp; <strong>Matrícula:</strong> {servidorMatricula}");
                     sb.Append("</div>");
-                    sb.Append("<div class=\"card-body\">");
+                    sb.Append("</div>");
+                    sb.Append("</td></tr>");
+                    sb.Append("</thead>");
+                    sb.Append("<tbody>");
+                    sb.Append("<tr><td style=\"border: none; padding: 0;\">");
 
                     var grupos = servidor.GroupBy(g => new { g.COMPETENCIA_FI, g.tipo_cargo_fi }).ToList();
                     foreach (var grupo in grupos)
                     {
+                        var competenciaTexto = Convert.ToString(grupo.Key.COMPETENCIA_FI, CultureInfo.InvariantCulture) ?? string.Empty;
+                        var tipoCargoTexto = Convert.ToString(grupo.Key.tipo_cargo_fi, CultureInfo.InvariantCulture) ?? string.Empty;
+
                         sb.Append("<div class=\"card mb-3\">");
                         sb.Append("<div class=\"card-header bg-secondary text-white\">");
-                        sb.Append($"<strong>Competência:</strong> {grupo.Key.COMPETENCIA_FI ?? ""} &nbsp;|&nbsp; <strong>Tipo de Cargo:</strong> {grupo.Key.tipo_cargo_fi ?? ""}");
+                        sb.Append($"<strong>Competência:</strong> {competenciaTexto} &nbsp;|&nbsp; <strong>Tipo de Cargo:</strong> {tipoCargoTexto}");
                         sb.Append("</div>");
                         sb.Append("<div class=\"card-body\">");
 
@@ -449,8 +462,9 @@ namespace SIGEVENTOSMVC.Controllers
                         sb.Append("</div>");
                     }
 
-                    sb.Append("</div>");
-                    sb.Append("</div>");
+                    sb.Append("</td></tr>");
+                    sb.Append("</tbody>");
+                    sb.Append("</table>");
                 }
 
                 // Envolver no layout padrão

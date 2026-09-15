@@ -133,87 +133,17 @@ namespace HomeIndex {
     }
 
 
-    export function carregarEventos() {
-        var jqxhr = $.post("/Home/ObterEventos", {}, function (data) {
-            console.log("success");
-            console.log(data);
-            if (data.sucesso) {
-                if (data.lista != null) {
-                    var lista = data.lista;
-                    console.table(lista);
-                    gerarHTML(lista);
-
-                    // let evento: any = data.lista[0];
-                    // let cab_eve_descricao: string = evento.eve_descricao.toString();
-                    // $('#cab_eve_nome').text(evento.eve_nome);
-                    // $('#cab_eve_descricao').empty().html((cab_eve_descricao.length >= 100) ? cab_eve_descricao.substring(0, 100) + '<span class="text-danger" style="cursor:pointer;"> ... Saiba mais ... </span>' : cab_eve_descricao);
-                    // $('#cab_eve_descricao_hidden').text(cab_eve_descricao);
-
-                } else {
-                    ScriptsConfig.swalconfirmeActionAlertaWarning.fire({
-                        icon: 'info',
-                        title: '<code style="color:#045C99;font-size:22px;">Olá</code><br>',
-                        imageUrl: "/Content/img/logo-ageprev-ms-origin.png",
-                        imageWidth: 300,
-                        width: 1080,
-                        height: 700,
-                        html: '<span style="color:#045C99;font-size:20px;">Não há eventos vigentes </b></span>',
-                        showCancelButton: true,
-                        confirmButtonText: "Deseja voltar ao início?",
-                        cancelButtonText: "Não, desejo permanecer aqui!",
-                        reverseButtons: false,
-                        footer: ScriptsConfig.footerAlert,
-                        backdrop: true,
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            window.location.href = '/Home/Index';
-                        } else {
-                        }
-                    });
-                }
-
-            } else {
-                console.log(data);
-                // Swal.fire({
-                //     icon: "error",
-                //     title: "Oops...",
-                //     html: data.msg,
-                //     footer: '<code>' + data.lista + '</code>'
-                // });
-                // $('tbody#tbodyListaMov').empty().html('');
-            }
-        }, "json")
-            .done(function (data) {
-                if (data !== null) {
-                    console.log("second success");
-                } else { console.log("dados não encontrado"); }
-
-                console.log(data);
-            })
-            .fail(function (_XMLHttpRequest_, textStatus, errorThrown) {
-                console.log("error");
-                console.log(_XMLHttpRequest_); console.log(textStatus); console.log(errorThrown);
-                // ScriptsConfig.failFunctionAjax(_XMLHttpRequest_, textStatus, errorThrown);
-            })
-            .always(function (data) {
-                console.log("finished");
-                console.log(data);
-                $('#botoes').css('display', 'block')
-                //$('.text-end').css('text-align','right !important')
-            });
-    }
+    
     let mensagem: string = '';
 
     $(function () {
 
         setTimeout(() => {
             console.log("This prints after 2 seconds!");
-            carregarEventos();
+            // carregarLista();
         }, 200);
 
-
-
-
+         
         $('button[name="btnSubmitIniciarCadastro"]').on('click', function () {
 
             let eve_num_evento: number = Number($('input[name="eve_num_evento"]').val()?.toString() ?? '0');

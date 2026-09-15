@@ -1,4 +1,4 @@
-// File: script-page/relatorios-ato-eventos.ts
+// File: script-page/atos-eventos-relatorio.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -9,13 +9,12 @@
 /// <reference path="../config-scripts/ScriptsConfig.d.ts" />
 /// <reference path="../config-scripts/highcharts.d.ts" />
 
-
-
-namespace RelAtEven {
+namespace AtEvenRel {
     export let tempo: number = Date.now();
 
     export let validoFiltro: boolean = true;
     export let msgFiltro: string = '';
+
 
     // Filtros disponíveis na tela (nomes dos campos do formulário / parâmetros enviados ao servidor).
     export interface FiltrosAtosEventos {
@@ -46,6 +45,7 @@ namespace RelAtEven {
         ate_comissao_simbolo?: string;
     }
 
+
     export let listaAtosEventos: Array<{
         ate_numero: number;
         dep_matricula: number | null;
@@ -74,6 +74,12 @@ namespace RelAtEven {
         ate_comissao_cod_simbolo: number;
         ate_comissao_simbolo: string;
         ate_comissao_cargo: string;
+        ate_simbolo_funcao_gratificada: string;
+        ate_cargo_funcao_gratificada: string;
+        ate_instrumento_legal: string;
+        ate_artigo_legal: string;
+        ate_inciso_legal: string;      
+        ate_historico: string;
     }> = [];
 
     export function carregarIndices() { }
@@ -100,13 +106,14 @@ namespace RelAtEven {
         return `***.${str.substring(3, 6)}.${str.substring(6, 9)}-**`;
     }
 
+
     // Não há subtabelas: cada registro retornado pelo servidor já vem ordenado por
     // ate_numero, dep_matricula, ate_nome, ate_cpf_servidor, ate_cod_ato, ate_cod_texto,
     // ate_atos_eventos, então basta mapear os campos para exibição.
     export function processDataForTable(data: any[]) {
-        RelAtEven.listaAtosEventos = [];
+        AtEvenRel.listaAtosEventos = [];
         data.forEach(q => {
-            RelAtEven.listaAtosEventos.push({
+            AtEvenRel.listaAtosEventos.push({
                 ate_numero: Number(q.ate_numero) || 0,
                 dep_matricula: (q.dep_matricula === null || q.dep_matricula === undefined) ? null : Number(q.dep_matricula),
                 ate_nome: q.ate_nome || '',
@@ -133,35 +140,21 @@ namespace RelAtEven {
                 ate_comissao_quadro: Number(q.ate_comissao_quadro) || 0,
                 ate_comissao_cod_simbolo: Number(q.ate_comissao_cod_simbolo) || 0,
                 ate_comissao_simbolo: q.ate_comissao_simbolo || '',
-                ate_comissao_cargo: q.ate_comissao_cargo || ''
+                ate_comissao_cargo: q.ate_comissao_cargo || '',
+                ate_simbolo_funcao_gratificada: q.ate_simbolo_funcao_gratificada || '',
+                ate_cargo_funcao_gratificada: q.ate_cargo_funcao_gratificada || '',
+                ate_instrumento_legal: q.ate_instrumento_legal || '',
+                ate_artigo_legal: q.ate_artigo_legal || '',
+                ate_inciso_legal: q.ate_inciso_legal || '',
+                ate_historico: q.ate_historico || ''
             });
         });
-        return RelAtEven.listaAtosEventos;
+        return AtEvenRel.listaAtosEventos;
     }
 
     // Diferente do Financeiro: aqui NÃO há agrupamento em subtabelas (por competência,
     // tipo de cargo etc). O resultado é exibido em uma única tabela, na ordem que já
     // vem do servidor, com cada registro sendo um mini-formulário em uma única TD.
-    function obterTemplateRegistro(): HTMLElement | null {
-        const template = document.getElementById('template-ato-eventos-registro') as HTMLElement | null;
-        if (!template) return null;
-
-        const clone = template.cloneNode(true) as HTMLElement;
-        clone.id = '';
-        clone.style.display = 'block';
-        clone.classList.remove('d-none');
-        return clone;
-    }
-
-    function preencherCampoRegistro(container: HTMLElement, campo: string, valor: any): void {
-        const input = container.querySelector(`[data-field="${campo}"]`) as HTMLInputElement | null;
-        if (!input) return;
-
-        const texto = String(valor ?? '').trim();
-        input.value = texto;
-        input.setAttribute('readonly', 'readonly');
-    }
-
     function formatarValorCampo(valor: any, tipo: 'numero' | 'cpf' | 'data' | 'texto' = 'texto'): string {
         if (valor === null || valor === undefined || valor === '') return '';
 
@@ -172,7 +165,8 @@ namespace RelAtEven {
         return String(valor).trim();
     }
 
-    export function gerarHTML(lista: any[]) {
+
+    export async function gerarHTML(lista: any[]) {
         if (!Array.isArray(lista)) {
             console.warn('gerarHTML recebeu lista inválida:', lista);
             return;
@@ -189,45 +183,101 @@ namespace RelAtEven {
             return;
         }
 
-        const templateRegistro = obterTemplateRegistro();
-        const table = document.createElement('table');
-        table.className = 'table table-sm mb-0';
-        const tbody = document.createElement('tbody');
-
-        lista.forEach((item: any) => {
-            const tr = document.createElement('tr');
-            const td = document.createElement('td');
-            td.style.padding = '8px';
-            td.style.verticalAlign = 'top';
-
-            const registro = templateRegistro ? templateRegistro.cloneNode(true) as HTMLElement : null;
-            if (registro) {
-                preencherCampoRegistro(registro, 'ate_numero', formatarValorCampo(item.ate_numero, 'numero'));
-                preencherCampoRegistro(registro, 'dep_matricula', formatarValorCampo(item.dep_matricula, 'numero'));
-                preencherCampoRegistro(registro, 'ate_nome', formatarValorCampo(item.ate_nome, 'texto'));
-                preencherCampoRegistro(registro, 'ate_cpf_servidor', formatarValorCampo(item.ate_cpf_servidor, 'cpf'));
-                preencherCampoRegistro(registro, 'ate_cod_ato', formatarValorCampo(item.ate_cod_ato, 'numero'));
-                preencherCampoRegistro(registro, 'ate_cod_texto', formatarValorCampo(item.ate_cod_texto, 'texto'));
-                preencherCampoRegistro(registro, 'ate_atos_eventos', formatarValorCampo(item.ate_atos_eventos, 'texto'));
-                preencherCampoRegistro(registro, 'ate_desc_tp_ato', formatarValorCampo(item.ate_desc_tp_ato || item.ate_tp_ato, 'texto'));
-                preencherCampoRegistro(registro, 'ate_dt_ato', formatarValorCampo(item.ate_dt_ato, 'data'));
-                preencherCampoRegistro(registro, 'ate_num_diario_oficial', formatarValorCampo(item.ate_num_diario_oficial, 'numero'));
-                preencherCampoRegistro(registro, 'ate_dt_diario_oficial', formatarValorCampo(item.ate_dt_diario_oficial, 'data'));
-                preencherCampoRegistro(registro, 'ate_prazo', formatarValorCampo(item.ate_prazo, 'numero'));
-                preencherCampoRegistro(registro, 'ate_dt_validade', formatarValorCampo(item.ate_dt_validade, 'data'));
-                preencherCampoRegistro(registro, 'ate_dt_final', formatarValorCampo(item.ate_dt_final, 'data'));
+        // Ensure the template is present in the DOM — prefer an existing element, otherwise fetch the file.
+        let templateWrapper = document.getElementById('template-ato-eventos-registro') as HTMLElement | null;
+        if (!templateWrapper) {
+            try {
+                const resp = await fetch('/Content/html/MiniFormAtosEventos.html');
+                if (resp.ok) {
+                    const html = await resp.text();
+                    const tmp = document.createElement('div');
+                    tmp.innerHTML = html;
+                    // append but keep original hidden template in DOM for future clones
+                    document.body.appendChild(tmp);
+                    templateWrapper = document.getElementById('template-ato-eventos-registro') as HTMLElement | null;
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar MiniFormAtosEventos.html', e);
             }
 
-            td.appendChild(registro || document.createTextNode(''));
-            tr.appendChild(td);
-            tbody.appendChild(tr);
+            if (!templateWrapper) {
+                console.warn('Template #template-ato-eventos-registro não encontrado.');
+                return;
+            }
+        }
+
+        // The actual card element inside the wrapper
+        const templateCard = templateWrapper.querySelector('.relatorio-ato-evento') as HTMLElement | null;
+        if (!templateCard) {
+            console.warn('Elemento .relatorio-ato-evento não encontrado dentro do template.');
+            return;
+        }
+
+        
+
+        const wrapper = document.createElement('div');
+
+        lista.forEach((item: any, index: number) => {
+            // Clone the inner card (avoids duplicating the outer wrapper id)
+            const registro = templateCard.cloneNode(true) as HTMLElement;
+            registro.id = 'registro-' + index;
+            registro.classList.remove('d-none');
+            registro.style.display = 'block';
+            // Ensure card visual styles are present (template already has classes but reinforce)
+            registro.classList.add('card', 'shadow-sm', 'border-0', 'mb-3');
+            registro.style.pageBreakInside = 'avoid';
+            registro.style.breakInside = 'avoid';
+
+            // Helper: fill a data-field with text (always set textContent, even if empty)
+            const preencher = (campo: string, valor: any) => {
+                const element = registro.querySelector(`[data-field="${campo}"]`) as HTMLElement | null;
+                if (element) {
+                    const texto = String(valor ?? '').trim();
+                    element.textContent = texto;
+                }
+            };
+
+            // Ensure all relatorio-item blocks are visible
+            registro.querySelectorAll('.relatorio-item').forEach(el => {
+                const style = (el as HTMLElement).style;
+                if (style.display === 'none') {
+                    style.display = 'block';
+                }
+            });
+
+            // Fill header fields
+            preencher('dep_matricula', formatarValorCampo(item.dep_matricula, 'numero'));
+            preencher('ate_nome', formatarValorCampo(item.ate_nome, 'texto'));
+            preencher('ate_cpf_servidor', formatarValorCampo(item.ate_cpf_servidor, 'cpf'));
+            
+            // Fill items (always set values, can be empty)
+            preencher('ate_cod_texto', formatarValorCampo(item.ate_cod_texto, 'texto'));
+            preencher('ate_atos_eventos', formatarValorCampo(item.ate_atos_eventos, 'texto'));
+            preencher('ate_desc_tp_ato', formatarValorCampo(item.ate_desc_tp_ato, 'texto'));
+            preencher('ate_dt_ato', formatarValorCampo(item.ate_dt_ato, 'data'));
+            preencher('ate_dt_validade', formatarValorCampo(item.ate_dt_validade, 'data'));
+            preencher('ate_dt_final', formatarValorCampo(item.ate_dt_final, 'data'));
+            preencher('ate_prazo', formatarValorCampo(item.ate_prazo, 'numero'));
+            preencher('ate_num_diario_oficial', formatarValorCampo(item.ate_num_diario_oficial, 'numero'));
+            preencher('ate_dt_diario_oficial', formatarValorCampo(item.ate_dt_diario_oficial, 'data'));
+            preencher('ate_original_simbolo', formatarValorCampo(item.ate_original_simbolo, 'texto'));
+            preencher('ate_original_cargo', formatarValorCampo(item.ate_original_cargo, 'texto'));
+            preencher('ate_acumulado_simbolo', formatarValorCampo(item.ate_acumulado_simbolo, 'texto'));
+            preencher('ate_acumulado_cargo', formatarValorCampo(item.ate_acumulado_cargo, 'texto'));
+            preencher('ate_comissao_simbolo', formatarValorCampo(item.ate_comissao_simbolo, 'texto'));
+            preencher('ate_comissao_cargo', formatarValorCampo(item.ate_comissao_cargo, 'texto'));
+            preencher('ate_simbolo_funcao_gratificada', formatarValorCampo(item.ate_simbolo_funcao_gratificada, 'texto'));
+            preencher('ate_cargo_funcao_gratificada', formatarValorCampo(item.ate_cargo_funcao_gratificada, 'texto'));
+            preencher('ate_instrumento_legal', formatarValorCampo(item.ate_instrumento_legal, 'texto'));
+            preencher('ate_historico', formatarValorCampo(item.ate_historico, 'texto'));
+            preencher('ate_artigo_legal', formatarValorCampo(item.ate_artigo_legal, 'texto'));
+            preencher('ate_inciso_legal', formatarValorCampo(item.ate_inciso_legal, 'texto'));
+
+            // Append to wrapper
+            wrapper.appendChild(registro);
         });
 
-        table.appendChild(tbody);
         containerElement.innerHTML = '';
-        const wrapper = document.createElement('div');
-        wrapper.className = 'table-responsive';
-        wrapper.appendChild(table);
         containerElement.appendChild(wrapper);
     }
 
@@ -269,19 +319,19 @@ namespace RelAtEven {
             .filter(chave => chave !== 'cpf_busca')
             .some(chave => String((filtros as any)[chave] ?? '').trim().length > 0);
 
-        RelAtEven.msgFiltro = '';
+        AtEvenRel.msgFiltro = '';
 
         if (!cpfInformado && !possuiOutroFiltro) {
-            RelAtEven.validoFiltro = false;
-            RelAtEven.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
+            AtEvenRel.validoFiltro = false;
+            AtEvenRel.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
         } else if (cpfInformado && cpfLimpo.length !== 11) {
-            RelAtEven.validoFiltro = false;
-            RelAtEven.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
+            AtEvenRel.validoFiltro = false;
+            AtEvenRel.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
         } else {
-            RelAtEven.validoFiltro = true;
+            AtEvenRel.validoFiltro = true;
         }
 
-        return RelAtEven.validoFiltro;
+        return AtEvenRel.validoFiltro;
     }
 
     function exibirLoadingConsulta(titulo: string, mensagem: string) {
@@ -344,10 +394,11 @@ namespace RelAtEven {
         exibirResultado();
 
 
-        var jqxhr = $.post("/Relatorios/GetAtosEventos", filtros as any, function (data) {
+        var jqxhr = $.post("/AtosEventos/GetAtosEventos", filtros as any, function (data) {
             if (data.sucesso && data.lista && data.lista.length > 0) {
+                console.log(data);
                 const processedData = processDataForTable(data.lista);
-                RelAtEven.gerarHTML(processedData);
+                AtEvenRel.gerarHTML(processedData);
                 Swal.close();
             } else {
                 exibirAvisoSemDados('Não há registros de Atos e Eventos disponíveis para esta consulta');
@@ -384,11 +435,11 @@ namespace RelAtEven {
     export function gerarPDF() {
         const filtros = coletarFiltros();
 
-        if (!RelAtEven.validarBusca(filtros)) {
+        if (!AtEvenRel.validarBusca(filtros)) {
             Swal.fire({
                 icon: 'warning',
                 title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelAtEven.msgFiltro + '<label>',
+                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + AtEvenRel.msgFiltro + '<label>',
                 footer: ScriptsConfig.footerAlert
             });
             return;
@@ -397,9 +448,9 @@ namespace RelAtEven {
 
         exibirLoadingConsulta('Atos e Eventos PDF', 'Gerando o relatório em PDF. Por favor, não feche esta janela!');
 
-        $.post('/Relatorios/GerarPdfAtosEventos', filtros as any, function (data) {
+        $.post('/AtosEventos/GerarPdfAtosEventos', filtros as any, function (data) {
             if (data.sucesso) {
-                window.open('/Relatorios/abrirPdfAtosEventosGerado', 'popup', 'height=1080,width=1024,toolbar=no');
+                window.open('/AtosEventos/abrirPdfAtosEventosGerado', 'popup', 'height=1080,width=1024,toolbar=no');
                 Swal.close();
             } else {
                 Swal.fire({
@@ -442,25 +493,25 @@ namespace RelAtEven {
         $('button[name="btnBuscar"]').on('click', function (e) {
             const filtros = coletarFiltros();
 
-            if (RelAtEven.validarBusca(filtros)) {
+            if (AtEvenRel.validarBusca(filtros)) {
                 exibirLoadingConsulta('Atos e Eventos', 'Gerando o relatório. Por favor, não feche esta janela!');
-                RelAtEven.carregarAtosEventos(filtros).always(function () { });
+                AtEvenRel.carregarAtosEventos(filtros).always(function () { });
             } else {
                 Swal.fire({
                     icon: 'warning',
                     title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelAtEven.msgFiltro + '<label>',
+                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + AtEvenRel.msgFiltro + '<label>',
                     footer: ScriptsConfig.footerAlert
                 });
             }
         });
 
         $('button[name="btnGerarPDF"]').on('click', function (e) {
-            RelAtEven.gerarPDF();
+            AtEvenRel.gerarPDF();
         });
 
         $('button[name="btnGerarPDF2"]').on('click', function (e) {
-            RelAtEven.gerarPDF();
+            AtEvenRel.gerarPDF();
         });
 
         $('button[name="btn-fechar-lista"]').on('click', function (e) {
@@ -476,6 +527,6 @@ namespace RelAtEven {
 
 }
 
-declare module "RelAtEven" {
-    export = RelAtEven;
+declare module "AtEvenRel" {
+    export = AtEvenRel;
 }

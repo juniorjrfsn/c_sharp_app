@@ -1,4 +1,4 @@
-// File: script-page/questionario-index.ts
+﻿// File: script-page/financeiro-relatorio.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -10,7 +10,7 @@
 /// <reference path="../config-scripts/highcharts.d.ts" />
 
 
-namespace RelFin {
+namespace FinRel {
     export let tempo: number = Date.now();
 
     export let validoFiltro: boolean = true;
@@ -70,12 +70,14 @@ namespace RelFin {
 
     export let que_num_questionario: number = 0;
 
+
     export let listaFinanceiro: Array<{
         tempo: number;
         dpe_cpf_servidor: string;
         dpe_nome_servidor: string;
         dpe_matricula: number;
         dfu_tp_cargo: number;
+        dfu_desc_tp_cargo: string;
         fin_competencia_ano_mes: string;
         rub_codigo: number;
         rub_descricao: string;
@@ -137,14 +139,15 @@ namespace RelFin {
     export function processDataForTable(data) {
 
 
-        RelFin.listaFinanceiro = [];
+        FinRel.listaFinanceiro = [];
         data.forEach(q => {
-            RelFin.listaFinanceiro.push({
+            FinRel.listaFinanceiro.push({
                 tempo: (q.fin_numero || 0),
                 dpe_cpf_servidor: q.dpe_cpf_servidor || '',
                 dpe_nome_servidor: q.dpe_nome_servidor || '',
                 dpe_matricula: Number(q.dpe_matricula) || 0,
                 dfu_tp_cargo: Number(q.dfu_tp_cargo) || 0,
+                dfu_desc_tp_cargo: q.dfu_desc_tp_cargo || '',
                 fin_competencia_ano_mes: q.fin_competencia_ano_mes || '',
                 rub_codigo: Number(q.rub_codigo) || 0,
                 rub_descricao: q.rub_descricao || '',
@@ -159,7 +162,7 @@ namespace RelFin {
                 LIQUIDO: Number(q.LIQUIDO) || 0
             });
         });
-        return RelFin.listaFinanceiro;
+        return FinRel.listaFinanceiro;
     }
 
 
@@ -172,7 +175,7 @@ namespace RelFin {
         return String(tipoCargo || '');
     }
 
-   export function gerarHTML(financeiro) {
+    export function gerarHTML(financeiro) {
         if (!Array.isArray(financeiro)) {
             console.warn('gerarHTML recebeu financeiro inválido:', financeiro);
             return;
@@ -223,7 +226,7 @@ namespace RelFin {
                 htmlServidor += '<div class="card mb-3">';
                 htmlServidor += '<div class="card-header bg-secondary text-white">';
                 htmlServidor += `<strong>Competência:</strong> ${formatarCompetenciaMesAno(grupo.competencia)} &nbsp;|&nbsp; `;
-                htmlServidor += `<strong>Cargo:</strong> ${grupo.dfu_tp_cargo || null}. ${getDescricaoTipoCargo(grupo.dfu_tp_cargo ?? grupo.tipo_cargo_fi)}`;
+                htmlServidor += `<strong>Tipo de Cargo:</strong> ${grupo.dfu_tp_cargo || null}. ${grupo.dfu_desc_tp_cargo || ''}`;
                 htmlServidor += '</div>';
                 htmlServidor += '<div class="card-body">';
 
@@ -301,22 +304,30 @@ namespace RelFin {
                     cpf,
                     nome,
                     matricula,
-                    grupos: {} as { [chaveGrupo: string]: { competencia: string; tipo_cargo_fi: string; dfu_tp_cargo: number; registros: any[] } }
+                    grupos: {} as {
+                        [chaveGrupo: string]: {
+                            competencia: string; tipo_cargo_fi: string; dfu_tp_cargo: number;dfu_desc_tp_cargo: string; registros: any[] 
+                        }
+                    
+                    }
                 };
             }
 
             const servidor = mapaServidores[chaveServidor];
 
-            const competencia = String(item.fin_competencia_ano_mes ?? item.COMPETENCIA_FI ?? 'Sem Competência');
-            const tipoCargoRaw = item.dfu_tp_cargo ?? item.tipo_cargo_fi ?? 0;
-            const tipoCargo = String(tipoCargoRaw || 'Sem Tipo Cargo');
-            const chaveGrupo = `${competencia}|${tipoCargo}`;
+            const competencia           = String(item.fin_competencia_ano_mes ?? item.COMPETENCIA_FI ?? 'Sem Competência');
+            const tipoCargoRaw          = item.dfu_tp_cargo ?? item.tipo_cargo_fi ?? 0;
+            const tipoCargo             = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
+            const desc_tp_cargo         = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
+            const chaveGrupo            = `${competencia}|${tipoCargo}`;
 
             if (!servidor.grupos[chaveGrupo]) {
                 servidor.grupos[chaveGrupo] = {
                     competencia,
                     tipo_cargo_fi: tipoCargo,
                     dfu_tp_cargo: Number(tipoCargoRaw) || 0,
+                    desc_tp_cargo: desc_tp_cargo,
+                    dfu_desc_tp_cargo: desc_tp_cargo || '',
                     registros: []
                 };
             }
@@ -328,6 +339,7 @@ namespace RelFin {
                 dpe_matricula: matricula,
                 tipo_cargo_fi: tipoCargo,
                 dfu_tp_cargo: Number(tipoCargoRaw) || 0,
+                dfu_desc_tp_cargo: item.dfu_desc_tp_cargo ?? '',
                 COMPETENCIA_FI: competencia,
                 fin_competencia_ano_mes: competencia,
                 cod_rubrica_fi: item.rub_codigo ?? item.cod_rubrica_fi ?? '',
@@ -375,7 +387,8 @@ namespace RelFin {
         financeiro.forEach(competencia => {
             html += `<div class="card mt-3"><div class="card-header"><strong>Competência:</strong> ${formatarCompetenciaMesAno(competencia.competencia)}</div><div class="card-body">`;
             competencia.tipos.forEach(tipo => {
-                const tipoCargoDesc = getDescricaoTipoCargo(tipo.dfu_tp_cargo ?? tipo.tipo_cargo_fi);
+                //const tipoCargoDesc = getDescricaoTipoCargo(tipo.dfu_tp_cargo ?? tipo.tipo_cargo_fi);
+                const tipoCargoDesc = tipo.dfu_desc_tp_cargo ?? tipo.tipo_cargo_fi ?? '';
                 html += `<div class="mb-3"><h5>Cargo: ${tipoCargoDesc}</h5>`;
                 html += '<div class="table-responsive"><table class="table table-sm table-striped"><thead><tr>' +
                     '<th>CPF</th><th>Nome</th><th>Matrícula</th><th>Cód. Rubrica</th><th>Rubrica</th><th>Data Início</th><th>Valor</th><th>% Pont./Dia/Hora</th><th>QTDE URV</th>' +
@@ -414,14 +427,14 @@ namespace RelFin {
         $('#lista-financeiro').empty().html('');
         $('#div-filtro').css('display', 'none');
         $('#div-resultado-financeiro').css('display', 'block');
-        var jqxhr = $.post("/Relatorios/GetFinanceiro", {
+        var jqxhr = $.post("/Financeiro/GetFinanceiro", {
             cpf: cpf,
             matricula: matricula,
             nome: nome,
             dt_ini: per_dt_ini,
             dt_fim: per_dt_fim
         }, function (data) {
-            console.table(data);
+
             if (data.sucesso) {
                 var dados = data.lista;
                 if (dados && dados.length > 0) {
@@ -431,7 +444,7 @@ namespace RelFin {
                         let processedData = processDataForTable(dados);
                         console.table(processedData);
                         // gerarHTML já faz o agrupamento internamente
-                        RelFin.gerarHTML(processedData);
+                        FinRel.gerarHTML(processedData);
 
                         $('#botoes').css('display', 'block');
                         Swal.close();
@@ -549,19 +562,19 @@ namespace RelFin {
         const possuiOutroFiltro = [matricula, per_nome, per_dt_ini, per_dt_fim]
             .some(valor => String(valor ?? '').trim().length > 0);
 
-        RelFin.msgFiltro = '';
+        FinRel.msgFiltro = '';
 
         if (!cpfInformado && !possuiOutroFiltro) {
-            RelFin.validoFiltro = false;
-            RelFin.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
+            FinRel.validoFiltro = false;
+            FinRel.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
         } else if (cpfInformado && cpfLimpo.length !== 11) {
-            RelFin.validoFiltro = false;
-            RelFin.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
+            FinRel.validoFiltro = false;
+            FinRel.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
         } else {
-            RelFin.validoFiltro = true;
+            FinRel.validoFiltro = true;
         }
 
-        return RelFin.validoFiltro;
+        return FinRel.validoFiltro;
     }
 
 
@@ -574,14 +587,14 @@ namespace RelFin {
         const dtIni = String($('input[name="per_dt_ini"]').val() || '').trim();
         const dtFim = String($('input[name="per_dt_fim"]').val() || '').trim();
 
-        if (RelFin.validarBusca(cpf, matricula, nome, dtIni, dtFim)) {
+        if (FinRel.validarBusca(cpf, matricula, nome, dtIni, dtFim)) {
             const matriculaNumero = Number(matricula || '0');
-            RelFin.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matriculaNumero, nome, dtIni, dtFim);
+            FinRel.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matriculaNumero, nome, dtIni, dtFim);
         } else {
             Swal.fire({
                 icon: 'warning',
                 title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelFin.msgFiltro + '<label>',
+                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + FinRel.msgFiltro + '<label>',
                 footer: ScriptsConfig.footerAlert
             });
         }
@@ -619,12 +632,12 @@ namespace RelFin {
             }
         });
 
-        $.post('/Relatorios/GerarPdfFinanceiro', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim }, function (data) {
+        $.post('/Financeiro/GerarPdfFinanceiro', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim }, function (data) {
             console.log('success');
             console.log(data);
 
             if (data.sucesso) {
-                window.open('/Relatorios/abrirPdfFinanceiroGerado', 'popup', 'height=1080,width=1024,toolbar=no');
+                window.open('/Financeiro/abrirPdfFinanceiroGerado', 'popup', 'height=1080,width=1024,toolbar=no');
                 console.log('dados encontrados');
                 Swal.close();
             } else {
@@ -664,13 +677,13 @@ namespace RelFin {
         $('button[name="btnGerarPDF"]').on('click', function (e) {
 
 
-            $.when(RelFin.gerarPDF()).then(function (data, textStatus, jqXHR) {
+            $.when(FinRel.gerarPDF()).then(function (data, textStatus, jqXHR) {
                 const cpf = String($('input[name="cpf_busca"]').val() as string || '').replace(/\D/g, '');
                 const matricula = String($('input[name="matricula"]').val() as string || '').trim();
                 const nome = String($('input[name="per_nome"]').val() as string || '').trim();
                 const per_dt_ini = ($('input[name="per_dt_ini"]').val() as string || '').trim();
                 const per_dt_fim = ($('input[name="per_dt_fim"]').val() as string || '').trim();
-                if (RelFin.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
+                if (FinRel.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
                     Swal.fire({
                         title: '<strong style="color:#045C99;">Financeiro</strong>',
                         html: `
@@ -695,14 +708,14 @@ namespace RelFin {
                     });
 
                     // Property 'always' does not exist on type 'void'.
-                    RelFin.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
+                    FinRel.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
 
                     });
                 } else {
                     Swal.fire({
                         icon: 'warning',
                         title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                        html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelFin.msgFiltro + '<label>',
+                        html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + FinRel.msgFiltro + '<label>',
                         footer: ScriptsConfig.footerAlert
                     });
                 }
@@ -712,7 +725,7 @@ namespace RelFin {
         });
 
         $('button[name="btnGerarPDF2"]').on('click', function (e) {
-            RelFin.gerarPDF();
+            FinRel.gerarPDF();
         });
 
         $('button[name="btnBuscar"]').on('click', function (e) {
@@ -721,7 +734,7 @@ namespace RelFin {
             const nome = String($('input[name="per_nome"]').val() as string || '').trim();
             const per_dt_ini = ($('input[name="per_dt_ini"]').val() as string || '').trim();
             const per_dt_fim = ($('input[name="per_dt_fim"]').val() as string || '').trim();
-            if (RelFin.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
+            if (FinRel.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
                 Swal.fire({
                     title: '<strong style="color:#045C99;">Financeiro</strong>',
                     html: `
@@ -746,14 +759,14 @@ namespace RelFin {
                 });
 
                 // Property 'always' does not exist on type 'void'.
-                RelFin.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
+                FinRel.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
 
                 });
             } else {
                 Swal.fire({
                     icon: 'warning',
                     title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelFin.msgFiltro + '<label>',
+                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + FinRel.msgFiltro + '<label>',
                     footer: ScriptsConfig.footerAlert
                 });
             }
@@ -769,7 +782,7 @@ namespace RelFin {
             // const que_num_questionario = Number($(this).data('que') || 0);
             $('input[name="eve_num_evento"]').val(eve_num_evento);
             $('input[name="que_num_questionario"]').val(0);
-            // RelFin.editarEventoQuestionrio(eve_num_evento)
+            // FinRel.editarEventoQuestionrio(eve_num_evento)
         });
 
         $('#div-lista-questionario tbody').on('click', 'button.btn-editar-questionario', function () {
@@ -777,15 +790,15 @@ namespace RelFin {
             const que_num_questionario = Number($(this).data('que') || 0);
             $('input[name="eve_num_evento"]').val(eve_num_evento);
             $('input[name="que_num_questionario"]').val(que_num_questionario);
-            console.log(RelFin.questionariosDtos);
-            let questionario = RelFin.questionariosDtos.find(x => x.que_num_questionario === que_num_questionario);
+            console.log(FinRel.questionariosDtos);
+            let questionario = FinRel.questionariosDtos.find(x => x.que_num_questionario === que_num_questionario);
             console.log(questionario);
             if (questionario) {
                 // Estat.editarQuestionrio(questionario);
                 // $('#div-lista-evento-question').css('display', 'none');
                 // $('#div-lista-questionario').css('display', 'none');
                 // $('#div-formulario-questionario').css('display', 'block');
-                // RelFin.carregarContagemPorNotaResultado()
+                // FinRel.carregarContagemPorNotaResultado()
             }
         });
 
@@ -825,8 +838,8 @@ namespace RelFin {
 
         $('button[name="btnBuscar"]').on('click', function (e) {
 
-            // $.when(RelFin.buscarUsuarioaNoRelatorio()).then(function (data, textStatus, jqXHR) {
-            //     $.when(RelFin.initializeDataTable(RelFin.listaBusca, _ano, _mes, 100)).then(function (data, textStatus, jqXHR) {
+            // $.when(FinRel.buscarUsuarioaNoRelatorio()).then(function (data, textStatus, jqXHR) {
+            //     $.when(FinRel.initializeDataTable(FinRel.listaBusca, _ano, _mes, 100)).then(function (data, textStatus, jqXHR) {
             //         $('input[name="buscaLimpa"]').val('');
             //         console.log('Pontuação carregada com filtro');
             //     });
@@ -845,6 +858,6 @@ namespace RelFin {
 
 }
 
-declare module "RelFin" {
-    export = RelFin;
+declare module "FinRel" {
+    export = FinRel;
 }

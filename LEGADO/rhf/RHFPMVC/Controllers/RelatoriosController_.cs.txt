@@ -1,4 +1,4 @@
-﻿using Microsoft.Ajax.Utilities;
+using Microsoft.Ajax.Utilities;
 using NReco.PdfGenerator;
 using SGI.Framework.MVC.Architecture.Controller;
 
@@ -39,8 +39,6 @@ namespace RHFPMVC.Controllers
         public static Nullable<System.DateTime> plc_dt_cancelamento { get; set; }
         public static Nullable<int> plc_cd_usuario_gsi_cancelamento { get; set; }
         public static string nome { get; set; }
-        public static string cpf { get; set; }
-        public static string matricula { get; set; }
         public static string mov_nome_completo { get; set; }
         public static string RelatorioPatronal { get; set; }
         public static string mov_ano { get; set; }
@@ -64,7 +62,7 @@ namespace RHFPMVC.Controllers
         private readonly rhfp_financeiroBusiness _financeiroBusiness;
         private readonly rhfp_legado_financeiroBusiness _legadoFinanceiroBusiness;
         private readonly rhfp_legado_dados_pessoaisBusiness _dadosPessoaisBusiness;
-        private readonly rhfp_legado_atos_e_eventosBusiness _atosEventosBusiness;
+        private readonly rhfp_legado_atos_eventosBusiness _atosEventosBusiness;
         private readonly rhfp_legado_dados_funcionaisBusiness _dadosFuncionaisBusiness;
 
         public string _contentRootPath { get; set; }
@@ -75,7 +73,7 @@ namespace RHFPMVC.Controllers
         {
             _legadoFinanceiroBusiness = new rhfp_legado_financeiroBusiness();
             _dadosPessoaisBusiness = new rhfp_legado_dados_pessoaisBusiness();
-            _atosEventosBusiness = new rhfp_legado_atos_e_eventosBusiness();
+            _atosEventosBusiness = new rhfp_legado_atos_eventosBusiness();
             _dadosFuncionaisBusiness = new rhfp_legado_dados_funcionaisBusiness();
             _contentRootPath = AppDomain.CurrentDomain.BaseDirectory;
             carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
@@ -149,8 +147,53 @@ namespace RHFPMVC.Controllers
         {
             string htmlContent = RelatorioViewModel.RelatorioFinanceiro.ToString();
             string nome = RelatorioViewModel.nome;
-            string cpf = RelatorioViewModel.cpf;
-            string matricula = RelatorioViewModel.matricula;
+
+
+            // Cria um objeto de MemoryStream para armazenar o PDF gerado
+            /*using (var memoryStream = new MemoryStream())
+            {
+                var converter = new HtmlToPdfConverter();
+                //{
+                //    PageOrientation = PageOrientation.Portrait,
+                //    PageSize = PageSize.A4
+                //};
+
+                // Gera o PDF a partir do HTML
+                var pdfBytes = converter.GeneratePdf(htmlContent, null);
+
+
+                PctItemMovimentoPlanilhaCalculoRepository itemMovimentoPlanilhaCalculoRepository = new PctItemMovimentoPlanilhaCalculoRepository();
+
+                pct_item_movimento_planilha_calculo pct_Item_Movimento_Planilha = itemMovimentoPlanilhaCalculoRepository.Salvar(
+                    RelatorioViewModel.mov_ano,
+                    RelatorioViewModel.mov_numero,
+                    RelatorioViewModel.plc_sequencial = 0,
+                    pdfBytes,
+                    RelatorioViewModel.plc_dt_inclusao,
+                    RelatorioViewModel.plc_dt_cancelamento,
+                    RelatorioViewModel.plc_cd_usuario_gsi_cancelamento = 0,
+                    RelatorioViewModel.sit_codigo,
+                    RelatorioViewModel.pct_movimento,
+                    RelatorioViewModel.pct_situacao
+                );
+
+                var bytess = pct_Item_Movimento_Planilha.plc_imagem;
+                // Escreve o PDF no MemoryStream
+
+                memoryStream.Write(bytess, 0, bytess.Length);
+                memoryStream.Position = 0;
+
+                // Define o tipo de conteúdo da resposta como PDF
+                Response.ContentType = "application/pdf";
+
+                // Define o cabeçalho Content-Disposition para exibir o PDF no navegador
+                Response.AddHeader("Content-Disposition", "inline; filename=Planilha de Cálculo Previdenciario " + segurado + ".pdf");
+
+                // Copia o conteúdo do MemoryStream para o fluxo de saída da resposta
+
+                memoryStream.CopyTo(Response.OutputStream);
+                Response.End();
+            }*/
 
             // Converter HTML para PDF 
             var converter = new HtmlToPdfConverter
@@ -159,8 +202,8 @@ namespace RHFPMVC.Controllers
                 Orientation = PageOrientation.Portrait,
                 Margins = new PageMargins
                 {
-                    Top = 45f,
-                    Bottom = 20f,
+                    Top = 50f,  // increased top margin for header
+                    Bottom = 20f, // increase bottom margin for footer
                     Left = 10f,
                     Right = 10f
                 }
@@ -171,15 +214,15 @@ namespace RHFPMVC.Controllers
             var baseUri = new Uri(_contentRootPath).AbsoluteUri;
 
             // Create header HTML file for repeated page header
-            string headerHtml = CriarHeaderHtmlParaFinanceiro(nome, cpf, matricula);
+            string headerHtml = CriarHeaderHtmlParaFinanceiro(nome);
             string headerFilePath = Path.Combine(Path.GetTempPath(), "header_" + Guid.NewGuid().ToString() + ".html");
             try
             {
-                System.IO.File.WriteAllText(headerFilePath, headerHtml, System.Text.Encoding.UTF8);
+                System.IO.File.WriteAllText(headerFilePath, headerHtml);
 
-                string headerUri = new Uri(headerFilePath).AbsoluteUri;
+                // Add custom header and footer with wkhtmltopdf arguments
                 string dataGeracao = DateTime.Now.ToString("dd/MM/yyyy");
-                converter.CustomWkHtmlArgs = $"--header-html \"{headerUri}\" --header-spacing 5 --footer-left \"DIRGIN/AGEPREV-MS\" --footer-center \"Página [page] de [toPage]\" --footer-right \"{dataGeracao}\" --footer-font-size 9 --footer-spacing 5";
+                converter.CustomWkHtmlArgs = $"--header-html \"{headerFilePath}\" --header-spacing 5 --footer-left \"DIRGIN/AGEPREV-MS\" --footer-center \"Página [page] de [toPage]\" --footer-right \"{dataGeracao}\" --footer-font-size 9 --footer-spacing 5";
             }
             catch (Exception ex)
             {
@@ -220,6 +263,7 @@ namespace RHFPMVC.Controllers
                 Response.ContentType = "application/pdf";
 
                 // Define o cabeçalho Content-Disposition para exibir o PDF no navegador
+                // Response.AddHeader("Content-Disposition", "inline; filename=Planilha de Cálculo Previdenciario.pdf");
                 Response.AddHeader("Content-Disposition", "inline; filename=RHFP Legado - " + nome + " - Financeiro.pdf");
 
                 // Copia o conteúdo do MemoryStream para o fluxo de saída da resposta
@@ -231,59 +275,35 @@ namespace RHFPMVC.Controllers
         /// <summary>
         /// Cria um arquivo HTML para ser usado como header em cada página do PDF
         /// </summary>
-        private string CriarHeaderHtmlParaFinanceiro(string nome, string cpf = null, string matricula = null)
+        private string CriarHeaderHtmlParaFinanceiro(string nome)
         {
-            if (string.IsNullOrWhiteSpace(cpf))
-            {
-                cpf = RelatorioViewModel.cpf ?? FinanceiroViewModel.cpf ?? string.Empty;
-            }
-            if (string.IsNullOrWhiteSpace(matricula))
-            {
-                matricula = RelatorioViewModel.matricula ?? FinanceiroViewModel.matricula ?? string.Empty;
-            }
-            if (string.IsNullOrWhiteSpace(nome))
-            {
-                nome = RelatorioViewModel.nome ?? FinanceiroViewModel.nome ?? string.Empty;
-            }
+            // Obter pageHeader armazenado (contém logos e layout)
+            string pageHeader = RelatorioViewModel.RelatorioPageHeader ?? string.Empty;
+            string pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
 
-            string pageHeader = RelatorioViewModel.RelatorioPageHeader;
+            // Se não houver pageHeader armazenado, criar um header simples
             if (string.IsNullOrWhiteSpace(pageHeader))
             {
-                var carrega = new CarregaLayoutBusiness(_contentRootPath);
-                pageHeader = carrega.RelatorioPageHeader ?? string.Empty;
-            }
-            if (!string.IsNullOrWhiteSpace(pageHeader))
-            {
-                pageHeader = pageHeader.Replace("{tprel}", "Relatório Financeiro");
+                return @"<!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset='utf-8'>
+                    <style>
+                        body { margin: 0; padding: 5px; font-family: Arial, sans-serif; font-size: 11px; width: 100%; }
+                        .header-container { background-color: #004085; color: white; padding: 8px; width: 100%; box-sizing: border-box; }
+                        .header-info { margin: 0; }
+                        .header-info strong { margin-right: 10px; }
+                    </style>
+                </head>
+                <body>
+                    <div class='header-container'><div class='header-info'><strong>Relatório Financeiro - AGEPREV-MS</strong> | <strong>Servidor:</strong> " + (string.IsNullOrWhiteSpace(nome) ? "N/A" : nome) + @"</div></div>
+                </body>
+                </html>";
             }
 
-            string pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
-            {
-                pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
-            }
-
+            // Construir header com pageHeader (que possui logos) e informações do servidor
+            // Remover apenas excesso de whitespace, mantendo estilos originais
             pageHeader = System.Text.RegularExpressions.Regex.Replace(pageHeader, @">\s+<", "><").Trim();
-
-            var textoServidor = new System.Text.StringBuilder();
-            if (!string.IsNullOrWhiteSpace(cpf))
-            {
-                textoServidor.Append("<strong>CPF:</strong> " + cpf);
-            }
-            if (!string.IsNullOrWhiteSpace(nome))
-            {
-                if (textoServidor.Length > 0) textoServidor.Append(" &nbsp;|&nbsp; ");
-                textoServidor.Append("<strong>Nome:</strong> " + nome);
-            }
-            if (!string.IsNullOrWhiteSpace(matricula))
-            {
-                if (textoServidor.Length > 0) textoServidor.Append(" &nbsp;|&nbsp; ");
-                textoServidor.Append("<strong>Matrícula:</strong> " + matricula);
-            }
-
-            string barHtml = textoServidor.Length > 0 
-                ? "<div class='header-bottom-bar'>" + textoServidor.ToString() + "</div>"
-                : (!string.IsNullOrWhiteSpace(nome) ? "<div class='header-bottom-bar'><strong>Servidor:</strong> " + nome + "</div>" : "");
 
             return @"<!DOCTYPE html>
             <html>
@@ -291,19 +311,19 @@ namespace RHFPMVC.Controllers
                 <meta charset='utf-8'>
                 " + pageHeadContent + @"
                 <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { margin: 0; padding: 0; font-family: Verdana, sans-serif; width: 100%; background: transparent; }
-                    #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
+                    * { margin: 0; padding: 0; }
+                    body { margin: 0; padding: 0; font-family: 'Times New Roman', Times, serif; width: 100%; }
+                    #header { width: 100% !important; border-collapse: collapse; }
                     #header td:nth-child(1) { width: 220px !important; text-align: left !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
+                    #header td:nth-child(2) { text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 22px !important; }
                     #header td:nth-child(3) { width: 220px !important; text-align: right !important; vertical-align: middle !important; }
-                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: Verdana, sans-serif; }
+                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: Arial, sans-serif; }
                     .header-bottom-bar strong { margin-right: 5px; }
                 </style>
             </head>
             <body>
                 " + pageHeader + @"
-                " + barHtml + @"
+                <div class='header-bottom-bar'><strong>Servidor:</strong> " + (string.IsNullOrWhiteSpace(nome) ? "N/A" : nome) + @"</div>
             </body>
             </html>";
         }
@@ -425,7 +445,7 @@ namespace RHFPMVC.Controllers
         {
             bool sucesso = false;
             string msg = string.Empty;
-            List<rhfp_legado_dados_financeirosDTO> financeiroDTOs = new List<rhfp_legado_dados_financeirosDTO>();
+            List<rhfp_legado_financeiroDTO> financeiroDTOs = new List<rhfp_legado_financeiroDTO>();
             List<object> lista = new List<object>();
             try
             {
@@ -755,55 +775,7 @@ namespace RHFPMVC.Controllers
 
 
         #region Atos e Eventos
-
-        /// <summary>
-        /// Cria um arquivo HTML para ser usado como header em cada página do PDF de Atos e Eventos.
-        /// </summary>
-        private string CriarHeaderHtmlParaAtosEventos(string nome)
-        {
-            string pageHeader = RelatorioViewModel.RelatorioPageHeader;
-            if (string.IsNullOrWhiteSpace(pageHeader))
-            {
-                var carrega = new CarregaLayoutBusiness(_contentRootPath);
-                pageHeader = carrega.RelatorioPageHeader ?? string.Empty;
-            }
-            if (!string.IsNullOrWhiteSpace(pageHeader))
-            {
-                pageHeader = pageHeader.Replace("{tprel}", "Relatório de Atos e Eventos");
-            }
-
-            string pageHeadContent = RelatorioViewModel.RelatorioPageHeadContent ?? string.Empty;
-            if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
-            {
-                pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
-            }
-
-            pageHeader = System.Text.RegularExpressions.Regex.Replace(pageHeader, @">\s+<", "><").Trim();
-
-            return @"<!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset='utf-8'>
-                " + pageHeadContent + @"
-                <style>
-                    * { margin: 0; padding: 0; box-sizing: border-box; }
-                    body { margin: 0; padding: 0; font-family: Verdana, sans-serif; width: 100%; background: transparent; }
-                    #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
-                    #header td:nth-child(1) { width: 220px !important; text-align: left !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
-                    #header td:nth-child(3) { width: 220px !important; text-align: right !important; vertical-align: middle !important; }
-                    .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: Verdana, sans-serif; }
-                    .header-bottom-bar strong { margin-right: 5px; }
-                </style>
-            </head>
-            <body>
-                " + pageHeader + @"
-                " + (!string.IsNullOrWhiteSpace(nome) ? "<div class='header-bottom-bar'><strong>Servidor:</strong> " + nome + "</div>" : "") + @"
-            </body>
-            </html>";
-        }
-
-     
+        [HttpPost]
         public ActionResult abrirPdfAtosEventosGerado()
         {
             string htmlContent = RelatorioViewModel.RelatorioAtosEventos ?? string.Empty;
@@ -820,7 +792,7 @@ namespace RHFPMVC.Controllers
                 Orientation = PageOrientation.Portrait,
                 Margins = new PageMargins
                 {
-                    Top = 45f,
+                    Top = 10f,
                     Bottom = 20f,
                     Left = 10f,
                     Right = 10f
@@ -828,23 +800,8 @@ namespace RHFPMVC.Controllers
             };
 
             var baseUri = new Uri(_contentRootPath).AbsoluteUri;
-
-            string headerHtml = CriarHeaderHtmlParaAtosEventos(nome);
-            string headerFilePath = Path.Combine(Path.GetTempPath(), "header_" + Guid.NewGuid().ToString() + ".html");
-            try
-            {
-                System.IO.File.WriteAllText(headerFilePath, headerHtml, System.Text.Encoding.UTF8);
-
-                string headerUri = new Uri(headerFilePath).AbsoluteUri;
-                string dataGeracao = DateTime.Now.ToString("dd/MM/yyyy");
-                converter.CustomWkHtmlArgs = $"--header-html \"{headerUri}\" --header-spacing 5 --footer-left \"DIRGIN/AGEPREV-MS\" --footer-center \"Página [page] de [toPage]\" --footer-right \"{dataGeracao}\" --footer-font-size 9 --footer-spacing 5";
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Erro ao criar header HTML: {ex.Message}");
-                string dataGeracao = DateTime.Now.ToString("dd/MM/yyyy");
-                converter.CustomWkHtmlArgs = $"--footer-left \"DIRGIN/AGEPREV-MS\" --footer-center \"Página [page] de [toPage]\" --footer-right \"{dataGeracao}\" --footer-font-size 9 --footer-spacing 5";
-            }
+            string dataGeracao = DateTime.Now.ToString("dd/MM/yyyy");
+            converter.CustomWkHtmlArgs = $"--footer-left \"DIRGIN/AGEPREV-MS\" --footer-center \"Página [page] de [toPage]\" --footer-right \"{dataGeracao}\" --footer-font-size 9 --footer-spacing 5";
 
             htmlContent = (htmlContent ?? string.Empty).TrimStart();
             try
@@ -858,51 +815,15 @@ namespace RHFPMVC.Controllers
 
             byte[] pdfBytes = converter.GeneratePdf(htmlContent, null);
 
-            try
-            {
-                if (System.IO.File.Exists(headerFilePath))
-                    System.IO.File.Delete(headerFilePath);
-            }
-            catch { }
-
             using (MemoryStream memoryStream = new MemoryStream(pdfBytes))
             {
                 memoryStream.Position = 0;
                 Response.ContentType = "application/pdf";
-                Response.AddHeader("Content-Disposition", "inline; filename=RHFP Legado - " + nome + " - Atos e Eventos.pdf");
+                Response.AddHeader("Content-Disposition", "inline; filename=RHFP Legado - " + nome + " - AtosEventos.pdf");
                 memoryStream.CopyTo(Response.OutputStream);
             }
 
             return new EmptyResult();
-        }
-
-        /// <summary>
-        /// Lê do Request todos os filtros da tela de Atos e Eventos.
-        /// </summary>
-        private Dictionary<string, string> LerParametrosAtosEventos()
-        {
-            var parametros = new Dictionary<string, string>();
-            foreach (var texto in Request.Params.AllKeys)
-            {
-                if (texto != null && Request[texto] != null)
-                    parametros[texto] = Request[texto];
-            }
-            return parametros;
-        }
-
-        private int ParametroInt(Dictionary<string, string> parametros, string chave)
-        {
-            return (parametros.ContainsKey(chave) && !string.IsNullOrWhiteSpace(parametros[chave]) && int.TryParse(parametros[chave], out var valor)) ? valor : 0;
-        }
-
-        private short ParametroShort(Dictionary<string, string> parametros, string chave)
-        {
-            return (parametros.ContainsKey(chave) && !string.IsNullOrWhiteSpace(parametros[chave]) && short.TryParse(parametros[chave], out var valor)) ? valor : (short)0;
-        }
-
-        private string ParametroString(Dictionary<string, string> parametros, string chave)
-        {
-            return (parametros.ContainsKey(chave) && !string.IsNullOrWhiteSpace(parametros[chave])) ? parametros[chave] : null;
         }
 
         [HttpPost]
@@ -910,37 +831,27 @@ namespace RHFPMVC.Controllers
         {
             try
             {
-                var parametros = LerParametrosAtosEventos();
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                        parametros[texto] = Request[texto];
+                }
 
-                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? string.Empty;
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : string.Empty;
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+                int matricula = (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])) ? int.Parse(parametros["matricula"]) : 0;
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : string.Empty;
+                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : string.Empty;
+                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : string.Empty;
 
-                List<rhfp_legado_atos_e_eventosDTO> eventos = _atosEventosBusiness.GetAtosEventos(
-                    ate_numero: ParametroInt(parametros, "ate_numero"),
-                    dep_matricula: ParametroInt(parametros, "dep_matricula"),
-                    ate_nome: ParametroString(parametros, "ate_nome"),
-                    ate_cpf_servidor: cpf,
-                    ate_cod_ato: ParametroInt(parametros, "ate_cod_ato"),
-                    ate_cod_texto: ParametroString(parametros, "ate_cod_texto"),
-                    ate_atos_eventos: ParametroString(parametros, "ate_atos_eventos"),
-                    ate_num_diario_oficial: ParametroInt(parametros, "ate_num_diario_oficial"),
-                    ate_dt_diario_oficial: ParametroString(parametros, "ate_dt_diario_oficial"),
-                    ate_tp_ato: ParametroShort(parametros, "ate_tp_ato"),
-                    ate_desc_tp_ato: ParametroString(parametros, "ate_desc_tp_ato"),
-                    ate_dt_ato: ParametroString(parametros, "ate_dt_ato"),
-                    ate_dt_validade: ParametroString(parametros, "ate_dt_validade"),
-                    ate_dt_final: ParametroString(parametros, "ate_dt_final"),
-                    ate_prazo: ParametroInt(parametros, "ate_prazo"),
-                    ate_original_cod_simbolo: ParametroShort(parametros, "ate_original_cod_simbolo"),
-                    ate_original_simbolo: ParametroString(parametros, "ate_original_simbolo"),
-                    ate_original_cargo: ParametroString(parametros, "ate_original_cargo"),
-                    ate_acumulado_quadro: ParametroShort(parametros, "ate_acumulado_quadro"),
-                    ate_acumulado_cod_simbolo: ParametroShort(parametros, "ate_acumulado_cod_simbolo"),
-                    ate_acumulado_simbolo: ParametroString(parametros, "ate_acumulado_simbolo"),
-                    ate_acumulado_cargo: ParametroString(parametros, "ate_acumulado_cargo"),
-                    ate_comissao_quadro: ParametroShort(parametros, "ate_comissao_quadro"),
-                    ate_comissao_cod_simbolo: ParametroShort(parametros, "ate_comissao_cod_simbolo"),
-                    ate_comissao_simbolo: ParametroString(parametros, "ate_comissao_simbolo")
+                // TODO: conferir a assinatura real de GetAtosEventos no business
+                List<rhfp_legado_atos_eventosDTO> eventos = _atosEventosBusiness.GetAtosEventos(
+                    matricula: matricula,
+                    cpf: cpf,
+                    nome: nome,
+                    dtIni: dtIni,
+                    dtFim: dtFim
                 );
 
                 if (eventos == null || eventos.Count == 0)
@@ -948,9 +859,10 @@ namespace RHFPMVC.Controllers
                     return Json(new { sucesso = false, msg = "Nenhum registro de atos e eventos encontrado para o filtro informado.", caminhoPDF = "" });
                 }
 
+                // TODO: conferir a classe/método reais de geração do HTML do relatório
                 var relatorio = new RelHtmlPDF_AtosEventos();
                 RelatorioViewModel.RelatorioAtosEventos = relatorio.geraHtmlPdfAtosEventos(eventos, DateTime.Now.ToString("dd/MM/yyyy"));
-                RelatorioViewModel.nome = eventos.First().ate_nome ?? eventos.First().ate_cpf_servidor ?? "AtosEventos";
+                RelatorioViewModel.nome = eventos.First().dpe_nome_servidor ?? eventos.First().dpe_cpf_servidor ?? "AtosEventos";
 
                 return Json(new { sucesso = true, msg = string.Empty, caminhoPDF = "" });
             }
@@ -982,37 +894,29 @@ namespace RHFPMVC.Controllers
 
             try
             {
-                var parametros = LerParametrosAtosEventos();
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }
+                }
 
-                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? string.Empty;
+                string cpf = (parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : string.Empty;
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+                int matricula = (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])) ? int.Parse(parametros["matricula"]) : 0;
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : string.Empty;
+                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : string.Empty;
+                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : string.Empty;
 
+                // TODO: conferir a assinatura real de GetAtosEventos no business
                 var eventos = _atosEventosBusiness.GetAtosEventos(
-                    ate_numero: ParametroInt(parametros, "ate_numero"),
-                    dep_matricula: ParametroInt(parametros, "dep_matricula"),
-                    ate_nome: ParametroString(parametros, "ate_nome"),
-                    ate_cpf_servidor: cpf,
-                    ate_cod_ato: ParametroInt(parametros, "ate_cod_ato"),
-                    ate_cod_texto: ParametroString(parametros, "ate_cod_texto"),
-                    ate_atos_eventos: ParametroString(parametros, "ate_atos_eventos"),
-                    ate_num_diario_oficial: ParametroInt(parametros, "ate_num_diario_oficial"),
-                    ate_dt_diario_oficial: ParametroString(parametros, "ate_dt_diario_oficial"),
-                    ate_tp_ato: ParametroShort(parametros, "ate_tp_ato"),
-                    ate_desc_tp_ato: ParametroString(parametros, "ate_desc_tp_ato"),
-                    ate_dt_ato: ParametroString(parametros, "ate_dt_ato"),
-                    ate_dt_validade: ParametroString(parametros, "ate_dt_validade"),
-                    ate_dt_final: ParametroString(parametros, "ate_dt_final"),
-                    ate_prazo: ParametroInt(parametros, "ate_prazo"),
-                    ate_original_cod_simbolo: ParametroShort(parametros, "ate_original_cod_simbolo"),
-                    ate_original_simbolo: ParametroString(parametros, "ate_original_simbolo"),
-                    ate_original_cargo: ParametroString(parametros, "ate_original_cargo"),
-                    ate_acumulado_quadro: ParametroShort(parametros, "ate_acumulado_quadro"),
-                    ate_acumulado_cod_simbolo: ParametroShort(parametros, "ate_acumulado_cod_simbolo"),
-                    ate_acumulado_simbolo: ParametroString(parametros, "ate_acumulado_simbolo"),
-                    ate_acumulado_cargo: ParametroString(parametros, "ate_acumulado_cargo"),
-                    ate_comissao_quadro: ParametroShort(parametros, "ate_comissao_quadro"),
-                    ate_comissao_cod_simbolo: ParametroShort(parametros, "ate_comissao_cod_simbolo"),
-                    ate_comissao_simbolo: ParametroString(parametros, "ate_comissao_simbolo")
+                    matricula: matricula,
+                    cpf: cpf,
+                    nome: nome,
+                    dtIni: dtIni,
+                    dtFim: dtFim
                 );
 
                 if (eventos != null && eventos.Count > 0)
@@ -1020,41 +924,19 @@ namespace RHFPMVC.Controllers
                     sucesso = true;
                     foreach (var evt in eventos)
                     {
+                        // TODO: ajustar os campos abaixo para os nomes reais de rhfp_legado_atos_eventosDTO
                         lista.Add(new
                         {
-                            ate_numero = evt.ate_numero,
-                            dep_matricula = evt.dep_matricula,
-                            ate_nome = evt.ate_nome,
-                            ate_cpf_servidor = evt.ate_cpf_servidor,
-                            ate_cod_ato = evt.ate_cod_ato,
-                            ate_cod_texto = evt.ate_cod_texto,
-                            ate_atos_eventos = evt.ate_atos_eventos,
-                            ate_num_diario_oficial = evt.ate_num_diario_oficial,
-                            ate_dt_diario_oficial = evt.ate_dt_diario_oficial,
-                            ate_tp_ato = evt.ate_tp_ato,
-                            ate_desc_tp_ato = evt.ate_desc_tp_ato,
-                            ate_dt_ato = evt.ate_dt_ato,
-                            ate_dt_validade = evt.ate_dt_validade,
-                            ate_dt_final = evt.ate_dt_final,
-                            ate_prazo = evt.ate_prazo,
-                            ate_original_quadro = evt.ate_original_quadro,
-                            ate_original_cod_simbolo = evt.ate_original_cod_simbolo,
-                            ate_original_simbolo = evt.ate_original_simbolo,
-                            ate_original_cargo = evt.ate_original_cargo,
-                            ate_acumulado_quadro = evt.ate_acumulado_quadro,
-                            ate_acumulado_cod_simbolo = evt.ate_acumulado_cod_simbolo,
-                            ate_acumulado_simbolo = evt.ate_acumulado_simbolo,
-                            ate_acumulado_cargo = evt.ate_acumulado_cargo,
-                            ate_comissao_quadro = evt.ate_comissao_quadro,
-                            ate_comissao_cod_simbolo = evt.ate_comissao_cod_simbolo,
-                            ate_comissao_simbolo = evt.ate_comissao_simbolo,
-                            ate_comissao_cargo = evt.ate_comissao_cargo,
-                            ate_simbolo_funcao_gratificada = evt.ate_simbolo_funcao_gratificada,
-                            ate_cargo_funcao_gratificada = evt.ate_cargo_funcao_gratificada,
-                            ate_instrumento_legal = evt.ate_instrumento_legal,
-                            ate_artigo_legal = evt.ate_artigo_legal,
-                            ate_inciso_legal = evt.ate_inciso_legal,
-                            ate_historico = evt.ate_historico
+                            ate_numero              = evt.ate_numero,
+                            ate_matricula           = evt.ate_matricula,
+                            ate_nome_servidor       = evt.dpe_nome_servidor,
+                            ate_cpf_servidor        = evt.dpe_cpf_servidor,
+                            ate_tipo_ato            = evt.ate_tipo_ato,
+                            ate_descricao           = evt.ate_descricao,
+                            ate_dt_ato              = evt.ate_dt_ato,
+                            ate_dt_publicacao       = evt.ate_dt_publicacao,
+                            ate_num_diario_oficial  = evt.ate_num_diario_oficial,
+                            ate_situacao = evt.ate_situacao
                         });
                     }
                 }
@@ -1073,6 +955,9 @@ namespace RHFPMVC.Controllers
         }
 
         #endregion
+
+
+
 
 
 
@@ -1157,7 +1042,7 @@ namespace RHFPMVC.Controllers
 
                 if (dfuNumero > 0)
                 {
-                    dados = dados.Where(x => { int v; return int.TryParse(x.fun_numero.ToString(), out v) && v == dfuNumero; }).ToList();
+                    dados = dados.Where(x => x.dfu_numero == dfuNumero).ToList();
                 }
 
                 if (dados == null || dados.Count == 0)
@@ -1169,7 +1054,7 @@ namespace RHFPMVC.Controllers
                 // TODO: conferir a classe/método reais de geração do HTML do relatório
                 var relatorio = new RelHtmlPDF_DadosFuncionais();
                 RelatorioViewModel.RelatorioDadosFuncionais = relatorio.geraHtmlPdfDadosFuncionais(funcionario, DateTime.Now.ToString("dd/MM/yyyy"));
-                RelatorioViewModel.nome = funcionario.dpe_nome_servidor ?? funcionario.dpe_cpf_servidor ?? "DadosFuncionais";
+                RelatorioViewModel.nome = funcionario.dfu_nome_servidor ?? funcionario.dfu_cpf_servidor ?? "DadosFuncionais";
 
                 return Json(new { sucesso = true, msg = string.Empty, caminhoPDF = "" });
             }
@@ -1215,7 +1100,7 @@ namespace RHFPMVC.Controllers
 
                 if (dfuNumero > 0)
                 {
-                    funcionarios = funcionarios.Where(x => { int v; return int.TryParse(x.fun_numero.ToString(), out v) && v == dfuNumero; }).ToList();
+                    funcionarios = funcionarios.Where(x => x.dfu_numero == dfuNumero).ToList();
                 }
 
                 if (funcionarios != null && funcionarios.Count > 0)
@@ -1226,31 +1111,17 @@ namespace RHFPMVC.Controllers
                         // TODO: ajustar os campos abaixo para os nomes reais de rhfp_legado_dados_funcionaisDTO
                         lista.Add(new
                         {
-                 
-                            fun_numero = func.fun_numero,
-                            dpe_matricula = func.dpe_matricula,
-                            dpe_nome_servidor = func.dpe_nome_servidor,
-                            dpe_cpf_servidor = func.dpe_cpf_servidor,
-                            fun_dt_validade_inicial = func.fun_dt_validade_inicial,
-                            fun_tp_cargo = func.fun_tp_cargo,
-                            fun_desc_tp_cargo = func.fun_desc_tp_cargo,
-                            fun_cod_simbolo = func.fun_cod_simbolo,
-                            fun_desc_simbolo = func.fun_desc_simbolo,
-                            fun_cargo = func.fun_cargo,
-                            fun_cod_provimento = func.fun_cod_provimento,
-                            fun_desc_provimento = func.fun_desc_provimento,
-                            fun_cod_ativo_desativo = func.fun_cod_ativo_desativo,
-                            fun_desc_ativo_desativo = func.fun_desc_ativo_desativo,
-                            fun_cod_orgao_superior = func.fun_cod_orgao_superior,
-                            fun_desc_orgao_superior = func.fun_desc_orgao_superior,
-                            fun_cod_unidade_orcamentaria = func.fun_cod_unidade_orcamentaria,
-                            fun_desc_unidade_orcamentaria = func.fun_desc_unidade_orcamentaria,
-                            fun_cod_reparticao = func.fun_cod_reparticao,
-                            fun_nome_reparticao = func.fun_nome_reparticao,
-                            fun_cod_municipio = func.fun_cod_municipio,
-                            fun_nome_municipio = func.fun_nome_municipio
-
-                           
+                            dfu_numero = func.dfu_numero,
+                            dfu_matricula = func.dfu_matricula,
+                            dfu_nome_servidor = func.dfu_nome_servidor,
+                            dfu_cpf_servidor = func.dfu_cpf_servidor,
+                            dfu_tp_cargo = func.dfu_tp_cargo,
+                            dfu_desc_cargo = func.dfu_desc_cargo,
+                            dfu_dt_admissao = func.dfu_dt_admissao,
+                            dfu_cod_lotacao = func.dfu_cod_lotacao,
+                            dfu_desc_lotacao = func.dfu_desc_lotacao,
+                            dfu_cod_situacao = func.dfu_cod_situacao,
+                            dfu_desc_situacao = func.dfu_desc_situacao
                         });
                     }
                 }

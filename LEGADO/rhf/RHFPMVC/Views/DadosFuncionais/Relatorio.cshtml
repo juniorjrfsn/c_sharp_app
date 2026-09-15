@@ -11,7 +11,7 @@
 <div class="page-breadcrumb">
     <div class="row">
         <div class="col-5 align-self-center">
-            <h4 class="page-title">Financeiro</h4>
+            <h4 class="page-title">Dados Funcionais</h4>
         </div>
         <div class="col-7 align-self-center">
             <div class="d-flex align-items-center justify-content-end">
@@ -80,7 +80,8 @@
                                                             <span class="input-group-text" id="basic-addon1">Nome</span>
                                                         </div>
                                                         <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonNome"
-                                                               name="per_nome" id="per_nome" style="width: 400px; max-width: 400px;">
+                                                               name="nome" id="nome"
+                                                               style="width: 400px; max-width: 400px;">
                                                     </div>
                                                 </div>
                                             </div>
@@ -113,113 +114,91 @@
                                     <div id="dados_funcionais" style="display: none;">
                                         <div class="form-group">
                                             <div class="form-row mb-3">
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:right;">
-                                                    <button type="button" class="btn btn-outline-secondary" id="btn-voltar-dados_funcionais">
-                                                        <i class="fa-solid fa-arrow-left"></i> Voltar
-                                                    </button>
-                                                    <button type="button" class="btn btn-primary" name="btnGerarPDF" id="btnGerarPDF">
-                                                        <i class="fa-solid fa-file-pdf fa-lg"></i> Gerar PDF
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="form-row">
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <input type="hidden" class="form-control" placeholder="" name="dpe_desc_cbo" id="dpe_desc_cbo">
-                                                        <label for="dpe_nome_servidor" class="form-label">Nome</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_servidor" id="dpe_nome_servidor">
+                                                <div class="col-lg-6"><button type="button"
+                                                                              class="btn btn-outline-secondary" name="btnGerarPDF"
+                                                                              id="btnGerarPDF">
+                                                    <i class="fa-regular fa-file-pdf text-danger fa-lg"></i> Gerar
+                                                    PDF</button></div>
+                                                    <div class="col-lg-6" style="text-align:right;"><button type="button"
+                                                                                                            class="btn btn-outline-secondary"
+                                                                                                            id="btn-voltar-dados_funcionais">
+                                                        <i class="fa-solid fa-arrow-left"></i> Voltar</button></div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_cpf_servidor" class="form-label">CPF</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_cpf_servidor" id="dpe_cpf_servidor">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_matricula" class="form-label">Matrícula</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_matricula" id="dpe_matricula">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="form-row">
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_desc_situacao" class="form-label">Situação</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_situacao" id="dpe_desc_situacao">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_desc_grau_instrucao" class="form-label">Grau de Instrução</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_grau_instrucao" id="dpe_desc_grau_instrucao">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_desc_estado_civil" class="form-label">Estado Civil</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_estado_civil" id="dpe_desc_estado_civil">
-                                                    </div>
-                                                </div>
 
-                                            </div>
                                             <div class="form-row">
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_dt_nascimento" class="form-label">Data de Nascimento</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_dt_nascimento" id="dpe_dt_nascimento">
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Nome</label>
+                                                            <input type="text" class="form-control" name="dpe_nome_servidor"
+                                                                   id="dpe_nome_servidor" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">CPF</label>
+                                                            <input type="text" class="form-control" name="dpe_cpf_servidor"
+                                                                   id="dpe_cpf_servidor" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Matrícula</label>
+                                                            <input type="text" class="form-control" name="dpe_matricula"
+                                                                   id="dpe_matricula" readonly="readonly">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_nome_municipio_nascimento" class="form-label">Município de Nascimento</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_nascimento" id="dpe_nome_municipio_nascimento">
-                                                    </div>
-                                                </div>
-                                            </div>
+
                                             <div class="form-row">
-                                                <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_nome_mae" class="form-label">Nome da Mãe</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_mae" id="dpe_nome_mae">
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Tipo de
+                                                            Cargo</label>
+                                                            <input type="text" class="form-control" name="fun_desc_tp_cargo"
+                                                                   id="fun_desc_tp_cargo" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Símbolo</label>
+                                                            <input type="text" class="form-control" name="fun_desc_simbolo"
+                                                                   id="fun_desc_simbolo" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Provimento</label>
+                                                            <input type="text" class="form-control" name="fun_desc_provimento"
+                                                                   id="fun_desc_provimento" readonly="readonly">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_nome_pai" class="form-label">Nome do Pai</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_pai" id="dpe_nome_pai">
+
+                                            <div class="form-row">
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Cargo</label>
+                                                            <input type="text" class="form-control" name="fun_cargo"
+                                                                   id="fun_cargo" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Situação</label>
+                                                            <input type="text" class="form-control"
+                                                                   name="fun_desc_ativo_desativo" id="fun_desc_ativo_desativo"
+                                                                   readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Órgão
+                                                            Superior</label>
+                                                            <input type="text" class="form-control"
+                                                                   name="fun_desc_orgao_superior" id="fun_desc_orgao_superior"
+                                                                   readonly="readonly">
+                                                        </div>
                                                     </div>
-                                                </div>
+
+                                            <div class="form-row">
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Unidade
+                                                            Orçamentária</label>
+                                                            <input type="text" class="form-control"
+                                                                   name="fun_desc_unidade_orcamentaria"
+                                                                   id="fun_desc_unidade_orcamentaria" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Repartição</label>
+                                                            <input type="text" class="form-control" name="fun_nome_reparticao"
+                                                                   id="fun_nome_reparticao" readonly="readonly">
+                                                        </div>
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Município</label>
+                                                            <input type="text" class="form-control" name="fun_nome_municipio"
+                                                                   id="fun_nome_municipio" readonly="readonly">
+                                                        </div>
                                             </div>
 
                                             <div class="form-row">
-                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_cep" class="form-label">CEP</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_cep" id="dpe_cep">
+                                                        <div class="col-md-4 mb-3"><label class="form-label">Data de
+                                                            Validade</label>
+                                                            <input type="text" class="form-control"
+                                                                   name="fun_dt_validade_inicial" id="fun_dt_validade_inicial"
+                                                                   readonly="readonly">
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_endereco" class="form-label">Endereço</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_endereco" id="dpe_endereco">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_complemento_logradouro" class="form-label">Complemento do Logradouro</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_complemento_logradouro" id="dpe_complemento_logradouro">
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
-                                                    <div class="mb-3">
-                                                        <label for="dpe_nome_municipio_endereco" class="form-label">Município</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_endereco" id="dpe_nome_municipio_endereco">
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                         </div>
                                     </div>
 
@@ -242,13 +221,13 @@
                                             <table id="table-lista-dados-funcionais" class="table table-striped table-bordered table-hover" width="100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Matrícula</th>
-                                                        <th>Nome</th>
-                                                        <th>CPF</th>
-                                                        <th>Cargo</th>
-                                                        <th>Situação</th>
-                                                        <th>Ver</th>
-                                                        <th>Pdf</th>
+                                                        <th style="text-align:center;">Matrícula</th>
+                                                        <th style="text-align:center;">Nome</th>
+                                                        <th style="text-align:center;">CPF</th>
+                                                        <th style="text-align:center;">Cargo</th>
+                                                        <th style="text-align:center;">Situação</th>
+                                                        <th style="text-align:center;">Ver</th>
+                                                        <th style="text-align:center;">Pdf</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -286,10 +265,7 @@
     </div>
 </div>
 
-
-
-
-<script src="~/Content/controls/js/script-page/relatorios-dados-funcionais.js"></script>
+<script src="~/Content/controls/js/script-page/dados-funcionais-relatorio.js?v=0.000000000000029"></script>
 <style type="text/css">
     .footer {
         position: page;

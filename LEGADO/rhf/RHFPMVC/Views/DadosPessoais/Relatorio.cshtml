@@ -1,5 +1,5 @@
 ﻿@{
-
+ 
 }
 <script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
 <script src="/Content/controls/js/config-scripts/config.js"></script>
@@ -11,13 +11,13 @@
 <div class="page-breadcrumb">
     <div class="row">
         <div class="col-5 align-self-center">
-            <h4 class="page-title">Financeiro</h4>
+            <h4 class="page-title">Dados Pessoais</h4>
         </div>
         <div class="col-7 align-self-center">
             <div class="d-flex align-items-center justify-content-end">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
-                        <li class="breadcrumb-item active" aria-current="page">Dados Funcionais</li>
+                        <li class="breadcrumb-item active" aria-current="page">Dados Pessoais</li>
                     </ol>
                 </nav>
             </div>
@@ -49,10 +49,10 @@
                         <div class="row">
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
 
-
-                                <form name="formRelDadosFuncionais" id="formRelDadosFuncionais" action="/Relatorios/DadosFuncionais" method="post" style="width:100%;">
+                              
+                                <form name="formRelDadosPessoais" id="formRelDadosPessoais" action="/Relatorios/DadosPessoais" method="post" style="width:100%;">
+                                    
                                     <div id="div-filtro">
-
                                         <div class="form-group">
                                             <div class="form-row">
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
@@ -84,14 +84,9 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                            
                                             <div class="form-row">
-                                                <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-3">
-                                                    <h6>Período</h6>
-                                                </div>
-                                            </div>
-
-                                            <div class="form-row">
-
+                                                
                                                 <table style="width: 100%;">
                                                     <tr>
                                                         <td>
@@ -105,20 +100,23 @@
                                                         </td>
                                                     </tr>
                                                 </table>
-
+                                                
                                             </div>
                                         </div>
-                                    </div>
+                                    </div> 
 
-                                    <div id="dados_funcionais" style="display: none;">
+                                    <div id="dados_pessoais" style="display: none;">
                                         <div class="form-group">
+
                                             <div class="form-row mb-3">
-                                                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:right;">
-                                                    <button type="button" class="btn btn-outline-secondary" id="btn-voltar-dados_funcionais">
-                                                        <i class="fa-solid fa-arrow-left"></i> Voltar
+                                                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                                    <button type="button" class="btn btn-outline-secondary" name="btnGerarPDF" id="btnGerarPDF">
+                                                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i> Gerar PDF
                                                     </button>
-                                                    <button type="button" class="btn btn-primary" name="btnGerarPDF" id="btnGerarPDF">
-                                                        <i class="fa-solid fa-file-pdf fa-lg"></i> Gerar PDF
+                                                </div>
+                                                <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                                                    <button type="button" class="btn btn-outline-secondary" id="btn-voltar-dados-pessoais">
+                                                        <i class="fa-solid fa-arrow-left"></i> Voltar
                                                     </button>
                                                 </div>
                                             </div>
@@ -127,19 +125,19 @@
                                                     <div class="mb-3">
                                                         <input type="hidden" class="form-control" placeholder="" name="dpe_desc_cbo" id="dpe_desc_cbo">
                                                         <label for="dpe_nome_servidor" class="form-label">Nome</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_servidor" id="dpe_nome_servidor">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_servidor" id="dpe_nome_servidor" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_cpf_servidor" class="form-label">CPF</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_cpf_servidor" id="dpe_cpf_servidor">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_cpf_servidor" id="dpe_cpf_servidor" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_matricula" class="form-label">Matrícula</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_matricula" id="dpe_matricula">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_matricula" id="dpe_matricula" readonly="readonly">
                                                     </div>
                                                 </div>
                                             </div>
@@ -147,19 +145,19 @@
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_desc_situacao" class="form-label">Situação</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_situacao" id="dpe_desc_situacao">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_situacao" id="dpe_desc_situacao" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_desc_grau_instrucao" class="form-label">Grau de Instrução</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_grau_instrucao" id="dpe_desc_grau_instrucao">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_grau_instrucao" id="dpe_desc_grau_instrucao" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_desc_estado_civil" class="form-label">Estado Civil</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_estado_civil" id="dpe_desc_estado_civil">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_desc_estado_civil" id="dpe_desc_estado_civil" readonly="readonly">
                                                     </div>
                                                 </div>
 
@@ -168,13 +166,13 @@
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_dt_nascimento" class="form-label">Data de Nascimento</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_dt_nascimento" id="dpe_dt_nascimento">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_dt_nascimento" id="dpe_dt_nascimento" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4">
                                                     <div class="mb-3">
                                                         <label for="dpe_nome_municipio_nascimento" class="form-label">Município de Nascimento</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_nascimento" id="dpe_nome_municipio_nascimento">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_nascimento" id="dpe_nome_municipio_nascimento" readonly="readonly">
                                                     </div>
                                                 </div>
                                             </div>
@@ -182,52 +180,52 @@
                                                 <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6">
                                                     <div class="mb-3">
                                                         <label for="dpe_nome_mae" class="form-label">Nome da Mãe</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_mae" id="dpe_nome_mae">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_mae" id="dpe_nome_mae" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6">
                                                     <div class="mb-3">
                                                         <label for="dpe_nome_pai" class="form-label">Nome do Pai</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_pai" id="dpe_nome_pai">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_pai" id="dpe_nome_pai" readonly="readonly">
                                                     </div>
                                                 </div>
                                             </div>
-
+                                            
                                             <div class="form-row">
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
                                                     <div class="mb-3">
                                                         <label for="dpe_cep" class="form-label">CEP</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_cep" id="dpe_cep">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_cep" id="dpe_cep" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
                                                     <div class="mb-3">
                                                         <label for="dpe_endereco" class="form-label">Endereço</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_endereco" id="dpe_endereco">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_endereco" id="dpe_endereco" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
                                                     <div class="mb-3">
                                                         <label for="dpe_complemento_logradouro" class="form-label">Complemento do Logradouro</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_complemento_logradouro" id="dpe_complemento_logradouro">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_complemento_logradouro" id="dpe_complemento_logradouro" readonly="readonly">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3">
                                                     <div class="mb-3">
                                                         <label for="dpe_nome_municipio_endereco" class="form-label">Município</label>
-                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_endereco" id="dpe_nome_municipio_endereco">
+                                                        <input type="text" class="form-control" placeholder="" name="dpe_nome_municipio_endereco" id="dpe_nome_municipio_endereco" readonly="readonly">
                                                     </div>
                                                 </div>
                                             </div>
 
                                         </div>
                                     </div>
-
+                                
                                 </form>
 
 
-
-                                <div id="div-resultado-dados-funcionais" style="display: none;">
+                                
+                                <div id="div-resultado-dados-pessoais" style="display: none;">
 
                                     <div class="form-row">
                                         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:right;">
@@ -237,18 +235,18 @@
                                         </div>
                                     </div>
 
-                                    <div id="div-lista-dados-funcionais" class="mt-3">
+                                    <div id="div-lista-dados-pessoais" class="mt-3" >
                                         <div class="table-responsive">
-                                            <table id="table-lista-dados-funcionais" class="table table-striped table-bordered table-hover" width="100%">
+                                            <table id="table-lista-dados-pessoais" class="table table-striped table-bordered table-hover" width="100%">
                                                 <thead>
                                                     <tr>
-                                                        <th>Matrícula</th>
-                                                        <th>Nome</th>
-                                                        <th>CPF</th>
-                                                        <th>Cargo</th>
-                                                        <th>Situação</th>
-                                                        <th>Ver</th>
-                                                        <th>Pdf</th>
+                                                        <th style="text-align:center;">Matrícula</th>
+                                                        <th style="text-align:center;">Nome</th>
+                                                        <th style="text-align:center;">CPF</th>
+                                                        <th style="text-align:center;">Cargo</th>
+                                                        <th style="text-align:center;">Situação</th>
+                                                        <th style="text-align:center;">Ver</th>
+                                                        <th style="text-align:center;">Pdf</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -289,11 +287,18 @@
 
 
 
-<script src="~/Content/controls/js/script-page/relatorios-dados-funcionais.js"></script>
+<script src="/Content/controls/js/script-page/dados-pessoais-relatorio.js?v=0.00000000000000000139"></script>
 <style type="text/css">
     .footer {
         position: page;
         bottom: 0;
+    }
+    table#table-lista-dados-pessoais thead tr th{
+        text-align:center;
+    }
+    table#table-lista-dados-pessoais tbody tr td:nth-child(1) input[type=text],
+    table#table-lista-dados-pessoais tbody tr td:nth-child(5) input[type=text] {
+        text-align: center;
     }
 </style>
 

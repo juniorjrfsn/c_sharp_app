@@ -1,4 +1,4 @@
-﻿// File: script-page/questionario-index.ts
+﻿// File: script-page/relatorios-dados-pessoais.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -11,7 +11,7 @@
 
 
 
-namespace RelDadPess {
+namespace DadPessRel {
     export let tempo: number = Date.now();
 
     export let validoFiltro: boolean = true;
@@ -21,12 +21,14 @@ namespace RelDadPess {
     let carregandoMunicipios = false;
     let selectedIndex = -1;
 
+
     export let container;
     
     export let dataTableInstanceEventos: any | null = null;
     export let dataTableInstance: any | null = null;
     export let dataTableInstanceEveQuestion: any | null = null;
     export let dataTableInstanceEventosQuestionarios: any | null = null;
+    export let dataTableInstanceDadosPessoais: any | null = null;
 
     export let _ano: string = '0';
     export let _mes: string = '0';
@@ -34,6 +36,10 @@ namespace RelDadPess {
     export let eve_num_evento: number = 0;
 
     export let que_num_questionario: number = 0;
+
+    // Dados Pessoais
+    export let listaDadosPessoais: any[] = [];
+    export let selectedPessoa: any | null = null;
 
     export let eventos: Array<{
         tempo: string;
@@ -52,7 +58,7 @@ namespace RelDadPess {
         ure_nota_resultado: string;
         QTDE: number;
     }> = [];
- 
+
     export let dadosDaTabela: Array<{
         tempo: number;
         usr_num_usuario: number;
@@ -69,7 +75,225 @@ namespace RelDadPess {
         eve_situacao: string;
     }> = [];
 
+    export function mascararCpf(cpf: any): string {
+        const str = String(cpf ?? '').replace(/\D/g, '');
+        if (str.length !== 11) return str;
+        return `***.${str.substring(3, 6)}.${str.substring(6, 9)}-**`;
+    }
+
     export function carregarIndices() { }
+
+    // ============== DADOS PESSOAIS - Datatable Functions ==============
+
+    /**
+     * Realiza a consulta de dados pessoais via AJAX
+     */
+    export function consultarDadosPessoais() {
+        const cpf = $('#cpf_busca').val() || '';
+        const matricula = $('#matricula').val() || '';
+        const nome = $('#per_nome').val() || '';
+
+        if (!cpf && !matricula && !nome) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Aviso',
+                text: 'Por favor, informe pelo menos um critério de busca (CPF, Matrícula ou Nome)',
+                footer: ScriptsConfig.footerAlert
+            });
+            return;
+        }
+
+        const url = '/DadosFuncionais/GetDadosPessoais';
+        const dados = {
+            cpf_busca: cpf,
+            matricula: matricula,
+            nome: nome
+        };
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: dados,
+            dataType: 'json',
+            success: function (response) {
+                if (response.sucesso && response.lista && response.lista.length > 0) {
+                    DadPessRel.listaDadosPessoais = response.lista;
+                    inicializarDataTableDadosPessoais(response.lista);
+                    
+                    // Mostrar resultado e esconder filtro
+                    $('#div-filtro').css('display', 'none');
+                    $('#div-resultado-dados-pessoais').css('display', 'block');
+                    $('#dados_pessoais').css('display', 'none');
+                     
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sem resultados',
+                        text: response.msg || 'Nenhum registro encontrado para os parâmetros informados',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Erro na consulta:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao buscar dados pessoais: ' + error,
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
+    /**
+     * Inicializa o DataTable com os dados de pessoas
+     */
+    export function inicializarDataTableDadosPessoais(dados: any[]) {
+        // Destruir instância anterior se existir
+        if (DadPessRel.dataTableInstanceDadosPessoais) {
+            DadPessRel.dataTableInstanceDadosPessoais.destroy();
+            DadPessRel.dataTableInstanceDadosPessoais = null;
+        }
+
+        // Limpar tbody
+        $('#table-lista-dados-pessoais tbody').empty();
+
+        // Gerar HTML das linhas
+        let html = '';
+        dados.forEach((item: any, index: number) => {
+            html += `<tr data-index="${index}" style="cursor: pointer;">
+                <td style="text-align:center;">${item.dpe_matricula || ''}</td>
+                <td>${item.dpe_nome_servidor || ''}</td>
+                <td style="text-align:center;">${mascararCpf(item.dpe_cpf_servidor) || ''}</td>
+                <td style="text-align:center;">${item.dpe_desc_cbo || ''}</td>
+                <td style="text-align:center;">${item.dpe_desc_situacao || ''}</td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-pessoa" data-index="${index}" title="Ver detalhes">
+                        <i class="fa-solid fa-eye text-info fa-lg"></i>
+                    </button>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-gerar-pdf-pessoa" data-index="${index}" title="Gerar PDF">
+                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        $('#table-lista-dados-pessoais tbody').html(html);
+
+        // Inicializar DataTable
+        DadPessRel.dataTableInstanceDadosPessoais = $('#table-lista-dados-pessoais').DataTable({
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            destroy: true,
+            searching: true,
+            ordering: true,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            }
+        });
+
+        // ====== EVENT HANDLERS ======
+        
+        // Clique na linha da tabela
+        $('#table-lista-dados-pessoais tbody').on('click', 'tr', function (e) {
+            if ($(e.target).closest('button').length > 0) return; // Não fazer nada se clicou em botão
+
+            const index = $(this).data('index');
+            preencherFormularioDadosPessoais(index);
+            $('#div-filtro').css('display', 'none');
+            $('#div-resultado-dados-pessoais').css('display', 'none');
+            $('#dados_pessoais').css('display', 'block');
+        });
+
+        // Botão Ver
+        $('#table-lista-dados-pessoais tbody').on('click', 'button.btn-ver-pessoa', function (e) {
+            e.stopPropagation();
+            const index = $(this).data('index');
+            preencherFormularioDadosPessoais(index);
+            $('#div-filtro').css('display', 'none');
+            $('#div-resultado-dados-pessoais').css('display', 'none');
+            $('#dados_pessoais').css('display', 'block');
+        });
+
+        // Botão Gerar PDF
+        $('#table-lista-dados-pessoais tbody').on('click', 'button.btn-gerar-pdf-pessoa', function (e) {
+            e.stopPropagation();
+            const index = $(this).data('index');
+            const pessoa = DadPessRel.listaDadosPessoais[index];
+            
+            // Preencher o formulário
+            preencherFormularioDadosPessoais(index);
+            $('#div-filtro').css('display', 'none');
+            $('#div-resultado-dados-pessoais').css('display', 'none');
+            $('#dados_pessoais').css('display', 'block');
+            // Simular o clique do botão PDF após um pequeno delay
+            setTimeout(function () {
+                // $('#btnGerarPDF').trigger('click');
+                DadPessRel.gerarPDFDoFormulario();
+            }, 100);
+        });
+    }
+
+    /**
+     * Preenche o formulário com os dados da pessoa selecionada
+     */
+    export function preencherFormularioDadosPessoais(index: number) {
+        const pessoa = DadPessRel.listaDadosPessoais[index];
+        if (!pessoa) return;
+
+        DadPessRel.selectedPessoa = pessoa;
+
+        // Preencher Filtro para gerar dados
+        $('#cpf_busca').val(pessoa.dpe_cpf_servidor || '');
+        $('#matricula').val(pessoa.dpe_matricula || '');
+        $('#per_nome').val(pessoa.dpe_nome_servidor || '');
+
+        // Preencher campos básicos
+        $('#dpe_matricula').val(pessoa.dpe_matricula || '');
+        $('#dpe_nome_servidor').val(pessoa.dpe_nome_servidor || '');
+        $('#dpe_cpf_servidor').val(formatarCPF(pessoa.dpe_cpf_servidor) || '');
+        $('#dpe_desc_situacao').val(pessoa.dpe_desc_situacao || '');
+        $('#dpe_desc_grau_instrucao').val(pessoa.dpe_desc_grau_instrucao || '');
+        $('#dpe_desc_estado_civil').val(pessoa.dpe_desc_estado_civil || '');
+        $('#dpe_dt_nascimento').val(formatarData(pessoa.dpe_dt_nascimento) || '');
+        $('#dpe_nome_municipio_nascimento').val(pessoa.dpe_nome_municipio_nascimento || '');
+        $('#dpe_nome_mae').val(pessoa.dpe_nome_mae || '');
+        $('#dpe_nome_pai').val(pessoa.dpe_nome_pai || '');
+        $('#dpe_cep').val(pessoa.dpe_cep || '');
+        $('#dpe_endereco').val(pessoa.dpe_endereco || '');
+        $('#dpe_complemento_logradouro').val(pessoa.dpe_complemento_logradouro || '');
+        $('#dpe_nome_municipio_endereco').val(pessoa.dpe_nome_municipio_endereco || '');
+        $('#dpe_desc_cbo').val(pessoa.dpe_desc_cbo || '');
+    }
+
+    // Função auxiliar para formatar CPF
+    function formatarCPF(cpf: string): string {
+        if (!cpf || cpf.length !== 11) return cpf || '';
+        return cpf.substring(0, 3) + '.' + cpf.substring(3, 6) + '.' + cpf.substring(6, 9) + '-' + cpf.substring(9, 11);
+    }
+
+    // Função auxiliar para formatar data (yyyymmdd para dd/mm/yyyy)
+    function formatarData(data: string): string {
+        if (!data || data.length < 8) return data || '';
+        try {
+            // Se for formato YYYYMMDD
+            if (data.length === 8 && !isNaN(Number(data))) {
+                const ano = data.substring(0, 4);
+                const mes = data.substring(4, 6);
+                const dia = data.substring(6, 8);
+                if (dia !== '00' && mes !== '00') {
+                    return dia + '/' + mes + '/' + ano;
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+        }
+        return data || '';
+    }
 
     // Formata número para o padrão brasileiro: 2 casas decimais e "," como separador decimal
     function formatarNumero(valor: any): string {
@@ -362,7 +586,7 @@ namespace RelDadPess {
                 try { $('.dt-buttons').remove(); } catch (e) { }
                 try { $('.fixedHeader-floating').remove(); } catch (e) { }
                 try { $('#table-lista-dados-pessoais_wrapper').remove(); } catch (e) { }
-                RelDadPess.dataTableInstance = null;
+                DadPessRel.dataTableInstance = null;
             }
         } catch (e) {
             console.warn('Erro ao verificar/destruir DataTable anterior:', e);
@@ -370,7 +594,7 @@ namespace RelDadPess {
         $('#table-lista-dados-pessoais tbody').empty();
 
         // console.log('Inicializando DataTable com os dados recebidos...');
-        RelDadPess.dataTableInstance = $('#table-lista-dados-pessoais').DataTable({
+        DadPessRel.dataTableInstance = $('#table-lista-dados-pessoais').DataTable({
             data: data,
             paging: true, // Ativa a paginação
             pageLength: pageLength,
@@ -526,7 +750,7 @@ namespace RelDadPess {
             ],
             initComplete: function () {
                 // usa a instância que você já guardou
-                var table = RelDadPess.dataTableInstance;
+                var table = DadPessRel.dataTableInstance;
 
                 // remove todos os botões (Excel, PDF e ColVis)
                 table.buttons([0, 1, 2]).remove();
@@ -550,7 +774,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dpe_matricula')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -564,7 +788,7 @@ namespace RelDadPess {
                                         name="inpu[${accesskey}][dpe_matricula]" id="inpu[${accesskey}][dpe_matricula]"
                                         data-dpe_matricula="${row.dpe_matricula || 0}" 
                                         data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"
-                                        onblur="javascript:RelDadPess.validarCampos(${row.dpe_matricula || 0},'dpe_matricula');"
+                                        onblur="javascript:DadPessRel.validarCampos(${row.dpe_matricula || 0},'dpe_matricula');"
                                         value="${dpe_matricula || ''}"  readonly="readonly"
                                     style="width:100%;" />
                                 </td>
@@ -572,7 +796,7 @@ namespace RelDadPess {
                         }
                         return data;
                     }
-                },{
+                }, {
                     data: 'dpe_nome_servidor', className: 'editable',
                     createdCell: function (td, cellData, rowData, row, col) {
                         // console.log(col + ' :: accesskey:' + tempo);
@@ -583,10 +807,10 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dpe_nome_servidor')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
-                    render: function (data, type, row) { 
+                    render: function (data, type, row) {
                         if (type === 'display') {
                             var colorCancel = '';
                             // let valor = Number(data); 
@@ -611,7 +835,7 @@ namespace RelDadPess {
                                         name="inpu[${accesskey}][dpe_nome_servidor]" id="inpu[${accesskey}][dpe_nome_servidor]"
                                         data-dpe_matricula="${row.dpe_matricula || 0}" 
                                         data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"
-                                        onblur="javascript:RelDadPess.validarCampos(${row.dpe_matricula || 0},'dpe_nome_servidor');"
+                                        onblur="javascript:DadPessRel.validarCampos(${row.dpe_matricula || 0},'dpe_nome_servidor');"
                                         value="${dpe_nome_servidor || ''}"  readonly="readonly"
                                     style="width:100%;" />
                                 </td>
@@ -631,7 +855,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dpe_nome_servidor')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -645,7 +869,7 @@ namespace RelDadPess {
                             } else {
                                 usr_cpf = row.dpe_cpf_servidor;
                             }
- 
+
                             return `
                                 <td data-dpe_matricula="${row.dpe_matricula || 0}" data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"  accesskey="${accesskey}">
 
@@ -667,7 +891,7 @@ namespace RelDadPess {
                                         data-dpe_matricula="${row.dpe_matricula || 0}" 
                                         data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"
                                         value="${usr_cpf || ''}"
-                                        onblur="javascript:RelDadPess.validarCampos(${row.dpe_cpf_servidor || accesskey}, 'dpe_cpf_servidor');"
+                                        onblur="javascript:DadPessRel.validarCampos(${row.dpe_cpf_servidor || accesskey}, 'dpe_cpf_servidor');"
                                         onclick="javascript:inputMascara();"
                                         maxlength="11"
                                         accesskey="${accesskey}" style="max-width:130px; ${colorCancel || ''}"  readonly="readonly" />
@@ -679,7 +903,7 @@ namespace RelDadPess {
                         return data; // Return raw data for other types (e.g., sorting, filtering)
                     }
 
-                },  {
+                }, {
                     data: 'dpe_desc_cbo', className: 'editable',
                     createdCell: function (td, cellData, rowData, row, col) {
                         // console.log(col + ' :: accesskey:' + tempo);
@@ -690,7 +914,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dpe_desc_cbo')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -705,7 +929,7 @@ namespace RelDadPess {
                                         name="inpu[${accesskey}][dpe_desc_cbo]" id="inpu[${accesskey}][dpe_desc_cbo]"
                                         data-dpe_matricula="${row.dpe_matricula || 0}" 
                                         data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"
-                                        onblur="javascript:RelDadPess.validarCampos(${row.dpe_desc_cbo || ''},'dpe_desc_cbo');"
+                                        onblur="javascript:DadPessRel.validarCampos(${row.dpe_desc_cbo || ''},'dpe_desc_cbo');"
                                         value="${dpe_desc_cbo || ''}"  readonly="readonly"
                                     style="width:100%;" />
                                 </td>
@@ -713,7 +937,7 @@ namespace RelDadPess {
                         }
                         return data;
                     }
-                },  {
+                }, {
                     data: 'dpe_desc_situacao', className: 'editable',
                     createdCell: function (td, cellData, rowData, row, col) {
                         // console.log(col + ' :: accesskey:' + tempo);
@@ -724,7 +948,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dpe_desc_situacao')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -739,7 +963,7 @@ namespace RelDadPess {
                                         name="inpu[${accesskey}][dpe_desc_situacao]" id="inpu[${accesskey}][dpe_desc_situacao]"
                                         data-dpe_matricula="${row.dpe_matricula || 0}" 
                                         data-dpe_cpf_servidor="${row.dpe_cpf_servidor || 0}"
-                                        onblur="javascript:RelDadPess.validarCampos(${row.dpe_desc_situacao || ''},'dpe_desc_situacao');"
+                                        onblur="javascript:DadPessRel.validarCampos(${row.dpe_desc_situacao || ''},'dpe_desc_situacao');"
                                         value="${dpe_desc_situacao || ''}"  readonly="readonly"
                                     style="width:100%;" />
                                 </td>
@@ -747,7 +971,7 @@ namespace RelDadPess {
                         }
                         return data;
                     }
-                }, 
+                },
                 {
                     data: null,
                     createdCell: function (td, cellData, rowData, row, col) {
@@ -758,7 +982,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dados')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -779,12 +1003,12 @@ namespace RelDadPess {
                                     </div>
                                 </td>
                             `;
- 
+
                         }
                         return data;
                     },
                     orderable: false
-                } , 
+                },
                 {
                     data: null,
                     createdCell: function (td, cellData, rowData, row, col) {
@@ -795,7 +1019,7 @@ namespace RelDadPess {
                             .attr('col', col)
                             .attr('campo', 'dados')
                             .attr('data-dpe_matricula', rowData.dpe_matricula || '0')
-                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0') 
+                            .attr('data-dpe_cpf_servidor', rowData.dpe_cpf_servidor || '0')
                             .attr('accesskey', accesskey);
                     },
                     render: function (data, type, row) {
@@ -820,7 +1044,7 @@ namespace RelDadPess {
                         return data;
                     },
                     orderable: false
-                } 
+                }
             ],
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
@@ -834,16 +1058,14 @@ namespace RelDadPess {
 
         // console.log('DataTable inicializado com sucesso.');
     }
-
-
-
+    
     export function fetchDataAndInitializeTable() {
         // console.log('Iniciando busca de dados da API...');
         var dadosForm = $('form[name="formRelDadosPessoais"]').serializeArray();
-        var jqxhr = $.post('/Relatorios/ListaDadosPessoais', dadosForm, function (json) { 
+        var jqxhr = $.post('/DadosPessoais/ListaDadosPessoais', dadosForm, function (json) {
 
             if (json.qtd > 0) {
-                if (json.sucesso) { 
+                if (json.sucesso) {
                     if (json.lista && json.lista.length > 0) {
                         $('input[name="busca"]').val('');
                         $('input[name="buscaLimpa"]').val('');
@@ -854,17 +1076,17 @@ namespace RelDadPess {
                         $('#content-table').css('display', 'block');
                         $('#content-table').css('width', '100%');
 
-                        let listaDadosPessoais = RelDadPess.processDataForTable(json.lista);
+                        let listaDadosPessoais = DadPessRel.processDataForTable(json.lista);
 
-                        $.when(RelDadPess.initializeDataTable(listaDadosPessoais, RelDadPess._ano, RelDadPess._mes, 100)).then(function (data, textStatus, jqXHR) {
+                        $.when(DadPessRel.initializeDataTable(listaDadosPessoais, DadPessRel._ano, DadPessRel._mes, 100)).then(function (data, textStatus, jqXHR) {
                             Swal.close();
                         });
                     } else {
-                        RelDadPess.initializeDataTable([], RelDadPess._ano, RelDadPess._mes, 1);
+                        DadPessRel.initializeDataTable([], DadPessRel._ano, DadPessRel._mes, 1);
                         Swal.close();
                     }
                 } else {
-                    RelDadPess.initializeDataTable([], RelDadPess._ano, RelDadPess._mes, 1);
+                    DadPessRel.initializeDataTable([], DadPessRel._ano, DadPessRel._mes, 1);
                     Swal.close();
 
                 }
@@ -982,7 +1204,7 @@ namespace RelDadPess {
         console.log('Carregando dados pessoais');
         $('#div-lista-dados-pessoais').css('display', 'none');
         $('#dados_pessoais').css('display', 'block');
-        var jqxhr = $.post("/Relatorios/ListaDadosPessoais", {
+        var jqxhr = $.post("/DadosPessoais/ListaDadosPessoais", {
             cpf: cpf,
             matricula: matricula,
             nome: nome,
@@ -996,7 +1218,7 @@ namespace RelDadPess {
 
                         let processedData = processDataForTable(dados);
                         console.table(processedData);
-                        RelDadPess.preencherCamposDadosPessoais(processedData);
+                        DadPessRel.preencherCamposDadosPessoais(processedData);
 
                         Swal.close();
                     } else {
@@ -1102,25 +1324,25 @@ namespace RelDadPess {
         return jqxhr;
     }
 
-    export function validarBusca(cpf, matricula, per_nome ) {
+    export function validarBusca(cpf, matricula, per_nome) {
         const cpfLimpo = String(cpf ?? '').replace(/\D/g, '');
         const cpfInformado = cpfLimpo.length > 0;
-        const possuiOutroFiltro = [matricula, per_nome ]
+        const possuiOutroFiltro = [matricula, per_nome]
             .some(valor => String(valor ?? '').trim().length > 0);
 
-        RelDadPess.msgFiltro = '';
+        DadPessRel.msgFiltro = '';
 
         if (!cpfInformado && !possuiOutroFiltro) {
-            RelDadPess.validoFiltro = false;
-            RelDadPess.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
+            DadPessRel.validoFiltro = false;
+            DadPessRel.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
         } else if (cpfInformado && cpfLimpo.length !== 11) {
-            RelDadPess.validoFiltro = false;
-            RelDadPess.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
+            DadPessRel.validoFiltro = false;
+            DadPessRel.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
         } else {
-            RelDadPess.validoFiltro = true;
+            DadPessRel.validoFiltro = true;
         }
 
-        return RelDadPess.validoFiltro;
+        return DadPessRel.validoFiltro;
     }
 
     export function gerarPDFDoFormulario() {
@@ -1138,8 +1360,12 @@ namespace RelDadPess {
             return;
         }
 
-        RelDadPess.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matricula, nome, '', '');
+        DadPessRel.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matricula, nome, '', '');
+        // DadPessRel.consultarDadosPessoais();
     }
+
+
+
 
     export function gerarPDFPorCpfMatriculaNomePeriodo(usr_cpf: string, matric?: number, nome?: string, dt_ini?: string, dt_fim?: string) {
         const cpf = String(usr_cpf || '').replace(/\D/g, '');
@@ -1188,7 +1414,7 @@ namespace RelDadPess {
             }
         });
 
-        $.post('/Relatorios/GerarPdfDadosPessoais', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim, dados: JSON.stringify(dadosFormulario) }, function (data) {
+        $.post('/DadosPessoais/GerarPdfDadosPessoais', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim, dados: JSON.stringify(dadosFormulario) }, function (data) {
             console.log('success');
             console.log(data);
 
@@ -1197,7 +1423,9 @@ namespace RelDadPess {
                 if (data.arquivo) {
                     window.open(data.arquivo, '_blank');
                 } else {
-                    window.open('/Relatorios/abrirPdfDadosPessoaisGerado', 'popup', 'height=1080,width=1024,toolbar=no');
+                    window.open('/DadosPessoais/abrirPdfDadosPessoaisGerado', 'popup', 'height=1080,width=1024,toolbar=no');
+
+ 
                 }
             } else {
                 Swal.fire({
@@ -1225,100 +1453,55 @@ namespace RelDadPess {
                 Swal.close();
             });
     }
+
     $(function () {
 
         _ano = '2026';
         _mes = '6';
 
         $('button[name="btnBuscar"]').on('click', function (e) {
-            const cpf       = String($('input[name="cpf_busca"]').val()     as string || '').replace(/\D/g, '');
-            const matricula = String($('input[name="matricula"]').val()     as string || '').trim();
-            const nome      = String($('input[name="per_nome"]').val()      as string || '').trim();
- 
-            if (RelDadPess.validarBusca(cpf, matricula, nome )) {
-                Swal.fire({
-                    title: '<strong style="color:#045C99;">Dados Pessoais</strong>',
-                    html: `
-                        <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
-                        <p>🔎 <b>Enviando consulta...</b></p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                        <small style="color: #888;"><i>⏳ Buscando os dados. Por favor, não feche esta janela!</i></small>
-                        </div>
-                    `,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                        // Personaliza a cor do spinner para combinar com o seu sistema (#045C99)
-                        const loader = Swal.getPopup().querySelector('.swal2-loader') as HTMLElement;
-                        if (loader) {
-                            loader.style.color = '#045C99';
-                            loader.style.borderRightColor = 'transparent';
-                        }
-                    }
-                });
+            e.preventDefault();
+            DadPessRel.consultarDadosPessoais();
+        });
 
-                // Property 'always' does not exist on type 'void'.
-                RelDadPess.fetchDataAndInitializeTable();
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelDadPess.msgFiltro + '<label>',
-                    footer: ScriptsConfig.footerAlert
-                });
-            } 
+        // Botão para voltar da lista para o filtro
+        $('#btn-fechar-lista').on('click', function (e) {
+            e.preventDefault();
+            $('input[name="cpf_busca"]').val('');
+            $('input[name="matricula"]').val('');
+            $('input[name="per_nome"]').val('');
+            $('#div-filtro').css('display', 'block');
+            $('#div-resultado-dados-pessoais').css('display', 'none');
+            $('#dados_pessoais').css('display', 'none');
+            if (DadPessRel.dataTableInstanceDadosPessoais) {
+                DadPessRel.dataTableInstanceDadosPessoais.destroy();
+                DadPessRel.dataTableInstanceDadosPessoais = null;
+            }
+        });
+
+        // Botão para voltar do formulário para a lista
+        $('#btn-voltar-dados-pessoais').on('click', function (e) {
+            e.preventDefault();
+            $('#dados_pessoais').css('display', 'none');
+            $('#div-resultado-dados-pessoais').css('display', 'block');
         });
 
         $('input[name="cpf_busca"]').on('input', function () {
             var cpf_busca = ($(this).val() as string);
         });
 
-
-        $('#div-lista-dados-pessoais tbody').on('click', 'button.btn-buscar-dados', function () {
-            const dpe_matricula = Number($(this).data('dpe_matricula') || 0);
-            const dpe_cpf_servidor =  $(this).data('dpe_cpf_servidor') as string || '';
-            $('input[name="eve_num_evento"]').val(eve_num_evento);
-            $('input[name="que_num_questionario"]').val(0);
-            RelDadPess.carregarDadosPessoais(dpe_cpf_servidor, dpe_matricula, '');
-            $('#dados_pessoais').css('display', 'block');
-        });
-
-        $('#div-lista-dados-pessoais tbody').on('click', 'button.btn-buscar-dados-pdf', function () {
-            const dpe_matricula = Number($(this).data('dpe_matricula') || 0);
-            const dpe_cpf_servidor =  $(this).data('dpe_cpf_servidor') as string || ''; 
-            RelDadPess.gerarPDFPorCpfMatriculaNomePeriodo(dpe_cpf_servidor, dpe_matricula, '', '', '');
-        });
-
-        $('button[name="btn-fechar-lista"]').on('click', function (e) {
-            $('form[name="formRelDadosPessoais"] input[name="cpf_busca"]').val('');
-            $('form[name="formRelDadosPessoais"] input[name="matricula"]').val('');
-            $('form[name="formRelDadosPessoais"] input[name="per_dt_ini"]').val('');
-            $('form[name="formRelDadosPessoais"] input[name="per_dt_fim"]').val('');
-            $('#div-filtro').css('display', 'block');
-            $('#div-resultado-dados-pessoais').css('display', 'none');
-            $('#dados_pessoais').css('display', 'none');
-        });
-
-        // Botão de voltar dentro do formulário de dados pessoais
-        $(document).on('click', 'button:contains("Voltar")', function (e) {
-            if ($('#dados_pessoais').is(':visible')) {
-                $('#div-lista-dados-pessoais').css('display', 'block');
-                $('#dados_pessoais').css('display', 'none');
-                e.preventDefault();
-            }
-        });
+        // Manipuladores de clique na lista de dados pessoais antigas - agora usando datatable
+        // Estes foram substituídos pelos event handlers na inicialização do datatable
 
         // Botão de gerar PDF dentro do formulário de dados pessoais
         $('button[name="btnGerarPDF"]').on('click', function (e) {
-            RelDadPess.gerarPDFDoFormulario();
+            DadPessRel.gerarPDFDoFormulario();
         });
 
         $('button[name="btn-salvar-questionario"]').on('click', function (e) {
             // Estat.salvarQuestionario();
         });
- 
+
         $('input[name="buscaLimpa"]').on('input', function () {
             // Remove all non-numeric characters before saving
             var cleanValue = ($(this).val() as string);
@@ -1326,21 +1509,10 @@ namespace RelDadPess {
             console.log("Cleaned:", cleanValue);
         });
 
-        $('button[name="btnBuscar"]').on('click', function (e) {
-
-            // $.when(RelDadPess.buscarUsuarioaNoRelatorio()).then(function (data, textStatus, jqXHR) {
-            //     $.when(RelDadPess.initializeDataTable(RelDadPess.listaBusca, _ano, _mes, 100)).then(function (data, textStatus, jqXHR) {
-            //         $('input[name="buscaLimpa"]').val('');
-            //         console.log('Pontuação carregada com filtro');
-            //     });
-            // });
-
-        });
-
     });
 
 }
 
-declare module "RelDadPess" {
-    export = RelDadPess;
+declare module "DadPessRel" {
+    export = DadPessRel;
 }

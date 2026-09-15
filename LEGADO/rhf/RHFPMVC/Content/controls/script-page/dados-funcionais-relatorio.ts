@@ -1,4 +1,4 @@
-﻿// File: script-page/questionario-index.ts
+// File: script-page/dados-funcionais-relatorio.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -9,7 +9,9 @@
 /// <reference path="../config-scripts/ScriptsConfig.d.ts" />
 /// <reference path="../config-scripts/highcharts.d.ts" />
 
-namespace RelDadFunc {
+
+
+namespace DadFuncRel {
     export let tempo: number = Date.now();
 
     export let validoFiltro: boolean = true;
@@ -18,6 +20,7 @@ namespace RelDadFunc {
     let municipiosList: any[] = [];
     let carregandoMunicipios = false;
     let selectedIndex = -1;
+
 
     export let container;
 
@@ -38,22 +41,13 @@ namespace RelDadFunc {
         que_dt_inclusao: any;
         que_situacao: any;
     }> = [];
-
-    export let questionariosDtos: Array<{
-        tempo: string;
-        eve_num_evento: any;
-        que_num_questionario: any;
-        que_contexto: any;
-        que_publico_alvo: any;
-        que_nota_minima: any;
-        que_dt_inclusao: any;
-        que_situacao: any;
-    }> = [];
+ 
 
     export let dataTableInstanceEventos: any | null = null;
     export let dataTableInstance: any | null = null;
     export let dataTableInstanceEveQuestion: any | null = null;
     export let dataTableInstanceEventosQuestionarios: any | null = null;
+    export let dataTableInstanceDadosFuncionais: any | null = null;
 
     export let _ano: string = '0';
     export let _mes: string = '0';
@@ -61,6 +55,10 @@ namespace RelDadFunc {
     export let eve_num_evento: number = 0;
 
     export let que_num_questionario: number = 0;
+    
+    // Dados funcionais
+    export let listaDadosFuncionais: any[] = [];
+    export let selectedFuncionario: any | null = null;
 
     export let eventos: Array<{
         tempo: string;
@@ -152,7 +150,214 @@ namespace RelDadFunc {
         LIQUIDO: number;
     }> = [];
 
+
+    export function mascararCpf(cpf: any): string {
+        const str = String(cpf ?? '').replace(/\D/g, '');
+        if (str.length !== 11) return str;
+        return `***.${str.substring(3, 6)}.${str.substring(6, 9)}-**`;
+    }
+
     export function carregarIndices() { }
+
+    // ============== DADOS FUNCIONAIS - Datatable Functions ==============
+
+    /**
+     * Realiza a consulta de dados funcionais via AJAX
+     */
+    export function consultarDadosFuncionais() {
+        const cpf = $('#cpf_busca').val() || '';
+        const matricula = $('#matricula').val() || '';
+        const nome = $('#nome').val() || '';
+
+        if (!cpf && !matricula && !nome) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Aviso',
+                text: 'Por favor, informe pelo menos um critério de busca (CPF, Matrícula ou Nome)',
+                footer: ScriptsConfig.footerAlert
+            });
+            return;
+        }
+
+        const url = '/DadosFuncionais/GetDadosFuncionais';
+        const dados = {
+            cpf_busca: cpf,
+            matricula: matricula,
+            nome: nome
+        };
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: dados,
+            dataType: 'json',
+            success: function (response) {
+                if (response.sucesso && response.lista && response.lista.length > 0) {
+                    DadFuncRel.listaDadosFuncionais = response.lista;
+                    inicializarDataTableDadosFuncionais(response.lista);
+                    
+                    // Mostrar resultado e esconder filtro
+                    $('#div-filtro').css('display', 'none');
+                    $('#div-resultado-dados-funcionais').css('display', 'block');
+                    $('#dados_funcionais').css('display', 'none');
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sem resultados',
+                        text: response.msg || 'Nenhum registro encontrado para os parâmetros informados',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Erro na consulta:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao buscar dados funcionais: ' + error,
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
+    /**
+     * Inicializa o DataTable com os dados de funcionários
+     */
+    export function inicializarDataTableDadosFuncionais(dados: any[]) {
+        // Destruir instância anterior se existir
+        if (DadFuncRel.dataTableInstanceDadosFuncionais) {
+            DadFuncRel.dataTableInstanceDadosFuncionais.destroy();
+            DadFuncRel.dataTableInstanceDadosFuncionais = null;
+        }
+
+        // Limpar tbody
+        $('#table-lista-dados-funcionais tbody').empty();
+
+        // Gerar HTML das linhas
+        let html = '';
+        dados.forEach((item: any, index: number) => {
+            html += `<tr data-index="${index}" style="cursor: pointer;">
+                <td style="text-align:center;">${item.dpe_matricula || ''}</td>
+                <td>${item.dpe_nome_servidor || ''}</td>
+                <td style="text-align:center;">${mascararCpf(item.dpe_cpf_servidor) || ''}</td>
+                <td style="text-align:center;">${item.fun_desc_tp_cargo || item.fun_cargo || ''}</td>
+                <td style="text-align:center;">${item.dpe_desc_situacao || item.fun_desc_ativo_desativo || ''}</td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-funcionario" data-index="${index}" title="Ver detalhes">
+                        <i class="fa-solid fa-eye text-info fa-lg"></i>
+                    </button>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-gerar-pdf-funcionario" data-index="${index}" title="Gerar PDF">
+                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+        
+        $('#table-lista-dados-funcionais tbody').html(html);
+
+        // Inicializar DataTable
+        DadFuncRel.dataTableInstanceDadosFuncionais = $('#table-lista-dados-funcionais').DataTable({
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            destroy: true,
+            searching: true,
+            ordering: true,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            }
+        });
+
+
+        // ====== EVENT HANDLERS ======
+        
+        // Clique na linha da tabela
+        $('#table-lista-dados-funcionais tbody').on('click', 'tr', function (e) {
+            if ($(e.target).closest('button').length > 0) return; // Não fazer nada se clicou em botão
+
+            const index = $(this).data('index');
+            preencherFormularioDadosFuncionais(index);
+            $('#div-resultado-dados-funcionais').css('display', 'none');
+            $('#dados_funcionais').css('display', 'block');
+        });
+
+        // Botão Ver
+        $('#table-lista-dados-funcionais tbody').on('click', 'button.btn-ver-funcionario', function (e) {
+            e.stopPropagation();
+            const index = $(this).data('index');
+            preencherFormularioDadosFuncionais(index);
+            $('#div-filtro').css('display', 'none');
+            $('#div-resultado-dados-funcionais').css('display', 'none');
+            $('#dados_funcionais').css('display', 'block');
+        });
+
+        // Botão Gerar PDF
+        $('#table-lista-dados-funcionais tbody').on('click', 'button.btn-gerar-pdf-funcionario', function (e) {
+            e.stopPropagation();
+            const index = $(this).data('index');
+            const funcionario = DadFuncRel.listaDadosFuncionais[index];
+            
+            // Preencher o formulário
+            preencherFormularioDadosFuncionais(index);
+            
+            // Simular o clique do botão PDF após um pequeno delay
+            setTimeout(function () {
+                $('#btnGerarPDF').trigger('click');
+            }, 100);
+        });
+    }
+
+    /**
+     * Preenche o formulário com os dados do funcionário selecionado
+     */
+    export function preencherFormularioDadosFuncionais(index: number) {
+        const funcionario = DadFuncRel.listaDadosFuncionais[index];
+        if (!funcionario) return;
+
+        DadFuncRel.selectedFuncionario = funcionario;
+
+        $('#dpe_matricula').val(funcionario.dpe_matricula || '');
+        $('#dpe_nome_servidor').val(funcionario.dpe_nome_servidor || '');
+        $('#dpe_cpf_servidor').val(formatarCPF(funcionario.dpe_cpf_servidor) || '');
+        $('#fun_desc_tp_cargo').val(funcionario.fun_desc_tp_cargo || '');
+        $('#fun_desc_simbolo').val(funcionario.fun_desc_simbolo || '');
+        $('#fun_cargo').val(funcionario.fun_cargo || '');
+        $('#fun_desc_provimento').val(funcionario.fun_desc_provimento || '');
+        $('#fun_desc_ativo_desativo').val(funcionario.fun_desc_ativo_desativo || funcionario.dpe_desc_situacao || '');
+        $('#fun_desc_orgao_superior').val(funcionario.fun_desc_orgao_superior || '');
+        $('#fun_desc_unidade_orcamentaria').val(funcionario.fun_desc_unidade_orcamentaria || '');
+        $('#fun_nome_reparticao').val(funcionario.fun_nome_reparticao || '');
+        $('#fun_nome_municipio').val(funcionario.fun_nome_municipio || '');
+        $('#fun_dt_validade_inicial').val(formatarData(funcionario.fun_dt_validade_inicial) || '');
+    }
+
+    // Função auxiliar para formatar CPF
+    function formatarCPF(cpf: string): string {
+        if (!cpf || cpf.length !== 11) return cpf || '';
+        return cpf.substring(0, 3) + '.' + cpf.substring(3, 6) + '.' + cpf.substring(6, 9) + '-' + cpf.substring(9, 11);
+    }
+
+    // Função auxiliar para formatar data (yyyymmdd para dd/mm/yyyy)
+    function formatarData(data: string): string {
+        if (!data || data.length < 8) return data || '';
+        try {
+            // Se for formato YYYYMMDD
+            if (data.length === 8 && !isNaN(Number(data))) {
+                const ano = data.substring(0, 4);
+                const mes = data.substring(4, 6);
+                const dia = data.substring(6, 8);
+                if (dia !== '00' && mes !== '00') {
+                    return dia + '/' + mes + '/' + ano;
+                }
+            }
+        } catch (e) {
+            console.error('Erro ao formatar data:', e);
+        }
+        return data || '';
+    }
 
     // Formata número para o padrão brasileiro: 2 casas decimais e "," como separador decimal
     function formatarNumero(valor: any): string {
@@ -192,9 +397,9 @@ namespace RelDadFunc {
     } // transforma aaaammdd em dd/mm/aaaa
 
     export function processDataForTable(data) {
-        RelDadFunc.listaFinanceiro = [];
+        DadFuncRel.listaFinanceiro = [];
         data.forEach(q => {
-            RelDadFunc.listaFinanceiro.push({
+            DadFuncRel.listaFinanceiro.push({
                 tempo: (q.fin_id || 0),
                 ALA_DP_CPF_SERVIDOR: q.ALA_DP_CPF_SERVIDOR || '',
                 ALA_DP_NOME_SERVIDOR: q.ALA_DP_NOME_SERVIDOR || '',
@@ -214,7 +419,7 @@ namespace RelDadFunc {
                 LIQUIDO: Number(q.LIQUIDO) || 0
             });
         });
-        return RelDadFunc.listaFinanceiro;
+        return DadFuncRel.listaFinanceiro;
     }
 
     export function gerarHTML(financeiro) {
@@ -391,16 +596,16 @@ namespace RelDadFunc {
                     '</tr></thead><tbody>';
                 tipo.registros.forEach(item => {
                     html += '<tr>' +
-                        `<td>${item.cpf || ''}</td>` +
+                        `<td style="text-align:center;">${item.cpf || ''}</td>` +
                         `<td>${item.nome || ''}</td>` +
-                        `<td>${item.matricula || ''}</td>` +
-                        `<td>${item.cod_rubrica_fi || ''}</td>` +
-                        `<td>${item.pr_Rubrica || ''}</td>` +
+                        `<td style="text-align:center;">${item.matricula || ''}</td>` +
+                        `<td style="text-align:center;">${item.cod_rubrica_fi || ''}</td>` +
+                        `<td style="text-align:center;">${item.pr_Rubrica || ''}</td>` +
                         // a linha abaixo a seguir precisa verificar se tem espaço em branco no final da string e substituir por ''
-                        `<td>${((item.data_inicio_fi.trim() != '0' && item.data_inicio_fi.trim() != '00/00/0000' && item.data_inicio_fi.trim() != '30/12/1899' && item.data_inicio_fi.trim() != '01/01/1900') ? formatarDateToBr(item.data_inicio_fi.trim()) : '')}</td>` +
-                        `<td>${formatarNumero(item.ala_fi_valor)}</td>` +
-                        `<td>${formatarNumero(item.ala_fi_perc_pont_dia_hora)}</td>` +
-                        `<td>${item.ala_fi_QTDE_URV != null ? item.ala_fi_QTDE_URV : ''}</td>` +
+                        `<td style="text-align:center;">${((item.data_inicio_fi.trim() != '0' && item.data_inicio_fi.trim() != '00/00/0000' && item.data_inicio_fi.trim() != '30/12/1899' && item.data_inicio_fi.trim() != '01/01/1900') ? formatarDateToBr(item.data_inicio_fi.trim()) : '')}</td>` +
+                        `<td style="text-align:center;">${formatarNumero(item.ala_fi_valor)}</td>` +
+                        `<td style="text-align:center;">${formatarNumero(item.ala_fi_perc_pont_dia_hora)}</td>` +
+                        `<td style="text-align:center;">${item.ala_fi_QTDE_URV != null ? item.ala_fi_QTDE_URV : ''}</td>` +
                         '</tr>';
                 });
                 html += '</tbody></table></div></div>';
@@ -411,30 +616,34 @@ namespace RelDadFunc {
         container.innerHTML = html;
     }
 
-    export function carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim) {
+    export function DadosFuncionais(cpf, matricula, nome, per_dt_ini, per_dt_fim) {
 
-        console.log('Carregando o questionário');
-        $('#lista-financeiro').empty().html('');
+        console.log('Carregando dados funcionais');
+        // $('#div-resultado-dados-funcionais').empty().html('');
         $('#div-filtro').css('display', 'none');
-        $('#div-resultado-financeiro').css('display', 'block');
-        var jqxhr = $.post("/Relatorios/GetFinanceiro", {
+        $('#div-resultado-dados-funcionais').css('display', 'none');
+        $('#dados_funcionais').css('display', 'block');
+        
+        var jqxhr = $.post("/DadosFuncionais/GetDadosFuncionais", {
+            cpf_busca: cpf,
             cpf: cpf,
             matricula: matricula,
-            nome: nome,
-            dt_ini: per_dt_ini,
-            dt_fim: per_dt_fim
+            nome: nome
         }, function (data) {
+
 
             if (data.sucesso) {
                 var dados = data.lista;
                 if (dados && dados.length > 0) {
-
                     if (data.qtd > 0) {
+                        // Pega o primeiro resultado
+                        const primeiro = dados[0];
 
-                        let processedData = processDataForTable(dados);
-                        console.table(processedData);
-                        // gerarHTML já faz o agrupamento internamente
-                        RelDadFunc.gerarHTML(processedData);
+                        // Preenche os campos da exibição
+                        $('#dpe_nome_servidor').val(primeiro.dpe_nome_servidor || primeiro.dfu_nome_servidor || '');
+                        $('#dpe_cpf_servidor').val(primeiro.dpe_cpf_servidor || primeiro.dfu_cpf_servidor || '');
+                        $('#dpe_matricula').val(primeiro.dpe_matricula ?? primeiro.dfu_matricula ?? '');
+                        $('#dpe_desc_situacao').val(primeiro.fun_desc_ativo_desativo || primeiro.dfu_desc_situacao || '');
 
                         $('#botoes').css('display', 'block');
                         Swal.close();
@@ -445,7 +654,7 @@ namespace RelDadFunc {
                             imageUrl: "/Content/img/logo-ageprev-ms-origin.png",
                             imageWidth: 300,
                             width: 1080,
-                            html: '<span style="color:#045C99;font-size:20px;">Não há Financeiro disponível para a consulta</b></span>',
+                            html: '<span style="color:#045C99;font-size:20px;">Não há dados funcionais disponíveis para a consulta</span>',
                             showCancelButton: false,
                             confirmButtonText: "Deseja voltar ao início?",
                             cancelButtonText: "Não, desejo permanecer aqui!",
@@ -454,14 +663,12 @@ namespace RelDadFunc {
                             backdrop: true,
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                $('form[name="formRelFinanceiro"] input[name="cpf_busca"]').val('');
-                                $('form[name="formRelFinanceiro"] input[name="matricula"]').val('');
-                                $('form[name="formRelFinanceiro"] input[name="per_dt_ini"]').val('');
-                                $('form[name="formRelFinanceiro"] input[name="per_dt_fim"]').val('');
+                                $('input[name="cpf_busca"]').val('');
+                                $('input[name="matricula"]').val('');
+                                $('input[name="nome"]').val('');
 
                                 $('#div-filtro').css('display', 'block');
-                                $('#div-resultado-financeiro').css('display', 'none');
-                            } else {
+                                $('#dados_funcionais').css('display', 'none');
                             }
                         });
                     }
@@ -473,78 +680,57 @@ namespace RelDadFunc {
                         imageWidth: 300,
                         width: 1080,
                         height: 700,
-                        html: '<span style="color:#045C99;font-size:20px;">Não há Dados Financeiro disponíveis para esta consulta</b></span>',
+                        html: '<span style="color:#045C99;font-size:20px;">Não há dados funcionais disponíveis para esta consulta</span>',
                         showCancelButton: false,
                         confirmButtonText: "Ok",
-                        cancelButtonText: "Não responder o Questionário!",
+                        cancelButtonText: "Não!",
                         reverseButtons: false,
                         footer: ScriptsConfig.footerAlert,
                         backdrop: true,
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            $('form[name="formRelFinanceiro"] input[name="cpf_busca"]').val('');
-                            $('form[name="formRelFinanceiro"] input[name="matricula"]').val('');
-                            $('form[name="formRelFinanceiro"] input[name="per_dt_ini"]').val('');
-                            $('form[name="formRelFinanceiro"] input[name="per_dt_fim"]').val('');
+                            $('input[name="cpf_busca"]').val('');
+                            $('input[name="matricula"]').val('');
+                            $('input[name="nome"]').val('');
 
                             $('#div-filtro').css('display', 'block');
-                            $('#div-resultado-financeiro').css('display', 'none');
-                            // window.location.href = '/Home/Index';
-                        } else {
-                            // window.location.href = '/Home/Index';
+                            $('#dados_funcionais').css('display', 'none');
                         }
                     });
                 }
             } else {
-                console.log('aqui');
                 ScriptsConfig.swalconfirmeActionAlertaWarning.fire({
-                    icon: 'info',
-                    title: '<code style="color:#045C99;font-size:22px;">Olá</code><br>',
+                    icon: 'error',
+                    title: '<code style="color:#045C99;font-size:22px;">Erro!</code><br>',
                     imageUrl: "/Content/img/logo-ageprev-ms-origin.png",
                     imageWidth: 300,
                     width: 1080,
-                    html: '<span style="color:#045C99;font-size:20px;">Não há dados financeiro disponíveis para esta consulta</b></span>',
+                    html: '<span style="color:#045C99;font-size:20px;">Erro ao buscar dados: ' + (data.msg || 'Erro desconhecido') + '</span>',
                     showCancelButton: false,
                     confirmButtonText: "Ok",
-                    cancelButtonText: "Não responder o Questionário!",
                     reverseButtons: false,
                     footer: ScriptsConfig.footerAlert,
                     backdrop: true,
                 }).then((result) => {
-                    if (result.isConfirmed) {
-
-                        $('form[name="formRelFinanceiro"] input[name="cpf_busca"]').val('');
-                        $('form[name="formRelFinanceiro"] input[name="matricula"]').val('');
-                        $('form[name="formRelFinanceiro"] input[name="per_dt_ini"]').val('');
-                        $('form[name="formRelFinanceiro"] input[name="per_dt_fim"]').val('');
-
-                        $('#div-filtro').css('display', 'block');
-                        $('#div-resultado-financeiro').css('display', 'none');
-                    } else {
-
-                    }
+                    $('#div-filtro').css('display', 'block');
+                    $('#dados_funcionais').css('display', 'none');
                 });
-
             }
-        }, "json")
-            .done(function (data) {
-                if (data !== null) {
-                    console.log("second success");
-                } else { console.log("dados não encontrado"); }
-            })
-            .fail(function (_XMLHttpRequest_, textStatus, errorThrown) {
-                console.log("error");
-                console.log(_XMLHttpRequest_); console.log(textStatus); console.log(errorThrown);
-                // ScriptsConfig.failFunctionAjax(_XMLHttpRequest_, textStatus, errorThrown);
-            })
-            .always(function () {
-                console.log("finished");
-                // $('.text-end').css('text-align','right !important')
+        }).fail(function(err) {
+            console.error('Erro na requisição AJAX:', err);
+            Swal.close();
+            ScriptsConfig.swalconfirmeActionAlertaWarning.fire({
+                icon: 'error',
+                title: 'Erro de Conexão',
+                html: 'Falha ao conectar com o servidor. Verifique sua conexão.',
+                footer: ScriptsConfig.footerAlert
             });
+            $('#div-filtro').css('display', 'block');
+            $('#dados_funcionais').css('display', 'none');
+        });
 
         return jqxhr;
     }
-
 
     export function validarBusca(cpf, matricula, per_nome, per_dt_ini, per_dt_fim) {
         const cpfLimpo = String(cpf ?? '').replace(/\D/g, '');
@@ -552,39 +738,39 @@ namespace RelDadFunc {
         const possuiOutroFiltro = [matricula, per_nome, per_dt_ini, per_dt_fim]
             .some(valor => String(valor ?? '').trim().length > 0);
 
-        RelDadFunc.msgFiltro = '';
+        DadFuncRel.msgFiltro = '';
 
         if (!cpfInformado && !possuiOutroFiltro) {
-            RelDadFunc.validoFiltro = false;
-            RelDadFunc.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
+            DadFuncRel.validoFiltro = false;
+            DadFuncRel.msgFiltro = 'Informe pelo menos um filtro para realizar a busca.';
         } else if (cpfInformado && cpfLimpo.length !== 11) {
-            RelDadFunc.validoFiltro = false;
-            RelDadFunc.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
+            DadFuncRel.validoFiltro = false;
+            DadFuncRel.msgFiltro = '🔸 O campo CPF deve conter 11 dígitos.';
         } else {
-            RelDadFunc.validoFiltro = true;
+            DadFuncRel.validoFiltro = true;
         }
 
-        return RelDadFunc.validoFiltro;
+        return DadFuncRel.validoFiltro;
     }
 
     export function gerarPDF() {
         const cpf = String($('input[name="cpf_busca"]').val() || '').replace(/\D/g, '');
         const matricula = String($('input[name="matricula"]').val() || '').trim();
-        const nome = String($('input[name="per_nome"]').val() || '').trim();
+        const nome = String($('input[name="nome"]').val() || '').trim();
         // Keep the same period format as the search (MM/YYYY) so the
         // server receives the expected values and filters correctly.
         const dtIni = String($('input[name="per_dt_ini"]').val() || '').trim();
         const dtFim = String($('input[name="per_dt_fim"]').val() || '').trim();
 
-        if (RelDadFunc.validarBusca(cpf, matricula, nome, dtIni, dtFim)) {
+        if (DadFuncRel.validarBusca(cpf, matricula, nome, dtIni, dtFim)) {
             const matriculaNumero = Number(matricula || '0');
-            RelDadFunc.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matriculaNumero, nome, dtIni, dtFim);
-            RelDadFunc.carregarFinanceiro(cpf, matriculaNumero, nome, dtIni, dtFim);
+            DadFuncRel.gerarPDFPorCpfMatriculaNomePeriodo(cpf, matriculaNumero, nome, dtIni, dtFim);
+            DadFuncRel.DadosFuncionais(cpf, matriculaNumero, nome, dtIni, dtFim);
         } else {
             Swal.fire({
                 icon: 'warning',
                 title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelDadFunc.msgFiltro + '<label>',
+                html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + DadFuncRel.msgFiltro + '<label>',
                 footer: ScriptsConfig.footerAlert
             });
         }
@@ -593,14 +779,14 @@ namespace RelDadFunc {
     export function gerarPDFPorCpfMatriculaNomePeriodo(usr_cpf: string, matric?: number, nome?: string, dt_ini?: string, dt_fim?: string) {
         const cpf = String(usr_cpf || '').replace(/\D/g, '');
         const matricula = matric || Number($('input[name="matricula"]').val() as string || '0');
-        const nomeBusca = String(nome || $('input[name="per_nome"]').val() as string || '').trim();
+        const nomeBusca = String(nome || $('input[name="nome"]').val() as string || '').trim();
         // The PDF endpoint expects the same MM/YYYY period format used by the
         // regular search. Do not convert to YYYYMM here; send raw values.
         const per_dt_ini = dt_ini || String($('input[name="per_dt_ini"]').val() as string || '');
         const per_dt_fim = dt_fim || String($('input[name="per_dt_fim"]').val() as string || '');
 
         Swal.fire({
-            title: '<strong style="color:#045C99;">Financeiro PDF</strong>',
+            title: '<strong style="color:#045C99;">Dados Funcionais PDF</strong>',
             html: `
                     <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
                     <p>🔎 <b>Enviando consulta...</b></p>
@@ -622,12 +808,13 @@ namespace RelDadFunc {
             }
         });
 
-        $.post('/Relatorios/GerarPdfFinanceiro', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim }, function (data) {
+
+        $.post('/DadosFuncionais/GerarPdfDadosFuncionais', { cpf: cpf, matricula: matricula, nome: nomeBusca, dt_ini: per_dt_ini, dt_fim: per_dt_fim }, function (data) {
             console.log('success');
             console.log(data);
 
             if (data.sucesso) {
-                window.open('/Relatorios/abrirPdfFinanceiroGerado', 'popup', 'height=1080,width=1024,toolbar=no');
+                window.open('/DadosFuncionais/abrirPdfDadosFuncionaisGerado', 'popup', 'height=1080,width=1024,toolbar=no');
                 console.log('dados encontrados');
                 Swal.close();
             } else {
@@ -663,53 +850,16 @@ namespace RelDadFunc {
         _ano = '2026';
         _mes = '6';
 
+
         $('button[name="btnGerarPDF"]').on('click', function (e) {
-            RelDadFunc.gerarPDF();
+            DadFuncRel.gerarPDF();
         });
 
-        $('button[name="btnBuscar"]').on('click', function (e) {
-            const cpf = String($('input[name="cpf_busca"]').val() as string || '').replace(/\D/g, '');
-            const matricula = String($('input[name="matricula"]').val() as string || '').trim();
-            const nome = String($('input[name="per_nome"]').val() as string || '').trim();
-            const per_dt_ini = ($('input[name="per_dt_ini"]').val() as string || '').trim();
-            const per_dt_fim = ($('input[name="per_dt_fim"]').val() as string || '').trim();
-            if (RelDadFunc.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
-                Swal.fire({
-                    title: '<strong style="color:#045C99;">Financeiro</strong>',
-                    html: `
-                        <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
-                        <p>🔎 <b>Enviando consulta...</b></p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                        <small style="color: #888;"><i>⏳ Gerando o relatório. Por favor, não feche esta janela!</i></small>
-                        </div>
-                    `,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                        // Personaliza a cor do spinner para combinar com o seu sistema (#045C99)
-                        const loader = Swal.getPopup().querySelector('.swal2-loader') as HTMLElement;
-                        if (loader) {
-                            loader.style.color = '#045C99';
-                            loader.style.borderRightColor = 'transparent';
-                        }
-                    }
-                });
-
-                // Property 'always' does not exist on type 'void'.
-                RelDadFunc.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
-
-                });
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + RelDadFunc.msgFiltro + '<label>',
-                    footer: ScriptsConfig.footerAlert
-                });
-            }
-
+        $('#btn-voltar-dados_funcionais').on('click', function (e) {
+            $('#div-filtro').css('display', 'none');
+            $('#div-resultado-dados-funcionais').css('display', 'block');
+            $('#dados_funcionais').css('display', 'none');
+            //DadFuncRel.consultarDadosFuncionais();
         });
 
         $('input[name="cpf_busca"]').on('input', function () {
@@ -721,25 +871,26 @@ namespace RelDadFunc {
             // const que_num_questionario = Number($(this).data('que') || 0);
             $('input[name="eve_num_evento"]').val(eve_num_evento);
             $('input[name="que_num_questionario"]').val(0);
-            // RelDadFunc.editarEventoQuestionrio(eve_num_evento)
+            // DadFuncRel.editarEventoQuestionrio(eve_num_evento)
         });
 
-        $('#div-lista-questionario tbody').on('click', 'button.btn-editar-questionario', function () {
-            const eve_num_evento = Number($(this).data('eve') || 0);
-            const que_num_questionario = Number($(this).data('que') || 0);
-            $('input[name="eve_num_evento"]').val(eve_num_evento);
-            $('input[name="que_num_questionario"]').val(que_num_questionario);
-            console.log(RelDadFunc.questionariosDtos);
-            let questionario = RelDadFunc.questionariosDtos.find(x => x.que_num_questionario === que_num_questionario);
-            console.log(questionario);
-            if (questionario) {
-                // Estat.editarQuestionrio(questionario);
-                // $('#div-lista-evento-question').css('display', 'none');
-                // $('#div-lista-questionario').css('display', 'none');
-                // $('#div-formulario-questionario').css('display', 'block');
-                // RelDadFunc.carregarContagemPorNotaResultado()
-            }
-        });
+        // $('#div-lista-questionario tbody').on('click', 'button.btn-editar-questionario', function () {
+        //     const eve_num_evento = Number($(this).data('eve') || 0);
+        //     const que_num_questionario = Number($(this).data('que') || 0);
+        //     $('input[name="eve_num_evento"]').val(eve_num_evento);
+        //     $('input[name="que_num_questionario"]').val(que_num_questionario);
+        //     console.log(DadFuncRel.questionariosDtos);
+        //     let questionario = DadFuncRel.
+        //         questionariosDtos.find(x => x.que_num_questionario === que_num_questionario);
+        //     console.log(questionario);
+        //     if (questionario) {
+        //         // Estat.editarQuestionrio(questionario);
+        //         // $('#div-lista-evento-question').css('display', 'none');
+        //         // $('#div-lista-questionario').css('display', 'none');
+        //         // $('#div-formulario-questionario').css('display', 'block');
+        //         // DadFuncRel.carregarContagemPorNotaResultado()
+        //     }
+        // });
 
 
         $('button[name="btn-fechar-lista"]').on('click', function (e) {
@@ -749,6 +900,7 @@ namespace RelDadFunc {
             $('form[name="formRelFinanceiro"] input[name="per_dt_fim"]').val('');
 
             $('#div-filtro').css('display', 'block');
+            $('#dados_funcionais').css('display', 'none');
             $('#div-resultado-financeiro').css('display', 'none');
         });
 
@@ -777,14 +929,32 @@ namespace RelDadFunc {
         });
 
         $('button[name="btnBuscar"]').on('click', function (e) {
+            e.preventDefault();
+            DadFuncRel.consultarDadosFuncionais();
+        });
 
-            // $.when(RelDadFunc.buscarUsuarioaNoRelatorio()).then(function (data, textStatus, jqXHR) {
-            //     $.when(RelDadFunc.initializeDataTable(RelDadFunc.listaBusca, _ano, _mes, 100)).then(function (data, textStatus, jqXHR) {
-            //         $('input[name="buscaLimpa"]').val('');
-            //         console.log('Pontuação carregada com filtro');
-            //     });
-            // });
 
+        // Botão para voltar da lista para o filtro
+        $('#btn-fechar-lista').on('click', function (e) {
+            e.preventDefault();
+            $('input[name="cpf_busca"]').val('');
+            $('input[name="matricula"]').val('');
+            $('input[name="nome"]').val('');
+            $('#div-filtro').css('display', 'block');
+            $('#div-resultado-dados-funcionais').css('display', 'none');
+            $('#dados_funcionais').css('display', 'none');
+            if (DadFuncRel.dataTableInstanceDadosFuncionais) {
+                DadFuncRel.dataTableInstanceDadosFuncionais.destroy();
+                DadFuncRel.dataTableInstanceDadosFuncionais = null;
+            }
+        });
+
+        // Botão para voltar do formulário para a lista
+        $('#btn-voltar-dados_funcionais').on('click', function (e) {
+            e.preventDefault();
+            $('#div-filtro').css('display', 'none');
+            $('#dados_funcionais').css('display', 'none');
+            $('#div-resultado-dados-funcionais').css('display', 'block');
         });
 
         /*
@@ -798,6 +968,7 @@ namespace RelDadFunc {
 
 }
 
-declare module "RelDadFunc" {
-    export = RelDadFunc;
+
+declare module "DadFuncRel" {
+    export = DadFuncRel;
 }

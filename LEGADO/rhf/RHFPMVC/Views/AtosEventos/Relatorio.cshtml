@@ -1,6 +1,6 @@
-﻿@{
+﻿@* @ {
     ViewBag.Title = "Atos e Eventos";
-}
+} *@
 
 <script src="/Content/jQuery-Mask-Plugin-master/dist/jquery.mask.min.js"></script>
 <script src="/Content/controls/js/config-scripts/config.js"></script>
@@ -50,7 +50,8 @@
                             <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
 
                                 <div id="div-filtro">
-                                    <form name="formRelAtoEvento" id="formRelAtoEvento" action="/Relatorios/AtoEventos" method="post" style="width:100%;">
+                                    <form name="formRelAtoEvento" id="formRelAtoEvento" action="/AtosEventos/Relatorio"
+                                          method="post" style="width:100%;">
 
                                         <div class="form-group">
 
@@ -60,7 +61,7 @@
                                                 </div>
                                             </div>
                                             <div class="form-row">
-                                                <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
+                                                <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3" style="display:none;">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">Nº</span>
@@ -69,7 +70,16 @@
                                                                id="ate_numero">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text">CPF</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" name="cpf_busca"
+                                                               id="cpf_busca">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">Matrícula</span>
@@ -87,23 +97,14 @@
                                                                id="ate_nome">
                                                     </div>
                                                 </div>
-                                                <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4 mb-3">
-                                                    <div class="input-group">
-                                                        <div class="input-group-prepend">
-                                                            <span class="input-group-text">CPF</span>
-                                                        </div>
-                                                        <input type="text" class="form-control" name="cpf_busca"
-                                                               id="cpf_busca">
-                                                    </div>
-                                                </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Ato</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -133,12 +134,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row"  style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Diário Oficial</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -157,12 +158,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Tipo e Datas do Ato</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -204,7 +205,7 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -215,12 +216,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Cargo Original</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -247,12 +248,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Cargo Acumulado</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -287,12 +288,12 @@
                                                 </div>
                                             </div>
 
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-2">
                                                     <h6>Cargo em Comissão</h6>
                                                 </div>
                                             </div>
-                                            <div class="form-row">
+                                            <div class="form-row" style="display:none;">
                                                 <div class="col-md-2 col-xs-2 col-lg-2 col-sm-2 mb-3">
                                                     <div class="input-group">
                                                         <div class="input-group-prepend">
@@ -334,8 +335,8 @@
                                                         <td>
                                                             <div class="form-group">
                                                                 <div class="input-group mb-3">
-                                                                    <button type="button" class="btn btn-primary" name="btnGerarPDF" id="btnGerarPDF">
-                                                                        <i class="fa-solid fa-file-pdf fa-lg"></i> Gerar PDF
+                                                                    <button type="button" class="btn btn-outline-secondary" name="btnGerarPDF" id="btnGerarPDF">
+                                                                        <i class="fa-solid fa-file-pdf fa-lg text-danger"></i> Gerar PDF
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -362,78 +363,7 @@
                                                 <h5> <i class="fa-solid fa-left-long text-info fa-lg"></i>  <span class="text-dark"> <b>Voltar</b></span>  </h5>
                                             </button>
                                         </div>
-                                    </div>
-
-                                    <div id="template-ato-eventos-registro" class="d-none">
-                                        <div class="card border-secondary shadow-sm mb-3" style="width:100%;">
-                                            <div class="card-body p-3">
-                                                <div class="form-row">
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Nº</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_numero" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Matrícula</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="dep_matricula" readonly />
-                                                    </div>
-                                                    <div class="col-md-4 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Nome</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_nome" readonly />
-                                                    </div>
-                                                    <div class="col-md-4 mb-2">
-                                                        <label class="small text-muted d-block mb-1">CPF</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_cpf_servidor" readonly />
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-row">
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Cód. Ato</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_cod_ato" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Cód. Texto</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_cod_texto" readonly />
-                                                    </div>
-                                                    <div class="col-md-4 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Atos/Eventos</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_atos_eventos" readonly />
-                                                    </div>
-                                                    <div class="col-md-4 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Tipo Ato</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_desc_tp_ato" readonly />
-                                                    </div>
-                                                </div>
-
-                                                <div class="form-row">
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Data Ato</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_dt_ato" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Diário Oficial</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_num_diario_oficial" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Dt. Diário</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_dt_diario_oficial" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Prazo</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_prazo" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Dt. Validade</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_dt_validade" readonly />
-                                                    </div>
-                                                    <div class="col-md-2 mb-2">
-                                                        <label class="small text-muted d-block mb-1">Dt. Final</label>
-                                                        <input type="text" class="form-control form-control-sm" data-field="ate_dt_final" readonly />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                                             @Html.Raw(System.IO.File.ReadAllText(Server.MapPath("~/Content/html/MiniFormAtosEventos.html")))                        </div>
 
                                     <div id="lista-ato-eventos"></div>
 
@@ -455,7 +385,7 @@
     </div>
 </div>
 
-<script src="/Content/controls/js/script-page/relatorios-ato-eventos.js?v=0.000000000000000005003"></script>
+<script src="/Content/controls/js/script-page/atos-eventos-relatorio.js?v=0.000000000000000005023"></script>
 <style type="text/css">
     .footer {
          position:page;

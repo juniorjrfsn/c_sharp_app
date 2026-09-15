@@ -12,252 +12,140 @@ namespace RHFPMVC.Controllers
     public class RelHtmlPDF_AtosEventos
     {
         private readonly string _contentRootPath = AppDomain.CurrentDomain.BaseDirectory;
-        private readonly rhfp_financeiroBusiness _rhfp_FinanceiroBusiness;
- 
+
         public CarregaLayoutBusiness carregaLayout;
-        public RelHtmlPDF_AtosEventos() {
-            _rhfp_FinanceiroBusiness = new rhfp_financeiroBusiness();
+
+        public RelHtmlPDF_AtosEventos()
+        {
             _contentRootPath = AppDomain.CurrentDomain.BaseDirectory;
             carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
         }
 
-
-        // Campos de filtro "nome", "cpf", "matricula", "dtIni" e "dtFim"
-        public string geraHtmlPdfFinanceiro(string cpf = null, int? matricula = null, string nome = null, string dtIni = null, string dtFim = null, string dataGeracao = null)
+        // Mesma regra de "data vazia/inválida" usada no relatório Financeiro (fin_dt_inicio).
+        private static bool DataValida(string data)
         {
-            try
-            {
-                var carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
-                var financeiroBusiness = new rhfp_financeiroBusiness();
-                var cpfFiltro = string.IsNullOrWhiteSpace(cpf) ? string.Empty : cpf.Trim();
-                var matriculaFiltro = matricula ?? 0;
-                var nomeFiltro = string.IsNullOrWhiteSpace(nome) ? string.Empty : nome.Trim();
-                var lista = financeiroBusiness.GetFinanceiro(
-                    matricula: matriculaFiltro,
-                    nome: nomeFiltro,
-                    cpf: cpfFiltro,
-                    competencia: null,
-                    cod_rubrica: 0,
-                    dtIni: dtIni,
-                    dtFim: dtFim) ?? new List<rhfp_financeiroDTO>();
+            if (string.IsNullOrWhiteSpace(data))
+                return false;
 
-                var agrupadoPorServidor = lista
-                    .GroupBy(f => new { CPF = f.ALA_DP_CPF_SERVIDOR, Matricula = f.ala_fi_MATRICULA, Nome = f.ALA_DP_NOME_SERVIDOR })
-                    .OrderBy(x => x.Key.CPF)
-                    .ThenBy(x => x.Key.Matricula)
-                    .ToList();
-
-                var sb = new StringBuilder();
-                sb.Append("<div class=\"card mb-3\"><div class=\"card-body\"><h4 class=\"card-title\">Relatório Financeiro</h4></div></div>");
-
-                foreach (var servidor in agrupadoPorServidor)
-                {
-                    RelatorioViewModel.nome = servidor.Key.Nome;
-                    sb.Append("<div class=\"card mb-4\">");
-                    sb.Append("<div class=\"card-header bg-primary text-white\">");
-                    sb.Append("<strong>CPF:</strong> " + (string.IsNullOrWhiteSpace(servidor.Key.CPF) ? "" : servidor.Key.CPF) + " &nbsp;|&nbsp; ");
-                    sb.Append("<strong>Nome:</strong> " + (string.IsNullOrWhiteSpace(servidor.Key.Nome) ? "" : servidor.Key.Nome) + " &nbsp;|&nbsp; ");
-                    sb.Append("<strong>Matrícula:</strong> " + servidor.Key.Matricula);
-                    sb.Append("</div>");
-                    sb.Append("<div class=\"card-body\">");
-
-                    var grupos = servidor
-                        .GroupBy(g => new { Competencia = g.COMPETENCIA_FI, TipoCargo = g.tipo_cargo_fi })
-                        .OrderBy(x => x.Key.Competencia)
-                        .ThenBy(x => x.Key.TipoCargo)
-                        .ToList();
-
-                    foreach (var grupo in grupos)
-                    {
-                        sb.Append("<div class=\"card mb-3\">");
-                        sb.Append("<div class=\"card-header bg-secondary text-white\">");
-                        sb.Append("<strong>Competência:</strong> " + UtilitariosHelper.FormatarCompetencia(grupo.Key.Competencia) + " &nbsp;|&nbsp; ");
-                        sb.Append("<strong>Tipo de Cargo:</strong> " + Convert.ToString(grupo.Key.TipoCargo));
-                        sb.Append("</div>");
-                        sb.Append("<div class=\"card-body\">");
-
-                        sb.Append("<div class=\"table-responsive\"><table class=\"table table-sm table-bordered table-striped\"><thead class=\"thead-light\"><tr>");
-                        sb.Append("<th style=\"text-align:center;\">Cód. Rubrica</th><th style=\"text-align:center;\">Rubrica</th><th style=\"text-align:center;\">Data Início</th><th style=\"text-align:center;\">Valor</th><th style=\"text-align:center;\">% Pont./Dia/Hora</th><th style=\"text-align:center;\">QTDE URV</th><th style=\"text-align:center;\">PROVENTO</th><th>DESCONTO</th><th style=\"text-align:center;\">LIQUIDO</th>");
-                        sb.Append("</tr></thead><tbody>");
-
-                        foreach (var item in grupo.OrderBy(x => x.cod_rubrica_fi))
-                        {
-                            sb.Append("<tr>");
-                            sb.Append("<td style=\"text-align:center;\">" + item.cod_rubrica_fi + "</td>");
-                            sb.Append("<td>" + (item.pr_Rubrica ?? "") + "</td>");
-                            sb.Append("<td style=\"text-align:center;\">" + (item.data_inicio_fi != null && item.data_inicio_fi.Trim() != "0" && item.data_inicio_fi.Trim() != "00/00/0000" && item.data_inicio_fi.Trim() != "30/12/1899" && item.data_inicio_fi.Trim() != "01/01/1900" ? UtilitariosHelper.FormatarDateToBr(item.data_inicio_fi) : "") + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_valor) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_perc_pont_dia_hora) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + (item.ala_fi_QTDE_URV != null ? item.ala_fi_QTDE_URV.ToString() : "") + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.PROVENTO) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.DESCONTO) + "</td>");
-                            sb.Append("<td></td>");
-                            sb.Append("</tr>");
-                        }
-
-                        var total = grupo.FirstOrDefault();
-                        sb.Append("<tr>");
-                        sb.Append("<td style=\"text-align:center;\"> -- </td>");
-                        sb.Append("<td>Total</td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\">" + (total != null ? UtilitariosHelper.FormatarNumero(total.TOTAL_PROVENTO) : "0,00") + "</td>");
-                        sb.Append("<td style=\"text-align:right;\">" + (total != null ? UtilitariosHelper.FormatarNumero(total.TOTAL_DESCONTO) : "0,00") + "</td>");
-                        sb.Append("<td style=\"text-align:right;\">" + (total != null ? UtilitariosHelper.FormatarNumero(total.LIQUIDO) : "0,00") + "</td>");
-                        sb.Append("</tr>");
-
-                        sb.Append("</tbody></table></div>");
-                        sb.Append("</div>");
-                        sb.Append("</div>");
-                    }
-
-                    sb.Append("</div>");
-                    sb.Append("</div>");
-                }
-
-                var template = carregaLayout.layout_3;
-                if (string.IsNullOrWhiteSpace(template))
-                {
-                    template = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>{PageTitle}</title>{PageHead}</head><body>{PageContent}</body></html>";
-                }
-
-                var pageHeadContent = carregaLayout.PageHead ?? string.Empty;
-                // If PageHead contains raw CSS, wrap it in <style> so it is applied, not rendered as text
-                if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
-                {
-                    pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
-                }
-
-                // Prepend the report header (logos/title) if available
-                var pageHeader = carregaLayout.RelatorioPageHeader ?? string.Empty;
-                pageHeader = pageHeader.Replace("{tprel}", "Relatório Financeiro");
-
-                var htmlFinal = template
-                    .Replace("{PageTitle}", "Relatório Financeiro")
-                    .Replace("{PageHead}", pageHeadContent)
-                    .Replace("{PageContent}", pageHeader + sb.ToString());
-
-                // Remove leading whitespace which can produce a blank first page
-                htmlFinal = htmlFinal.TrimStart();
-
-                // Remove any absolute file:// base URI that might be injected/printed by the PDF engine
-                try
-                {
-                    var baseUri = new Uri(_contentRootPath).AbsoluteUri;
-                    if (!string.IsNullOrWhiteSpace(baseUri))
-                        htmlFinal = htmlFinal.Replace(baseUri, string.Empty);
-                }
-                catch { }
-
-                // The layout contains a static <link href="bootstrap.css" ... /> which may be resolved
-                // to a file:// URL by the converter — remove it because CSS is already inlined in PageHead
-                htmlFinal = htmlFinal.Replace("<link href=\"bootstrap.css\" rel=\"stylesheet\" />", string.Empty);
-
-                return htmlFinal;
-            }
-            catch (Exception ex)
-            {
-                return "<div class=\"alert alert-danger\">Erro ao gerar relatório financeiro: " + ex.Message + "</div>";
-            }
+            var trecho = data.Trim();
+            return trecho != "0" && trecho != "00/00/0000" && trecho != "30/12/1899" && trecho != "01/01/1900";
         }
 
-        public string geraHtmlPdfAtosEventos(string cpf = null, int? matricula = null, string nome=null, string dtIni = null, string dtFim = null, string dataGeracao = null)
+        private static string FormatarData(string data)
+        {
+            return DataValida(data) ? UtilitariosHelper.FormatarDateToBr(data) : string.Empty;
+        }
+
+        private static string HtmlEncode(string valor)
+        {
+            return string.IsNullOrEmpty(valor) ? string.Empty : System.Net.WebUtility.HtmlEncode(valor);
+        }
+
+        private string MontarRegistroMiniFormulario(rhfp_legado_atos_e_eventosDTO item)
+        {
+            // Use the MiniForm template loaded by CarregaLayoutBusiness and replace placeholders
+            var template = carregaLayout?.MiniFormAtosEventos ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                // Fallback to previous inline rendering if template missing
+                return "<div class=\"card\"><div class=\"card-body\">" + HtmlEncode(item.ate_atos_eventos ?? string.Empty) + "</div></div>";
+            }
+
+            // Extract content inside #template-ato-eventos-registro wrapper safely
+            var startTag = "<div id=\"template-ato-eventos-registro\"";
+            var sIdx = template.IndexOf(startTag, StringComparison.OrdinalIgnoreCase);
+            if (sIdx >= 0)
+            {
+                var closeAngle = template.IndexOf('>', sIdx);
+                if (closeAngle >= 0)
+                {
+                    var eIdx = template.LastIndexOf("</div>", StringComparison.OrdinalIgnoreCase);
+                    if (eIdx > closeAngle)
+                    {
+                        template = template.Substring(closeAngle + 1, eIdx - (closeAngle + 1)).Trim();
+                    }
+                }
+            }
+
+            // Prepare values
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "dep_matricula", item.dep_matricula.HasValue ? item.dep_matricula.Value.ToString() : string.Empty },
+                { "ate_nome", item.ate_nome ?? string.Empty },
+                { "ate_cpf_servidor", string.IsNullOrWhiteSpace(item.ate_cpf_servidor) ? string.Empty : UtilitariosHelper.MascararCpf(item.ate_cpf_servidor) },
+                { "ate_cod_texto", item.ate_cod_texto ?? string.Empty },
+                { "ate_atos_eventos", item.ate_atos_eventos ?? string.Empty },
+                { "ate_desc_tp_ato", item.ate_desc_tp_ato ?? string.Empty },
+                { "ate_dt_ato", FormatarData(item.ate_dt_ato) },
+                { "ate_dt_validade", FormatarData(item.ate_dt_validade) },
+                { "ate_dt_final", FormatarData(item.ate_dt_final) },
+                { "ate_prazo", item.ate_prazo.HasValue ? item.ate_prazo.Value.ToString() : string.Empty },
+                { "ate_num_diario_oficial", item.ate_num_diario_oficial.HasValue ? item.ate_num_diario_oficial.Value.ToString() : string.Empty },
+                { "ate_dt_diario_oficial", FormatarData(item.ate_dt_diario_oficial) },
+                { "ate_original_simbolo", item.ate_original_simbolo ?? string.Empty },
+                { "ate_original_cargo", item.ate_original_cargo ?? string.Empty },
+                { "ate_acumulado_simbolo", item.ate_acumulado_simbolo ?? string.Empty },
+                { "ate_acumulado_cargo", item.ate_acumulado_cargo ?? string.Empty },
+                { "ate_comissao_simbolo", item.ate_comissao_simbolo ?? string.Empty },
+                { "ate_comissao_cargo", item.ate_comissao_cargo ?? string.Empty },
+                { "ate_simbolo_funcao_gratificada", item.ate_simbolo_funcao_gratificada ?? string.Empty },
+                { "ate_cargo_funcao_gratificada", item.ate_cargo_funcao_gratificada ?? string.Empty },
+                { "ate_instrumento_legal", item.ate_instrumento_legal ?? string.Empty },
+                { "ate_artigo_legal", item.ate_artigo_legal ?? string.Empty },
+                { "ate_inciso_legal", item.ate_inciso_legal ?? string.Empty },
+                { "ate_historico", item.ate_historico ?? string.Empty }
+            };
+
+            var result = template;
+
+            // Replace data-field placeholders preserving existing attributes
+            foreach (var kv in values)
+            {
+                var encodedValue = HtmlEncode(kv.Value);
+                var fieldName = kv.Key;
+                
+                var pattern = @"(<span[^>]*data-field\s*=\s*[""']" + System.Text.RegularExpressions.Regex.Escape(fieldName) + @"[""'][^>]*>)(.*?)(</span>)";
+                result = System.Text.RegularExpressions.Regex.Replace(
+                    result,
+                    pattern,
+                    m => m.Groups[1].Value + encodedValue + m.Groups[3].Value,
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline
+                );
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Gera o HTML do relatório de Atos e Eventos a partir de uma lista já filtrada
+        /// e ordenada (ate_numero, dep_matricula, ate_nome, ate_cpf_servidor, ate_cod_ato,
+        /// ate_cod_texto, ate_atos_eventos). Diferente do Financeiro, não há agrupamento em
+        /// subtabelas: todo o resultado é apresentado em uma única tabela.
+        /// </summary>
+        public string geraHtmlPdfAtosEventos(List<rhfp_legado_atos_e_eventosDTO> eventos, string dataGeracao = null)
         {
             try
             {
-                var carregaLayout = new CarregaLayoutBusiness(_contentRootPath);
-                var financeiroBusiness = new rhfp_financeiroBusiness();
-                var cpfFiltro = string.IsNullOrWhiteSpace(cpf) ? string.Empty : cpf.Trim();
-                var nomeFiltro = string.IsNullOrWhiteSpace(nome) ? string.Empty : nome.Trim();
-                var matriculaFiltro = matricula ?? 0;
-                var lista = financeiroBusiness.GetFinanceiro(
-                    matricula: matriculaFiltro,
-                    nome: nomeFiltro,
-                    cpf: cpfFiltro,
-                    competencia: null,
-                    cod_rubrica: 0,
-                    dtIni: dtIni,
-                    dtFim: dtFim) ?? new List<rhfp_financeiroDTO>();
+                if (eventos == null || eventos.Count == 0)
+                {
+                    return "<div class=\"alert alert-info\">Nenhum registro de Atos e Eventos encontrado.</div>";
+                }
 
-                var agrupadoPorServidor = lista
-                    .GroupBy(f => new { CPF = f.ALA_DP_CPF_SERVIDOR, Matricula = f.ala_fi_MATRICULA, Nome = f.ALA_DP_NOME_SERVIDOR })
-                    .OrderBy(x => x.Key.CPF)
-                    .ThenBy(x => x.Key.Matricula)
-                    .ToList();
+                var primeiro = eventos.First();
+                RelatorioViewModel.nome = primeiro.ate_nome ?? primeiro.ate_cpf_servidor ?? string.Empty;
 
                 var sb = new StringBuilder();
-                // sb.Append("<div class=\"card mb-3\"><div class=\"card-body\" style=\"text-align:center;\"><h4 class=\"card-title\">Relatório Financeiro</h4></div></div>");
+                sb.Append("<div style=\"width:100%; padding:0; margin-top:10px;\">");
 
-
-                foreach (var servidor in agrupadoPorServidor)
+                foreach (var item in eventos)
                 {
-                    RelatorioViewModel.nome = servidor.Key.Nome;
-                    sb.Append("<div class=\"card mb-4\">");
-                    sb.Append("<div class=\"card-header bg-primary text-white\">");
-                    sb.Append("<strong>CPF:</strong> " + UtilitariosHelper.MascararCpf(servidor.Key.CPF) + " &nbsp;|&nbsp; ");
-                    sb.Append("<strong>Nome:</strong> " + (string.IsNullOrWhiteSpace(servidor.Key.Nome) ? "" : servidor.Key.Nome) + " &nbsp;|&nbsp; ");
-                    sb.Append("<strong>Matrícula:</strong> " + servidor.Key.Matricula);
-                    sb.Append("</div>");
-                    sb.Append("</div>");
-                    sb.Append("</br>");
-
-                    var grupos = servidor
-                        .GroupBy(g => new { Competencia = g.COMPETENCIA_FI, TipoCargo = g.tipo_cargo_fi })
-                        .OrderBy(x => x.Key.Competencia)
-                        .ThenBy(x => x.Key.TipoCargo)
-                        .ToList();
-
-                    foreach (var grupo in grupos)
-                    {
-                        sb.Append("<div class=\"card mb-4\">");
-                        sb.Append("<div class=\"card-header bg-secondary text-white\">");
-                        sb.Append("<strong>Competência:</strong> " + UtilitariosHelper.FormatarCompetencia(grupo.Key.Competencia) + " &nbsp;|&nbsp; ");
-                        sb.Append("<strong>Tipo de Cargo:</strong> " + Convert.ToString(grupo.Key.TipoCargo));
-                        sb.Append("</div>");
-                        sb.Append("<div class=\"card-body\">");
-
-                        sb.Append("<div class=\"table-responsive\"><table class=\"table table-sm table-bordered table-striped\"><thead class=\"thead-light\"><tr>");
-                        sb.Append("<th style=\"text-align:center;\">Cód. Rubrica</th><th style=\"text-align:center;\">Rubrica</th><th style=\"text-align:center;\">Data Início</th><th style=\"text-align:center;\">Valor</th><th style=\"text-align:center;\">% Pont./Dia/Hora</th><th style=\"text-align:center;\">QTDE URV</th><th style=\"text-align:center;\">PROVENTO</th><th>DESCONTO</th><th style=\"text-align:center;\">LIQUIDO</th>");
-                        sb.Append("</tr></thead><tbody>");
-
-                        foreach (var item in grupo.OrderBy(x => x.cod_rubrica_fi))
-                        {
-                            sb.Append("<tr>");
-                            sb.Append("<td style=\"text-align:center;\">" + item.cod_rubrica_fi + "</td>");
-                            sb.Append("<td>" + (item.pr_Rubrica ?? "") + "</td>");
-                            sb.Append("<td style=\"text-align:center;\">" + (item.data_inicio_fi != null && item.data_inicio_fi.Trim() != "0" && item.data_inicio_fi.Trim() != "00/00/0000" && item.data_inicio_fi.Trim() != "30/12/1899" && item.data_inicio_fi.Trim() != "01/01/1900" ? UtilitariosHelper.FormatarDateToBr(item.data_inicio_fi) : "") + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_valor) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.ala_fi_perc_pont_dia_hora) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + (item.ala_fi_QTDE_URV != null ? item.ala_fi_QTDE_URV.ToString() : "") + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.PROVENTO) + "</td>");
-                            sb.Append("<td style=\"text-align:right;\">" + UtilitariosHelper.FormatarNumero(item.DESCONTO) + "</td>");
-                            sb.Append("<td></td>");
-                            sb.Append("</tr>");
-                        }
-
-                        var total = grupo.FirstOrDefault();
-                        sb.Append("<tr>");
-                        sb.Append("<td style=\"text-align:center;\"> -- </td>");
-                        sb.Append("<td><b>Total</b></td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"> -- </td>");
-                        sb.Append("<td style=\"text-align:right;\"><b>" + (total != null ? UtilitariosHelper.FormatarNumero(total.TOTAL_PROVENTO) : "0,00") + "</b></td>");
-                        sb.Append("<td style=\"text-align:right;\"><b>" + (total != null ? UtilitariosHelper.FormatarNumero(total.TOTAL_DESCONTO) : "0,00") + "</b></td>");
-                        sb.Append("<td style=\"text-align:right;\"><b>" + (total != null ? UtilitariosHelper.FormatarNumero(total.LIQUIDO) : "0,00") + "</b></td>");
-                        sb.Append("</tr>");
-
-                        sb.Append("</tbody></table></div>");
-                        sb.Append("</div>");
-                        sb.Append("</div>");
-                    }
-
-                    sb.Append("</div>");
+                    sb.Append("<div style=\"margin-top:8px; margin-bottom:14px; page-break-inside:avoid; break-inside:avoid;\">");
+                    sb.Append(MontarRegistroMiniFormulario(item));
                     sb.Append("</div>");
                 }
+
+                sb.Append("</div>");
 
                 var template = carregaLayout.layout_3;
                 if (string.IsNullOrWhiteSpace(template))
@@ -266,25 +154,38 @@ namespace RHFPMVC.Controllers
                 }
 
                 var pageHeadContent = carregaLayout.PageHead ?? string.Empty;
-                // If PageHead contains raw CSS, wrap it in <style> so it is applied, not rendered as text
                 if (!string.IsNullOrWhiteSpace(pageHeadContent) && !pageHeadContent.TrimStart().StartsWith("<style", StringComparison.OrdinalIgnoreCase))
                 {
                     pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
                 }
 
-                // Prepend the report header (logos/title) if available
+                var customCss = @"<style>
+                    @page { margin: 12mm 8mm 12mm 8mm; }
+                    html, body { margin: 0; padding: 0; }
+                    body { background: #fff; }
+                    .card, .table, .table td, .table th { page-break-inside: avoid !important; break-inside: avoid !important; }
+                    .container-fluid { padding-top: 12px !important; }
+                    .card { margin-top: 10px !important; margin-bottom: 14px !important; }
+                    .card-body { padding: 0 !important; }
+                </style>";
+
+                pageHeadContent = string.IsNullOrWhiteSpace(pageHeadContent) ? customCss : pageHeadContent + customCss;
+
                 var pageHeader = carregaLayout.RelatorioPageHeader ?? string.Empty;
-                pageHeader = pageHeader.Replace("{tprel}", "Relatório de Atos e Eventos");
+                pageHeader = pageHeader.Replace("{tprel}", "Atos e Eventos");
+
+                RelatorioViewModel.RelatorioPageHeader = pageHeader;
+                RelatorioViewModel.RelatorioPageHeadContent = pageHeadContent;
+                AtosEventosViewModel.RelatorioPageHeader = pageHeader;
+                AtosEventosViewModel.RelatorioPageHeadContent = pageHeadContent;
 
                 var htmlFinal = template
                     .Replace("{PageTitle}", "Relatório de Atos e Eventos")
                     .Replace("{PageHead}", pageHeadContent)
-                    .Replace("{PageContent}", pageHeader + sb.ToString());
+                    .Replace("{PageContent}", sb.ToString().TrimEnd());
 
-                // Remove leading whitespace which can produce a blank first page
-                htmlFinal = htmlFinal.TrimStart();
+                htmlFinal = htmlFinal.TrimStart().TrimEnd();
 
-                // Remove any absolute file:// base URI that might be injected/printed by the PDF engine
                 try
                 {
                     var baseUri = new Uri(_contentRootPath).AbsoluteUri;
@@ -293,8 +194,6 @@ namespace RHFPMVC.Controllers
                 }
                 catch { }
 
-                // The layout contains a static <link href="bootstrap.css" ... /> which may be resolved
-                // to a file:// URL by the converter — remove it because CSS is already inlined in PageHead
                 htmlFinal = htmlFinal.Replace("<link href=\"bootstrap.css\" rel=\"stylesheet\" />", string.Empty);
 
                 return htmlFinal;
@@ -304,6 +203,5 @@ namespace RHFPMVC.Controllers
                 return "<div class=\"alert alert-danger\">Erro ao gerar relatório de Atos e Eventos: " + ex.Message + "</div>";
             }
         }
-
     }
 }
