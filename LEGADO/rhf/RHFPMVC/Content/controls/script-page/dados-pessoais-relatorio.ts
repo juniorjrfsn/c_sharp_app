@@ -1,4 +1,4 @@
-﻿// File: script-page/relatorios-dados-pessoais.ts
+// File: script-page/relatorios-dados-pessoais.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -83,27 +83,96 @@ namespace DadPessRel {
 
     export function carregarIndices() { }
 
+    export function exibirLoadingConsulta(titulo: string, mensagem: string) {
+        Swal.fire({
+            title: `<strong style="color:#045C99;">${titulo}</strong>`,
+            html: `
+                <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
+                <p>🔎 <b>Enviando consulta...</b></p>
+                <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                <small style="color: #888;"><i>⏳ ${mensagem}</i></small>
+                </div>
+            `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+                const loader = Swal.getPopup().querySelector('.swal2-loader') as HTMLElement;
+                if (loader) {
+                    loader.style.color = '#045C99';
+                    loader.style.borderRightColor = 'transparent';
+                }
+            }
+        });
+    }
+
+    export function validarFiltroSegurado(): boolean {
+        const matricula: string = (($('#matricula').val() as string) || '').trim();
+        const nome: string = (($('#per_nome').val() as string) || '').trim();
+        const cpfNumeros: string = (($('#cpf_busca').val() as string) || '').replace(/\D/g, '');
+
+        const erros: string[] = [];
+
+        // Matrícula: apenas números e maior que 0
+        if (matricula.length > 0) {
+            if (!/^\d+$/.test(matricula)) {
+                erros.push('A matrícula deve conter apenas números.');
+            } else if (parseInt(matricula, 10) <= 0) {
+                erros.push('A matrícula deve ser maior que zero.');
+            }
+        }
+
+        // Nome: mínimo de 3 caracteres
+        if (nome.length > 0 && nome.length < 3) {
+            erros.push(`Nome incompleto: faltam ${3 - nome.length} letra(s) para a busca (mínimo 3).`);
+        }
+
+        // CPF: exatamente 11 dígitos
+        if (cpfNumeros.length > 0 && cpfNumeros.length < 11) {
+            erros.push(`CPF incompleto: faltam ${11 - cpfNumeros.length} dígito(s).`);
+        }
+
+        const nenhumPreenchido = matricula.length === 0 && nome.length === 0 && cpfNumeros.length === 0;
+
+        if (nenhumPreenchido) {
+            DadPessRel.validoFiltro = false;
+            DadPessRel.msgFiltro = 'Por favor, informe pelo menos um critério de busca (Matrícula, Nome ou CPF).';
+        } else if (erros.length > 0) {
+            DadPessRel.validoFiltro = false;
+            DadPessRel.msgFiltro = erros.join('\n');
+        } else {
+            DadPessRel.validoFiltro = true;
+            DadPessRel.msgFiltro = '';
+        }
+
+        return DadPessRel.validoFiltro; // mantive o retorno original: true = filtro inválido
+    }
+
     // ============== DADOS PESSOAIS - Datatable Functions ==============
 
     /**
-     * Realiza a consulta de dados pessoais via AJAX
+     * Realiza a consulta de dados pessoais via AJAX (Etapa 1: Lista de Segurados)
+     * Retorna HTML tbody em vez de JSON para evitar maxJsonLength
      */
     export function consultarDadosPessoais() {
         const cpf = $('#cpf_busca').val() || '';
         const matricula = $('#matricula').val() || '';
         const nome = $('#per_nome').val() || '';
 
-        if (!cpf && !matricula && !nome) {
+        if (validarFiltroSegurado()) { } else {
             Swal.fire({
                 icon: 'warning',
-                title: 'Aviso',
-                text: 'Por favor, informe pelo menos um critério de busca (CPF, Matrícula ou Nome)',
+                title: 'Atenção',
+                text: DadPessRel.msgFiltro,
                 footer: ScriptsConfig.footerAlert
             });
             return;
         }
 
-        const url = '/DadosFuncionais/GetDadosPessoais';
+        DadPessRel.exibirLoadingConsulta('Dados Pessoais', 'Carregando resultado da busca. Por favor, não feche esta janela!');
+
+        const url = '/DadosPessoais/GetListaSeguradosTbody';
         const dados = {
             cpf_busca: cpf,
             matricula: matricula,
@@ -114,32 +183,39 @@ namespace DadPessRel {
             url: url,
             type: 'POST',
             data: dados,
-            dataType: 'json',
-            success: function (response) {
-                if (response.sucesso && response.lista && response.lista.length > 0) {
-                    DadPessRel.listaDadosPessoais = response.lista;
-                    inicializarDataTableDadosPessoais(response.lista);
-                    
+            dataType: 'html',
+            success: function (html: string) {
+                Swal.close();
+                const linhasHtml = (html || '').trim();
+
+                if (linhasHtml.length > 0) {
+                    inicializarDataTableDadosPessoais(linhasHtml);
+
                     // Mostrar resultado e esconder filtro
                     $('#div-filtro').css('display', 'none');
                     $('#div-resultado-dados-pessoais').css('display', 'block');
                     $('#dados_pessoais').css('display', 'none');
-                     
                 } else {
                     Swal.fire({
                         icon: 'info',
                         title: 'Sem resultados',
-                        text: response.msg || 'Nenhum registro encontrado para os parâmetros informados',
+                        text: 'Nenhum registro encontrado para os parâmetros informados',
                         footer: ScriptsConfig.footerAlert
                     });
                 }
             },
             error: function (xhr, status, error) {
-                console.error('Erro na consulta:', error);
+                Swal.close();
+                console.error('Erro na consulta:', xhr.status, status, error);
+
+                // O controller devolve "ERRO: ..." em texto puro quando falha (HTTP 500)
+                const texto = (xhr.responseText || '').trim();
+                const detalhe = texto.indexOf('ERRO:') === 0 ? texto : error;
+
                 Swal.fire({
                     icon: 'error',
                     title: 'Erro',
-                    text: 'Erro ao buscar dados pessoais: ' + error,
+                    text: 'Erro ao buscar dados pessoais: ' + detalhe,
                     footer: ScriptsConfig.footerAlert
                 });
             }
@@ -147,41 +223,84 @@ namespace DadPessRel {
     }
 
     /**
-     * Inicializa o DataTable com os dados de pessoas
+     * Carrega os detalhes completos do segurado via AJAX (Etapa 2) e exibe o formulário
      */
-    export function inicializarDataTableDadosPessoais(dados: any[]) {
+    export function carregarEDetalharPessoa(index: number, callback?: (pessoa: any) => void) {
+        const item = DadPessRel.listaDadosPessoais[index];
+        if (!item) return;
+
+        DadPessRel.exibirLoadingConsulta('Dados Pessoais', 'Carregando detalhes do segurado...');
+
+        $.ajax({
+            url: '/DadosPessoais/GetDadosPessoais',
+            type: 'POST',
+            data: {
+                dpe_numero: item.dpe_numero || 0,
+                matricula: item.dpe_matricula || 0,
+                cpf_busca: item.dpe_cpf_servidor || '',
+                nome: item.dpe_nome_servidor || ''
+            },
+            dataType: 'json',
+            success: function (response) {
+                Swal.close();
+                if (response.sucesso && response.lista && response.lista.length > 0) {
+                    const pessoa = response.lista[0];
+                    DadPessRel.selectedPessoa = pessoa;
+                    preencherFormularioDadosPessoaisObjeto(pessoa);
+                    $('#div-filtro').css('display', 'none');
+                    $('#div-resultado-dados-pessoais').css('display', 'none');
+                    $('#dados_pessoais').css('display', 'block');
+                    if (callback) callback(pessoa);
+                } else {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Atenção',
+                        text: response.msg || 'Não foi possível carregar os detalhes do segurado.',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.close();
+                console.error('Erro ao carregar detalhes:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao buscar detalhes dos dados pessoais: ' + error,
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
+    /**
+     * Inicializa o DataTable com as linhas HTML (tbody) vindas do servidor
+     */
+    export function inicializarDataTableDadosPessoais(htmlTbody: string) {
         // Destruir instância anterior se existir
         if (DadPessRel.dataTableInstanceDadosPessoais) {
             DadPessRel.dataTableInstanceDadosPessoais.destroy();
             DadPessRel.dataTableInstanceDadosPessoais = null;
         }
 
-        // Limpar tbody
+        // Limpar tbody anterior
         $('#table-lista-dados-pessoais tbody').empty();
 
-        // Gerar HTML das linhas
-        let html = '';
-        dados.forEach((item: any, index: number) => {
-            html += `<tr data-index="${index}" style="cursor: pointer;">
-                <td style="text-align:center;">${item.dpe_matricula || ''}</td>
-                <td>${item.dpe_nome_servidor || ''}</td>
-                <td style="text-align:center;">${mascararCpf(item.dpe_cpf_servidor) || ''}</td>
-                <td style="text-align:center;">${item.dpe_desc_cbo || ''}</td>
-                <td style="text-align:center;">${item.dpe_desc_situacao || ''}</td>
-                <td style="text-align: center;">
-                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-pessoa" data-index="${index}" title="Ver detalhes">
-                        <i class="fa-solid fa-eye text-info fa-lg"></i>
-                    </button>
-                </td>
-                <td style="text-align: center;">
-                    <button type="button" class="btn btn-sm btn-outline-light btn-gerar-pdf-pessoa" data-index="${index}" title="Gerar PDF">
-                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>
-                    </button>
-                </td>
-            </tr>`;
-        });
+        // Inserir HTML recebido do servidor
+        $('#table-lista-dados-pessoais tbody').html(htmlTbody);
 
-        $('#table-lista-dados-pessoais tbody').html(html);
+        // Rebuildar objeto listaDadosPessoais a partir dos data-attributes das linhas
+        DadPessRel.listaDadosPessoais = [];
+        $('#table-lista-dados-pessoais tbody tr').each((index: number, row: any) => {
+            const $row = $(row);
+            DadPessRel.listaDadosPessoais.push({
+                index: index,
+                dpe_numero: $row.data('dpe-numero'),
+                dpe_matricula: $row.data('matricula'),
+                dpe_cpf_servidor: $row.data('cpf'),
+                dpe_nome_servidor: $row.data('nome')
+            });
+        });
 
         // Inicializar DataTable
         DadPessRel.dataTableInstanceDadosPessoais = $('#table-lista-dados-pessoais').DataTable({
@@ -193,7 +312,8 @@ namespace DadPessRel {
             ordering: true,
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
-            }
+            },
+            order: [[1, 'asc']] // Ordenar por nome do servidor (segunda coluna)
         });
 
         // ====== EVENT HANDLERS ======
@@ -203,48 +323,30 @@ namespace DadPessRel {
             if ($(e.target).closest('button').length > 0) return; // Não fazer nada se clicou em botão
 
             const index = $(this).data('index');
-            preencherFormularioDadosPessoais(index);
-            $('#div-filtro').css('display', 'none');
-            $('#div-resultado-dados-pessoais').css('display', 'none');
-            $('#dados_pessoais').css('display', 'block');
+            carregarEDetalharPessoa(index);
         });
 
         // Botão Ver
         $('#table-lista-dados-pessoais tbody').on('click', 'button.btn-ver-pessoa', function (e) {
             e.stopPropagation();
             const index = $(this).data('index');
-            preencherFormularioDadosPessoais(index);
-            $('#div-filtro').css('display', 'none');
-            $('#div-resultado-dados-pessoais').css('display', 'none');
-            $('#dados_pessoais').css('display', 'block');
+            carregarEDetalharPessoa(index);
         });
 
         // Botão Gerar PDF
         $('#table-lista-dados-pessoais tbody').on('click', 'button.btn-gerar-pdf-pessoa', function (e) {
             e.stopPropagation();
             const index = $(this).data('index');
-            const pessoa = DadPessRel.listaDadosPessoais[index];
-            
-            // Preencher o formulário
-            preencherFormularioDadosPessoais(index);
-            $('#div-filtro').css('display', 'none');
-            $('#div-resultado-dados-pessoais').css('display', 'none');
-            $('#dados_pessoais').css('display', 'block');
-            // Simular o clique do botão PDF após um pequeno delay
-            setTimeout(function () {
-                // $('#btnGerarPDF').trigger('click');
-                DadPessRel.gerarPDFDoFormulario();
-            }, 100);
+            carregarEDetalharPessoa(index, function () {
+                setTimeout(function () {
+                    DadPessRel.gerarPDFDoFormulario();
+                }, 100);
+            });
         });
     }
 
-    /**
-     * Preenche o formulário com os dados da pessoa selecionada
-     */
-    export function preencherFormularioDadosPessoais(index: number) {
-        const pessoa = DadPessRel.listaDadosPessoais[index];
+    export function preencherFormularioDadosPessoaisObjeto(pessoa: any) {
         if (!pessoa) return;
-
         DadPessRel.selectedPessoa = pessoa;
 
         // Preencher Filtro para gerar dados
@@ -268,6 +370,14 @@ namespace DadPessRel {
         $('#dpe_complemento_logradouro').val(pessoa.dpe_complemento_logradouro || '');
         $('#dpe_nome_municipio_endereco').val(pessoa.dpe_nome_municipio_endereco || '');
         $('#dpe_desc_cbo').val(pessoa.dpe_desc_cbo || '');
+    }
+
+    /**
+     * Preenche o formulário com os dados da pessoa selecionada
+     */
+    export function preencherFormularioDadosPessoais(index: number) {
+        const pessoa = DadPessRel.listaDadosPessoais[index];
+        preencherFormularioDadosPessoaisObjeto(pessoa);
     }
 
     // Função auxiliar para formatar CPF
@@ -1052,7 +1162,7 @@ namespace DadPessRel {
             columnDefs: [
                 { targets: [0, 1, 2, 3, 4, 5, 6], visible: true }, { targets: [], visible: false }
             ],
-            order: [[0, 'asc']],
+            order: [[1, 'asc']],
             autoFill: true
         }).draw();
 

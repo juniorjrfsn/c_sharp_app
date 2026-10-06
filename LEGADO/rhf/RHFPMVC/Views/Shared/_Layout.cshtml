@@ -19,8 +19,9 @@
     <link href="/Content/css/style.min.css?v=0.000000000000000011" rel="stylesheet">
     <link href="/Content/css/css.css?v=0.0000000000000026" rel="stylesheet">
 
-    <!-- jquery -->
+    <!-- jquery (use v3.x for compatibility with existing plugins) -->
     <script src="/Content/assets/libs/jquery/dist/jquery.min.js"></script>
+    
     <!-- fontawesome -->
     <link href="/Content/lib/fontawesome-free-7.3.1-web/css/all.css" rel="stylesheet" />
     <script src="/Content/lib/fontawesome-free-7.3.1-web/js/all.js"></script>
@@ -52,11 +53,13 @@
     <!-- maskMoney -->
     <script src="/Content/lib/jquery-maskmoney-3.0.2/dist/jquery.maskMoney.min.js"></script>
     <!-- Inputmask -->
-    <link href="/Content/lib/Inputmask-5.0.9/dist/colormask.css" rel="stylesheet" />
-    <script src="/Content/lib/Inputmask-5.0.9/dist/colormask.min.js"></script>
-    <script src="/Content/lib/Inputmask-5.0.9/dist/inputmask.min.js"></script>
-    <script src="/Content/lib/Inputmask-5.0.9/dist/jquery.inputmask.min.js"></script>
-    <script src="/Content/lib/Inputmask-5.0.9/dist/bindings/inputmask.binding.js"></script>
+    
+    <link href="/Content/lib/Inputmask-5.1.0-beta.17/dist/colormask.css" rel="stylesheet" />
+    <script src="/Content/lib/Inputmask-5.1.0-beta.17/dist/colormask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.1.0-beta.17/dist/inputmask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.1.0-beta.17/dist/jquery.inputmask.min.js"></script>
+    <script src="/Content/lib/Inputmask-5.1.0-beta.17/dist/bindings/inputmask.binding.js"></script>
+
     <link href="/Content/jquery/jquery-ui.css" rel="stylesheet" />
     <script src="/Content/jquery/jquery-ui.min.js"></script>
 
@@ -66,8 +69,7 @@
     <script type="text/javascript" src="/Content/lib/jtable.2.3.1/localization/jquery.jtable.pt-BR.js"></script>
     <script type="text/javascript" src="/Content/lib/jtable.2.3.1/validationEngine/jquery.validationEngine.js"></script>
     <script type="text/javascript" src="/Content/lib/jtable.2.3.1/validationEngine/jquery.validationEngine-pt.js"></script>
-
-
+    
     <script type="text/javascript">
         function expandir() {
             if (!document.fullscreenElement) {
@@ -170,7 +172,7 @@
                         </a>
                     </li> -->
                         <li class="nav-item d-none d-md-block">
-                            @Html.ActionLink("RHFP Legado - Sistema Legado v. 0.0.01", "Index", "Home", new { area = "" }, new { @class = "sidebar-link waves-effect text-white" })
+                            @Html.ActionLink("RHFP Legado - Sistema Legado v. 1.0.01", "Index", "Home", new { area = "" }, new { @class = "sidebar-link waves-effect text-white" })
                         </li>
 
                         <!-- ============================================================== -->
@@ -293,12 +295,12 @@
                         </li>
                         <!--li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Precatório</span></li-->
                         <li class="sidebar-item" style="position: relative;">
-                            <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style="  display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false"><i class="mdi mdi-cash-multiple"></i><span class="hide-menu text-white"> Relatórios </span></a>
+                            <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style="  display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false"><i class="mdi mdi-cash-multiple"></i><span class="hide-menu text-white"> Consulta </span></a>
                             <ul class="collapse first-level" style="display: none; position: absolute; background: white; min-width: 250px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); top: calc(100% + 0px); left: 0; right: auto;">
-                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Relatórios de Atos e Eventos", "AtoEventos", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+                                @*<li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Relatórios de Atos e Eventos", "AtoEventos", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
                                 <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Relatórios de Financeiro", "Financeiro", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
                                 <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Dados Pessoais", "DadosPessoais", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
-                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Dados Funcionais", "DadosFuncionais", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>
+                                <li class="sidebar-item" style="background:#ffffff;">@Html.ActionLink("Dados Funcionais", "DadosFuncionais", "Relatorios", new { area = "" }, new { @class = "sidebar-link waves-effect waves-dark sidebar-link mdi mdi-receipt" })</li>*@
               
                                 @if (TempData["_SUBMENU_RELAT"] != null)
                                 {
@@ -324,13 +326,10 @@
                             </ul>
                         </li>-->
                         <!--li class="nav-small-cap"><i class="mdi mdi-dots-horizontal"></i> <span class="hide-menu">Tabelas de Outros Sistemas</span></li-->
-                        <li class="sidebar-item" style="position: relative;">
+                        <li class="sidebar-item" style="position: relative; display:none;" >
                             <a class="sidebar-link has-arrow waves-effect waves-dark" href="javascript:void(0)" style=" display: flex; align-items: center; white-space: nowrap; color: white; text-decoration: none; cursor: pointer;" aria-expanded="false"><i class="mdi mdi-widgets"></i><span class="hide-menu text-white">Tabelas de Gestão</span></a>
                             <ul class="collapse first-level" style="display: none; position: absolute; background: white; min-width: 250px; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); top: calc(100% + 0px); left: 0;">
-                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-border-style"></i><span class="hide-menu">situação</span></a></li>
-                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="#" aria-expanded="false"><i class="mdi mdi-tab-unselected"></i><span class="hide-menu">índices de correção monetária</span></a></li>
-                                <li class="sidebar-item" style="background:#ffffff;"> <a class="sidebar-link waves-effect waves-dark sidebar-link" href="/admin/historicoaliquotas" aria-expanded="false"><i class="mdi mdi-table-large"></i><span class="hide-menu">histórico de alíquotas</span></a></li>
-
+                          
                                 @if (TempData["_SUBMENU_TG"] != null)
                                 {
                                     @MvcHtmlString.Create(TempData["_SUBMENU_TG"].ToString())

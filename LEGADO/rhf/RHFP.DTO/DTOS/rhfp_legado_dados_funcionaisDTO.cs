@@ -32,5 +32,6 @@ namespace RHFP.DTO.DTOS
         public string fun_nome_reparticao { get; set; }
         public int fun_cod_municipio { get; set; }
         public string fun_nome_municipio { get; set; }
+        public string dpe_desc_situacao { get; set; }
     }
 }

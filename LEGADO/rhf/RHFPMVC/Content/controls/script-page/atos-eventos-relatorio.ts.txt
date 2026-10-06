@@ -51,11 +51,6 @@ namespace AtEvenRel {
         ate_comissao_simbolo?: string;
     }
 
-    export let ListaSegurados: Array<{
-        dep_matricula: number | 0;
-        ate_nome: string;
-        ate_cpf_servidor: string;
-    }> = [];
 
     export let listaAtosEventos: Array<{
         ate_numero: number;
@@ -97,7 +92,9 @@ namespace AtEvenRel {
     export let veioDeResultadoUnico: boolean = false;
 
     export function carregarIndices() { }
-    
+
+
+
     export function validarFiltroSegurado(): boolean {
         const matricula: string = (($('#matricula').val() as string) || '').trim();
         const nome: string = (($('#nome').val() as string) || '').trim();
@@ -140,17 +137,6 @@ namespace AtEvenRel {
         return AtEvenRel.validoFiltro; // mantive o retorno original: true = filtro inválido
     }
 
-    export function carreListaSegurados(list: any[]) {
-        AtEvenRel.ListaSegurados = [];
-        list.forEach(q => {
-            AtEvenRel.ListaSegurados.push({
-                dep_matricula: Number(q.dep_matricula) || 0,
-                ate_nome: q.ate_nome || '',
-                ate_cpf_servidor: q.ate_cpf_servidor || ''
-            });
-        });
-
-    }   
 
     // ============== SEGURADOS - Datatable Functions ==============
 
@@ -213,11 +199,8 @@ namespace AtEvenRel {
                 Swal.close();
                 if (response.sucesso && response.lista && response.lista.length > 0) {
                     console.log('Atos e Eventos do segurado carregado com sucesso:', response.lista);
-                    
-                    $.when(carreListaSegurados(response.lista)).then(function (data, textStatus, jqXHR) {
-                        AtEvenRel.inicializarDataTableSegurados();
-                    });
-                    
+                    AtEvenRel.inicializarDataTableSegurados(response.lista);
+
                     // Mostrar resultado e esconder filtro
                     $('#div-filtro').css('display', 'none');
                     $('#div-resultado-segurados').css('display', 'block');
@@ -248,49 +231,28 @@ namespace AtEvenRel {
     /**
      * Inicializa o DataTable com os dados de segurados
      */
-    export function inicializarDataTableSegurados() {
+    export function inicializarDataTableSegurados(dados: any[]) {
         if (AtEvenRel.dataTableInstance) {
             AtEvenRel.dataTableInstance.destroy();
             AtEvenRel.dataTableInstance = null;
         }
 
-
-        // Se já existe uma instância anterior, destruir de forma segura
-        try {
-            if ($.fn && $.fn.dataTable && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#table-lista-segurados')) {
-                try {
-                    const existing = $('#table-lista-segurados').DataTable();
-                    existing.clear && existing.clear();
-                    existing.destroy && existing.destroy();
-                } catch (err) {
-                    console.warn('Falha ao destruir DataTable via API:', err);
-                }
-                // Remover elementos remanescentes que o plugin pode ter criado
-                try { $('.dt-buttons').remove(); } catch (e) { }
-                try { $('.fixedHeader-floating').remove(); } catch (e) { }
-                try { $('#table-lista-segurados_wrapper').remove(); } catch (e) { }
-                AtEvenRel.dataTableInstance = null;
-            }
-        } catch (e) {
-            console.warn('Erro ao verificar/destruir DataTable anterior:', e);
-        }
-
         $('#table-lista-segurados tbody').empty();
 
         let html = '';
-        AtEvenRel.ListaSegurados.forEach((item: any, index: number) => {
+        dados.forEach((item: any, index: number) => {
             html += `<tr data-index="${index}">
                 <td style="text-align:center;">${item.dep_matricula || ''}</td>
                 <td>${item.ate_nome || ''}</td>
                 <td style="text-align:center;">${mascararCpf(item.ate_cpf_servidor) || ''}</td>
                 <td style="text-align: center;">
-                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-segurado-html mr-1" data-index="${index}" title="Visualizar HTML">
+                    <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-segurado-html mr-1" data-index="${index}" title="Visualizar HTML">
                         <i class="fa-solid fa-eye text-info fa-lg"></i>
                     </button> 
                 </td>
                 <td style="text-align: center;"> 
-                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-segurado-pdf" data-index="${index}" title="Gerar PDF">
-                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>
+                    <button type="button" class="btn btn-sm btn-outline-secondary btn-ver-segurado-pdf" data-index="${index}" title="Gerar PDF">
+                        <i class="fa-solid fa-file-pdf text-danger fa-lg"></i>
                     </button>
                 </td>
             </tr>`;
@@ -314,7 +276,6 @@ namespace AtEvenRel {
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
             }
-            , order: [[1, 'asc']] // Ordenar por nome do segurado (segunda coluna)
         });
 
         // ====== EVENT HANDLERS (aplicados DEPOIS do DataTable ser inicializado) ======
@@ -324,8 +285,8 @@ namespace AtEvenRel {
             e.stopPropagation();
             e.preventDefault();
             const index = parseInt($(this).data('index'), 10);
-            if (index >= 0 && index < AtEvenRel.ListaSegurados.length) {
-                carregarAtosDoSeguradoClicado(AtEvenRel.ListaSegurados[index]);
+            if (index >= 0 && index < dados.length) {
+                carregarAtosDoSeguradoClicado(dados[index]);
             }
         });
 
@@ -334,8 +295,8 @@ namespace AtEvenRel {
             e.stopPropagation();
             e.preventDefault();
             const index = parseInt($(this).data('index'), 10);
-            if (index >= 0 && index < AtEvenRel.ListaSegurados.length) {
-                gerarPdfDoSegurado(AtEvenRel.ListaSegurados[index]);
+            if (index >= 0 && index < dados.length) {
+                gerarPdfDoSegurado(dados[index]);
             }
         });
     }
@@ -344,15 +305,9 @@ namespace AtEvenRel {
      * Gera PDF diretamente para o segurado selecionado na tabela
      */
     export function gerarPdfDoSegurado(segurado: any) {
-        console.log('Gerar PDF do segurado:', segurado);
         const mat = segurado.dep_matricula || segurado.dpe_matricula || '';
-        const nm = segurado.ate_nome || segurado.nome || segurado.dpe_nome_servidor || '';
-        const cpf = segurado.ate_cpf_servidor || segurado.cpf_busca || segurado.dpe_cpf_servidor || '';
-
-        // Preencher os campos do formulário (matricula, nome, cpf_busca) com o segurado selecionado
-        $('#matricula').val(mat);
-        $('#nome').val(nm);
-        $('#cpf_busca').val(cpf);
+        const nm = segurado.nome || segurado.dpe_nome_servidor || '';
+        const cpf = segurado.cpf_busca || segurado.dpe_cpf_servidor || '';
 
         Swal.fire({
             title: 'Aguarde',
@@ -396,14 +351,15 @@ namespace AtEvenRel {
             }
         }); 
     } 
+    
 
     /**
      * Carrega todos os atos do segurado selecionado
      */
     export function carregarAtosDoSeguradoClicado(segurado: any) {
         const mat = segurado.dep_matricula || segurado.dpe_matricula || '';
-        const nm = segurado.ate_nome || segurado.nome || segurado.dpe_nome_servidor || '';
-        const cpf = segurado.ate_cpf_servidor || segurado.cpf_busca || segurado.dpe_cpf_servidor || '';
+        const nm = segurado.nome || segurado.dpe_nome_servidor || '';
+        const cpf = segurado.cpf_busca || segurado.dpe_cpf_servidor || '';
 
         // Atualizar inputs do formulário com o segurado selecionado
        $('#matricula').val(mat);
@@ -417,7 +373,6 @@ namespace AtEvenRel {
             cpf_busca: cpf
         };
 
-        console.log('Carregando atos do segurado:', { matricula: mat, nome: nm, cpf: cpf });
         $.ajax({
             url: url,
             type: 'POST',
@@ -886,9 +841,7 @@ namespace AtEvenRel {
         });
 
         $('button[name="btnGerarPDF2"]').on('click', function (e) {
-            let segurado = { dep_matricula: $('input[name="matricula"]').val(), ate_nome: $('input[name="nome"]').val(), ate_cpf_servidor: $('input[name="cpf_busca"]').val() };
-            console.log('Gerar PDF do segurado:', segurado);
-            AtEvenRel.gerarPdfDoSegurado(segurado);
+            AtEvenRel.gerarPDF();
         });
 
         $('button[name="btnVoltarFiltro"]').on('click', function (e) {

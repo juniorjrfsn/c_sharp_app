@@ -1,4 +1,4 @@
-﻿using Microsoft.Ajax.Utilities;
+using Microsoft.Ajax.Utilities;
 using NReco.PdfGenerator;
 using SGI.Framework.MVC.Architecture.Controller;
 
@@ -58,6 +58,19 @@ namespace RHFPMVC.Controllers
 
     public class FinanceiroController : GSIController
     {
+        /// <summary>
+        /// O JsonResult padrão limita a resposta a 2 MB (maxJsonLength) e devolve HTTP 500 quando
+        /// passa disso. O histórico financeiro completo de um segurado ultrapassa esse tamanho,
+        /// então todo Json(...) deste controller passa a usar o limite máximo.
+        /// </summary>
+        protected override JsonResult Json(object data, string contentType, System.Text.Encoding contentEncoding, JsonRequestBehavior behavior)
+        {
+            var resultado = base.Json(data, contentType, contentEncoding, behavior);
+            if (resultado != null)
+                resultado.MaxJsonLength = int.MaxValue;
+            return resultado;
+        }
+
         // GET: Relatorios
 
 
@@ -213,7 +226,7 @@ namespace RHFPMVC.Controllers
             // Remove any remaining file:///C:/... occurrences that might be rendered as text or links
             htmlContent = System.Text.RegularExpressions.Regex.Replace(htmlContent, "file:///[A-Za-z]:[^\"'<>\\s]*", string.Empty);
 
-            byte[] pdfBytes = converter.GeneratePdf(htmlContent, null);
+            byte[] pdfBytes = GerarPdfFinanceiroEmPartes(converter, htmlContent);
 
             // Clean up temporary header file
             try
@@ -238,6 +251,68 @@ namespace RHFPMVC.Controllers
                 memoryStream.CopyTo(Response.OutputStream);
             }
             return new EmptyResult();
+        }
+
+        private const string MarcadorQuebraPdf = "<!--PDF_SPLIT-->";
+        private const int CardsPorArquivoPdf = 20;
+
+        /// <summary>
+        /// Gera o PDF financeiro dividindo o HTML em vários arquivos (CardsPorArquivoPdf cards cada),
+        /// todos entregues ao wkhtmltopdf em UMA única chamada, para o cabeçalho/rodapé e a numeração
+        /// "Página X de Y" continuarem contínuos. Um único HTML gigante (milhares de linhas) derruba o
+        /// wkhtmltopdf com access violation (exit code -1073741819 = 0xC0000005).
+        /// </summary>
+        private static byte[] GerarPdfFinanceiroEmPartes(HtmlToPdfConverter converter, string html)
+        {
+            html = html ?? string.Empty;
+
+            // Sem marcadores (ou relatório pequeno): comportamento original, um único documento
+            var partes = html.Split(new[] { MarcadorQuebraPdf }, StringSplitOptions.None);
+            if (partes.Length <= CardsPorArquivoPdf + 1)
+                return converter.GeneratePdf(html.Replace(MarcadorQuebraPdf, string.Empty), null);
+
+            // partes[0] = <head>...<body> + 1º card | partes[1..n-2] = demais cards | partes[n-1] = fechamento
+            var corpoAbre = System.Text.RegularExpressions.Regex.Match(
+                partes[0], "<body[^>]*>", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (!corpoAbre.Success)
+                return converter.GeneratePdf(html.Replace(MarcadorQuebraPdf, string.Empty), null);
+
+            string prefixo = partes[0].Substring(0, corpoAbre.Index + corpoAbre.Length);
+            var cards = new List<string> { partes[0].Substring(prefixo.Length) };
+            for (int i = 1; i < partes.Length - 1; i++)
+                cards.Add(partes[i]);
+            string sufixo = partes[partes.Length - 1];
+            if (string.IsNullOrWhiteSpace(sufixo))
+                sufixo = "</body></html>";
+
+            var arquivos = new List<string>();
+            try
+            {
+                for (int i = 0; i < cards.Count; i += CardsPorArquivoPdf)
+                {
+                    bool ultimo = (i + CardsPorArquivoPdf) >= cards.Count;
+                    string documento = prefixo
+                        + string.Concat(cards.Skip(i).Take(CardsPorArquivoPdf))
+                        + (ultimo ? sufixo : "</body></html>");
+
+                    string caminho = Path.Combine(Path.GetTempPath(), "fin_pdf_" + Guid.NewGuid().ToString("N") + ".html");
+                    System.IO.File.WriteAllText(caminho, documento, System.Text.Encoding.UTF8);
+                    arquivos.Add(caminho);
+                }
+
+                using (var saida = new MemoryStream())
+                {
+                    converter.GeneratePdfFromFiles(arquivos.ToArray(), null, saida);
+                    return saida.ToArray();
+                }
+            }
+            finally
+            {
+                foreach (var arquivo in arquivos)
+                {
+                    try { if (System.IO.File.Exists(arquivo)) System.IO.File.Delete(arquivo); } catch { }
+                }
+            }
         }
 
         /// <summary>
@@ -314,9 +389,9 @@ namespace RHFPMVC.Controllers
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
                     #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
-
-                    #header td:nth-child(1) { width: 280px !important; text-align: right !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { width: 440px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
+                    
+                    #header td:nth-child(1) { width: 360px !important; text-align: right !important; vertical-align: middle !important; }
+                    #header td:nth-child(2) { width: 200px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
                     #header td:nth-child(3) { text-align: left !important; vertical-align: middle !important; }
                     
                     .header-bottom-bar { background-color: #004F9F; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
@@ -393,15 +468,25 @@ namespace RHFPMVC.Controllers
                 Dictionary<string, string> parametros = new Dictionary<string, string>();
                 foreach (var texto in Request.Params.AllKeys)
                 {
-                    parametros.Add(texto, Request[texto]);
+                    if (texto != null && Request[texto] != null){
+                        parametros[texto] = Request[texto];
+                    }   
                 }
 
-                string cpf = (parametros.ContainsKey("cpf") && parametros["cpf"] != null) ? parametros["cpf"].ToString() : string.Empty;
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : ((parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("dpe_cpf_servidor") && !string.IsNullOrEmpty(parametros["dpe_cpf_servidor"])) ? parametros["dpe_cpf_servidor"] : string.Empty));
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
-                int matricula = (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])) ? int.Parse(parametros["matricula"]) : 0;
-                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : string.Empty;
-                string dtIni = (parametros.ContainsKey("dt_ini") && parametros["dt_ini"] != null) ? parametros["dt_ini"].ToString() : string.Empty;
-                string dtFim = (parametros.ContainsKey("dt_fim") && parametros["dt_fim"] != null) ? parametros["dt_fim"].ToString() : string.Empty;
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])){
+                    int.TryParse(parametros["matricula"], out matricula);
+                } else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"])){
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+                }
+                
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : ((parametros.ContainsKey("dpe_nome_servidor") && !string.IsNullOrEmpty(parametros["dpe_nome_servidor"])) ? parametros["dpe_nome_servidor"] : string.Empty));
+
+                string dtIni = (parametros.ContainsKey("dt_ini") && parametros["dt_ini"] != null) ? parametros["dt_ini"].ToString() : ((parametros.ContainsKey("per_dt_ini") && parametros["per_dt_ini"] != null) ? parametros["per_dt_ini"].ToString() : string.Empty);
+                string dtFim = (parametros.ContainsKey("dt_fim") && parametros["dt_fim"] != null) ? parametros["dt_fim"].ToString() : ((parametros.ContainsKey("per_dt_fim") && parametros["per_dt_fim"] != null) ? parametros["per_dt_fim"].ToString() : string.Empty);
 
                 RelHtmlPDF_Financeiro relPDF = new RelHtmlPDF_Financeiro();
 
@@ -421,7 +506,7 @@ namespace RHFPMVC.Controllers
                 else
                 {
                     sucesso = false;
-                    msg = "Dados insuficientes para gerar o relatório financeiro.";
+                    msg = "Não foi possível gerar o relatório financeiro.";
                 }
                 return Json(new
                 {
@@ -455,27 +540,192 @@ namespace RHFPMVC.Controllers
                 Dictionary<string, string> parametros = new Dictionary<string, string>();
                 foreach (var texto in Request.Params.AllKeys)
                 {
-                    parametros.Add(texto, Request[texto]);
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }
                 }
 
-                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : string.Empty;
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : ((parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("dpe_cpf_servidor") && !string.IsNullOrEmpty(parametros["dpe_cpf_servidor"])) ? parametros["dpe_cpf_servidor"] : string.Empty));
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
-                int matricula = (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])) ? int.Parse(parametros["matricula"]) : 0;
-                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : string.Empty;
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"]))
+                    int.TryParse(parametros["matricula"], out matricula);
+                else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"]))
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : ((parametros.ContainsKey("dpe_nome_servidor") && !string.IsNullOrEmpty(parametros["dpe_nome_servidor"])) ? parametros["dpe_nome_servidor"] : string.Empty));
+
                 string competencia = (parametros.ContainsKey("competencia") && !string.IsNullOrEmpty(parametros["competencia"])) ? parametros["competencia"] : string.Empty;
                 int cod_rubrica = (parametros.ContainsKey("cod_rubrica") && !string.IsNullOrEmpty(parametros["cod_rubrica"])) ? int.Parse(parametros["cod_rubrica"]) : 0;
-                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : ((parametros.ContainsKey("dtIni") && !string.IsNullOrEmpty(parametros["dtIni"])) ? parametros["dtIni"] : string.Empty);
-                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : ((parametros.ContainsKey("dtFim") && !string.IsNullOrEmpty(parametros["dtFim"])) ? parametros["dtFim"] : string.Empty);
+                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : ((parametros.ContainsKey("per_dt_ini") && !string.IsNullOrEmpty(parametros["per_dt_ini"])) ? parametros["per_dt_ini"] : string.Empty);
+                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : ((parametros.ContainsKey("per_dt_fim") && !string.IsNullOrEmpty(parametros["per_dt_fim"])) ? parametros["per_dt_fim"] : string.Empty);
 
-                financeiroDTOs = _legadoFinanceiroBusiness.GetFinanceiro(
-                    matricula: matricula,
-                    nome: nome,
-                    cpf: cpf,
-                    competencia: competencia,
-                    cod_rubrica: cod_rubrica,
-                    dtIni: dtIni,
-                    dtFim: dtFim
-                );
+ 
+
+                RelHtmlPDF_Financeiro relPDF = new RelHtmlPDF_Financeiro();
+
+                object relatorioGerado = relPDF.geraHtmlPdfFinanceiro(cpf, matricula, nome, dtIni, dtFim, dataGeracao: new DateTime().ToString("yyyy-MM-dd"));
+
+                bool sucessoRel = false;
+                if (relatorioGerado != null)
+                {
+                    sucessoRel = bool.Parse(relatorioGerado.GetType().GetProperty("sucesso").GetValue(relatorioGerado, null).ToString());
+                }
+
+                if (relatorioGerado != null && sucessoRel)
+                {
+                    sucesso = true;
+                    FinanceiroViewModel.RelatorioFinanceiro = relatorioGerado.GetType().GetProperty("htmlFinal").GetValue(relatorioGerado, null).ToString();
+                }
+                else
+                {
+                    sucesso = false;
+                    msg = "Não foi possível gerar o relatório financeiro.";
+                }
+                return Json(new
+                {
+                    sucesso = sucesso,
+                    msg = msg,
+                    caminhoPDF = ""
+                });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return Json(new
+                {
+                    sucesso = false,
+                    msg = "ERRO:" + ex.Message,
+                    caminhoPDF = ""
+                });
+            }
+        }
+
+
+        [HttpPost]
+        public JsonResult GetDadosFinanceiro()
+        {
+            bool sucesso = false;
+            string msg = string.Empty;
+            List<rhfp_legado_dados_financeirosDTO> financeiroDTOs = new List<rhfp_legado_dados_financeirosDTO>();
+            List<object> lista = new List<object>();
+            try
+            {
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }
+                }
+
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : ((parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("dpe_cpf_servidor") && !string.IsNullOrEmpty(parametros["dpe_cpf_servidor"])) ? parametros["dpe_cpf_servidor"] : string.Empty));
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"]))
+                    int.TryParse(parametros["matricula"], out matricula);
+                else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"]))
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : ((parametros.ContainsKey("dpe_nome_servidor") && !string.IsNullOrEmpty(parametros["dpe_nome_servidor"])) ? parametros["dpe_nome_servidor"] : string.Empty));
+
+                string competencia = (parametros.ContainsKey("competencia") && !string.IsNullOrEmpty(parametros["competencia"])) ? parametros["competencia"] : string.Empty;
+                int cod_rubrica = (parametros.ContainsKey("cod_rubrica") && !string.IsNullOrEmpty(parametros["cod_rubrica"])) ? int.Parse(parametros["cod_rubrica"]) : 0;
+                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : ((parametros.ContainsKey("per_dt_ini") && !string.IsNullOrEmpty(parametros["per_dt_ini"])) ? parametros["per_dt_ini"] : string.Empty);
+                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : ((parametros.ContainsKey("per_dt_fim") && !string.IsNullOrEmpty(parametros["per_dt_fim"])) ? parametros["per_dt_fim"] : string.Empty);
+
+
+                List<rhfp_legado_dados_financeirosDTO> rhfp_Legado_Dados = _legadoFinanceiroBusiness.GetFinanceiro(matricula: matricula, cpf: cpf, nome: nome.Trim(), competencia: competencia, cod_rubrica: cod_rubrica, dtIni: dtIni, dtFim: dtFim);
+                
+                if (rhfp_Legado_Dados != null && rhfp_Legado_Dados.Count > 0)
+                {
+                    sucesso = true;
+                    foreach (var financ in rhfp_Legado_Dados)
+                    {
+                        lista.Add(new
+                        {
+                            fin_numero = financ.fin_numero,
+                            dpe_matricula = financ.dpe_matricula,
+                            dpe_nome_servidor = financ.dpe_nome_servidor,
+                            dpe_cpf_servidor = financ.dpe_cpf_servidor,
+                            dfu_tp_cargo = financ.dfu_tp_cargo,
+                            dfu_desc_tp_cargo = financ.dfu_desc_tp_cargo,
+                            fin_competencia_ano_mes = financ.fin_competencia_ano_mes,
+                            rub_codigo = financ.rub_codigo,
+                            rub_descricao = financ.rub_descricao,
+                            fin_dt_inicio = financ.fin_dt_inicio,
+                            fin_valor = financ.fin_valor,
+                            fin_perc_pontos_dia_hora = financ.fin_perc_pontos_dia_hora,
+                            fin_qtd_urv = financ.fin_qtd_urv,
+                            PROVENTO = financ.PROVENTO,
+                            DESCONTO = financ.DESCONTO,
+                            TOTAL_PROVENTO = financ.TOTAL_PROVENTO,
+                            TOTAL_DESCONTO = financ.TOTAL_DESCONTO,
+                            LIQUIDO = financ.LIQUIDO
+                        });
+                    }
+                }
+                else
+                {
+                    msg = "Nenhum registro encontrado para os parâmetros informados.";
+                }
+
+                return Json(new { sucesso = sucesso, msg = msg, lista = lista, qtd = lista.Count });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return Json(new { sucesso = false, msg = "ERRO: " + ex.Message, lista = lista, qtd = 0 });
+            }
+        }
+
+
+        [HttpPost]
+        public JsonResult GetListaSegurados()
+        {
+            bool sucesso = false;
+            string msg = string.Empty;
+            List<rhfp_legado_dados_financeirosDTO> financeiroDTOs = new List<rhfp_legado_dados_financeirosDTO>();
+            List<object> lista = new List<object>();
+            try
+            {
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }     
+                }
+
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : ((parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("dpe_cpf_servidor") && !string.IsNullOrEmpty(parametros["dpe_cpf_servidor"])) ? parametros["dpe_cpf_servidor"] : string.Empty));
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])){
+                    int.TryParse(parametros["matricula"], out matricula);
+                } else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"])){
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+                }
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : ((parametros.ContainsKey("dpe_nome_servidor") && !string.IsNullOrEmpty(parametros["dpe_nome_servidor"])) ? parametros["dpe_nome_servidor"] : string.Empty));
+
+                string competencia  = (parametros.ContainsKey("competencia") && !string.IsNullOrEmpty(parametros["competencia"])) ? parametros["competencia"] : string.Empty;
+                int cod_rubrica = 0;
+                if (parametros.ContainsKey("cod_rubrica") && !string.IsNullOrEmpty(parametros["cod_rubrica"]))
+                {
+                    int.TryParse(parametros["cod_rubrica"], out cod_rubrica);
+                }
+                string dtIni        = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : ((parametros.ContainsKey("per_dt_ini") && !string.IsNullOrEmpty(parametros["per_dt_ini"])) ? parametros["per_dt_ini"] : string.Empty);
+                string dtFim        = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : ((parametros.ContainsKey("per_dt_fim") && !string.IsNullOrEmpty(parametros["per_dt_fim"])) ? parametros["per_dt_fim"] : string.Empty);
+                
+
+
+                financeiroDTOs = _legadoFinanceiroBusiness.GetListaSegurados(matricula: matricula, cpf: cpf, nome: nome, competencia: competencia, cod_rubrica: cod_rubrica, dtIni: dtIni, dtFim: dtFim);
 
                 if (financeiroDTOs != null && financeiroDTOs.Count > 0)
                 {
@@ -484,38 +734,15 @@ namespace RHFPMVC.Controllers
                     {
                         lista.Add(new
                         {
-                            dpe_cpf_servidor = fin.dpe_cpf_servidor,
-                            dpe_nome_servidor = fin.dpe_nome_servidor,
-                            dpe_matricula = fin.dpe_matricula,
-                            ala_fi_MATRICULA = fin.dpe_matricula,
-                            dfu_tp_cargo = fin.dfu_tp_cargo,
-                            dfu_desc_tp_cargo = fin.dfu_desc_tp_cargo,
-                            tipo_cargo_fi = fin.dfu_tp_cargo,
-                            fin_competencia_ano_mes = fin.fin_competencia_ano_mes,
-                            COMPETENCIA_FI = fin.fin_competencia_ano_mes,
-                            rub_codigo = fin.rub_codigo,
-                            cod_rubrica_fi = fin.rub_codigo,
-                            rub_descricao = fin.rub_descricao,
-                            pr_Rubrica = fin.rub_descricao,
-                            fin_dt_inicio = fin.fin_dt_inicio,
-                            data_inicio_fi = fin.fin_dt_inicio,
-                            fin_valor = fin.fin_valor,
-                            ala_fi_valor = fin.fin_valor,
-                            fin_perc_pontos_dia_hora = fin.fin_perc_pontos_dia_hora,
-                            ala_fi_perc_pont_dia_hora = fin.fin_perc_pontos_dia_hora,
-                            fin_qtd_urv = fin.fin_qtd_urv,
-                            ala_fi_QTDE_URV = fin.fin_qtd_urv,
-                            PROVENTO = fin.PROVENTO,
-                            DESCONTO = fin.DESCONTO,
-                            TOTAL_PROVENTO = fin.TOTAL_PROVENTO,
-                            TOTAL_DESCONTO = fin.TOTAL_DESCONTO,
-                            LIQUIDO = fin.LIQUIDO
+                            dpe_matricula       = fin.dpe_matricula,
+                            dpe_nome_servidor   = fin.dpe_nome_servidor,
+                            dpe_cpf_servidor    = fin.dpe_cpf_servidor
                         });
                     }
                 }
                 else
                 {
-                    msg = "Nenhum registro encontrado para os parâmetros informados.";
+                    msg = "Nenhum segurado encontrado para os parâmetros informados.";
                 }
 
                 return Json(new
@@ -533,8 +760,7 @@ namespace RHFPMVC.Controllers
                 {
                     sucesso = false,
                     msg = "ERRO:" + ex.Message,
-                    lista = lista,
-                    qtd = 0
+                    caminhoPDF = ""
                 });
             }
 
@@ -819,12 +1045,16 @@ namespace RHFPMVC.Controllers
                 <style>
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
+                    
                     #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
+                    
                     #header td:nth-child(1) { width: 280px !important; text-align: left !important; vertical-align: middle !important; }
                     #header td:nth-child(2) { width: 440px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
                     #header td:nth-child(3) { text-align: right !important; vertical-align: middle !important; }
+                    
                     .header-bottom-bar { background-color: #004085; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
                     .header-bottom-bar strong { margin-right: 5px; }
+
                 </style>
             </head>
             <body>

@@ -1,0 +1,254 @@
+﻿@{
+ 
+}
+<script src="/Content/controls/js/config-scripts/config.js"></script>
+<script src="/Content/controls/js/config-scripts/ScriptsConfig.js"></script>
+
+<!-- ============================================================== -->
+<!-- Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<div class="page-breadcrumb">
+    <div class="row">
+        <div class="col-5 align-self-center">
+            <h4 class="page-title">Financeiro</h4>
+        </div>
+        <div class="col-7 align-self-center">
+            <div class="d-flex align-items-center justify-content-end">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item active" aria-current="page">Financeiro</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- End Bread crumb and right sidebar toggle -->
+<!-- ============================================================== -->
+<!-- ============================================================== -->
+<!-- Container fluid  -->
+<!-- ============================================================== -->
+
+<div class="container-fluid" style="padding-top:2px;">
+    <div class="row">
+        <!-- column -->
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="body-content">
+                        
+                        <div class="process-info">
+                            <div class="form-group" style="display:none;">
+                                <h1>Detalhes do Movimento</h1>
+
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+
+                                <div id="div-filtro" >
+                                    <form name="formRelFinanceiro" id="formRelFinanceiro" action="/Relatorios/Financeiro" method="post" style="width:100%;">
+
+                                        
+                                        <div class="form-group">
+                                            <div class="form-row">
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
+                                                    <div class="input-group">
+                                                        <input type="hidden" name="cpf" id="cpf" value="" />
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">CPF</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonCPF" 
+                                                        name="cpf_busca" id="cpf_busca" >
+                                                    </div>
+                                                </div> 
+                                                <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">Matrícula</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonMatricula" 
+                                                        name="matricula" id="matricula" >
+                                                    </div> 
+                                                </div>
+                                                <div class="col-md-6 col-xs-6 col-lg-6 col-sm-6 mb-3"> 
+                                                    <div class="input-group">
+                                                        <div class="input-group-prepend">
+                                                            <span class="input-group-text" id="basic-addon1">Nome</span>
+                                                        </div>
+                                                        <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonNome" 
+                                                        name="per_nome" id="per_nome" style="width: 400px; max-width: 400px;">
+                                                    </div> 
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-3">
+                                                    <h6>Período</h6>
+                                                </div>
+                                            </div>
+                                            <div class="form-row">
+                                                <div class="col-md-12 col-xs-12 col-lg-12 col-sm-12 mb-3">
+
+                                                    <table>
+                                                        <tr>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text" id="basic-addon1">Início</span>
+                                                                    </div>
+                                                                    <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonDtIni"
+                                                                           name="per_dt_ini" id="per_dt_ini" style="width: 150px; max-width: 150px;">
+                                                                </div>
+                                                            </td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-prepend">
+                                                                        <span class="input-group-text" id="basic-addon1">Fim</span>
+                                                                    </div>
+                                                                    <input type="text" class="form-control" placeholder="" aria-label="buscar" aria-describedby="basic-addonDtFim"
+                                                                           name="per_dt_fim" id="per_dt_fim" style="width: 150px; max-width: 150px;">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+
+                                                </div>
+                                            </div>
+
+                                            <div class="form-row">
+                                    
+
+                                                <table style="width: 100%;">
+                                                    <tr>
+                                                        <td style="width: 200px;">
+                                                            <div class="form-group">
+                                                                <div class="input-group">
+                                                                    <button type="button" class="btn btn-light" name="btnBuscar" id="btnBuscar">
+                                                                        <h5>  <i class="fa-solid fa-magnifying-glass fa-lg"></i>  <span class="text-dark">  Consultar </span> </h5>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <div class="form-group" style="display:none;">
+                                                                <div class="input-group">
+                                                                    <button type="button" class="btn btn-light" name="btnGerarPDF" id="btnGerarPDF" >
+                                                                        <h5>  <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>  <span class="text-dark">  Gerar PDF</span> </h5>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+
+                                            </div>
+                                        </div>
+                                    </form>    
+                                </div>
+
+                                <div id="div-resultado-segurados" style="display: none;">
+                                    <div class="form-row" style="margin: 5px 5px 5px 5px;">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:left;">
+                                            <button class="btn btn-light" name="btnVoltarFiltro" id="btnVoltarFiltro" type="button">
+                                                <i class="fa-solid fa-arrow-left fa-lg"></i> Voltar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <table id="table-lista-segurados" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center;">Matrícula</th>
+                                                <th style="text-align:center;">Nome</th>
+                                                <th style="text-align:center;">CPF</th>
+                                                <th style="text-align:center;">Ver</th>
+                                                <th style="text-align:center;">Pdf</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="div-resultado-financeiro" style="display: none;">
+
+                                    <div class="form-row" style="margin: 5px 5px 5px 5px;">
+                                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                            <button class="btn btn-light" name="btnGerarPDF2" id="btnGerarPDF2" type="button">
+                                                <h5>  <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>  <span class="text-dark"><b> Gerar PDF</b></span> </h5>
+                                            </button>
+                                        </div>
+                                        <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                                            <button class="btn btn-light" name="btn-fechar-lista" id="btn-fechar-lista" type="button">
+                                                <h5> <i class="fa-solid fa-left-long text-info fa-lg"></i>  <span class="text-dark"> <b>Voltar</b></span>  </h5>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="lista-financeiro"></div>
+
+
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:left;">
+                                <div class="buttons">
+                                    <!--<button type="submit" name="btnReload" id="btnReload" style="display:none;"></button>
+                                    <button type="submit" class="btn btn-primary" name="btnAvancar" style="display:none;">Avançar</button>
+                                    <button type="button" class="btn btn-primary" name="btnVoltarItemMovimento" id="btnVoltarItemMovimento">Voltar</button>
+                                    <button type="button" class="btn btn-primary" name="btnSalvarItemMovimento" id="btnSalvarItemMovimento">Salvar</button>-->
+                                    <!--button type="button" class="btn btn-primary" name="btnAtualizarResumo" id="btnAtualizarResumo">Atualizar Resumo</button-->
+                                    <!--<button type="button" class="btn btn-primary" name="btnGerarPlanilha" id="btnGerarPlanilha">Gerar Planilha</button>
+                                    <button type="button" class="btn btn-primary" name="btnSairItemMovimento" id="btnSairItemMovimento">Sair</button>-->
+                                </div>
+                            </div>
+                                @*<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6" style="text-align:right;">
+                                <button type="button" name="gerar-novo-item" id="gerar-novo-item" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Novo Item</button>
+                                </div>*@
+                        </div>
+                            
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<script src="/Content/controls/js/script-page/financeiro-relatorio.js?v=0.00000000000000000192"></script>
+<style type="text/css">
+    .footer {
+        position: page;
+        bottom: 0;
+    }
+
+    /* Garante que o modal do SweetAlert2 (janela de "carregando") sempre
+       apareça por cima de qualquer elemento da página (sidebar, navbar,
+       preloader, etc.), independente de z-index/transform herdados do
+       template. Definir isso via CSS, e não via JS após o Swal.fire(),
+       evita qualquer atraso/"flash" em que o modal fica escondido. */
+    .swal2-container {
+        z-index: 2147483647 !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(function () {
+        // Use Inputmask 5.x API
+        try {
+            if (typeof Inputmask !== 'undefined') {
+                Inputmask("999.999.999-99").mask(document.querySelector('input[name="cpf_busca"]'));
+                Inputmask("99/9999").mask(document.querySelector('input[name="per_dt_ini"]'));
+                Inputmask("99/9999").mask(document.querySelector('input[name="per_dt_fim"]'));
+            }
+        } catch (e) {
+            console.error('Inputmask initialization error:', e);
+        }
+    });
+</script>

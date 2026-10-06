@@ -69,20 +69,6 @@ namespace RHFPMVC.Controllers
                 var cpfFiltro = string.IsNullOrWhiteSpace(cpf) ? string.Empty : cpf.Trim();
                 var nomeFiltro = string.IsNullOrWhiteSpace(nome) ? string.Empty : nome.Trim();
                 var matriculaFiltro = matricula ?? 0;
-
-                // GetFinanceiro combina matrícula, CPF e nome com OR. Enviar os três traria também
-                // homônimos e outras matrículas do mesmo CPF, deixando o PDF muito maior que a tela.
-                // Usa somente a identificação mais específica (matrícula > CPF > nome).
-                if (matriculaFiltro > 0)
-                {
-                    cpfFiltro = string.Empty;
-                    nomeFiltro = string.Empty;
-                }
-                else if (!string.IsNullOrWhiteSpace(cpfFiltro))
-                {
-                    nomeFiltro = string.Empty;
-                }
-
                 var lista = financeiroBusiness.GetFinanceiro(
                     matricula: matriculaFiltro,
                     nome: nomeFiltro,
@@ -184,9 +170,6 @@ namespace RHFPMVC.Controllers
                             sb.Append("</tbody></table></div>");
                             sb.Append("</div>");
                             sb.Append("</div>");
-
-                            // Ponto seguro de quebra: o controller usa este marcador para gerar o PDF em partes
-                            sb.Append("<!--PDF_SPLIT-->");
                         }
                         
                         // Não adiciona quebra de página no fim para evitar página em branco

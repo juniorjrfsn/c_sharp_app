@@ -1,4 +1,4 @@
-﻿ 
+ 
  
  
     using Microsoft.Ajax.Utilities;
@@ -258,6 +258,146 @@ namespace RHFPMVC.Controllers
         }
 
         [HttpPost]
+        public JsonResult GetListaSegurados()
+        {
+            bool sucesso = false;
+            string msg = string.Empty;
+            List<rhfp_legado_dados_pessoaisDTO> pessoasDTOs = new List<rhfp_legado_dados_pessoaisDTO>();
+            List<object> lista = new List<object>();
+            try
+            {
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }
+                }
+
+                string cpf = (parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : string.Empty);
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"]))
+                    int.TryParse(parametros["matricula"], out matricula);
+                else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"]))
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : string.Empty);
+
+                pessoasDTOs = _dadosPessoaisBusiness.GetListaSegurados(matricula: matricula, cpf: cpf, nome: nome);
+
+                if (pessoasDTOs != null && pessoasDTOs.Count > 0)
+                {
+                    sucesso = true;
+                    foreach (var pessoa in pessoasDTOs)
+                    {
+                        lista.Add(new
+                        {
+                            dpe_numero = pessoa.dpe_numero,
+                            dpe_matricula = pessoa.dpe_matricula,
+                            dpe_nome_servidor = pessoa.dpe_nome_servidor,
+                            dpe_cpf_servidor = pessoa.dpe_cpf_servidor,
+                            dpe_desc_cbo = pessoa.dpe_desc_cbo,
+                            dpe_desc_situacao = pessoa.dpe_desc_situacao
+                        });
+                    }
+                }
+                else
+                {
+                    msg = "Nenhum segurado encontrado para os parâmetros informados.";
+                }
+
+                return Json(new { sucesso = sucesso, msg = msg, lista = lista, qtd = lista.Count });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return Json(new { sucesso = false, msg = "ERRO: " + ex.Message, lista = lista, qtd = 0 });
+            }
+        }
+
+
+        /// <summary>
+        /// Retorna somente as linhas (&lt;tr&gt;) da tabela de segurados em HTML,
+        /// evitando o limite de maxJsonLength do JavaScriptSerializer.
+        /// </summary>
+        [HttpPost]
+        public ActionResult GetListaSeguradosTbody()
+        {
+            try
+            {
+                string cpf = PrimeiroParametro("cpf_busca", "cpf", "dpe_cpf_servidor")
+                    .Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int matricula;
+                int.TryParse(PrimeiroParametro("matricula", "dpe_matricula"), out matricula);
+
+                string nome = PrimeiroParametro("nome", "per_nome", "dpe_nome_servidor");
+
+                List<rhfp_legado_dados_pessoaisDTO> segurados =
+                    _dadosPessoaisBusiness.GetListaSegurados(matricula: matricula, cpf: cpf, nome: nome);
+
+                var html = new System.Text.StringBuilder();
+
+                if (segurados != null)
+                {
+                    int index = 0;
+                    foreach (var s in segurados)
+                    {
+                        string matriculaTxt = (s.dpe_matricula > 0)
+                            ? s.dpe_matricula.ToString()
+                            : string.Empty;
+
+                        string situacao = !string.IsNullOrWhiteSpace(s.dpe_desc_situacao)
+                            ? s.dpe_desc_situacao
+                            : "";
+
+                        // Atributos data-* guardam o que o front precisa para abrir o detalhe (etapa 2)
+                        html.Append("<tr data-index=\"").Append(index).Append("\"")
+                            .Append(" data-dpe-numero=\"").Append(s.dpe_numero).Append("\"")
+                            .Append(" data-matricula=\"").Append(HtmlEnc(matriculaTxt)).Append("\"")
+                            .Append(" data-cpf=\"").Append(HtmlEnc(s.dpe_cpf_servidor)).Append("\"")
+                            .Append(" data-nome=\"").Append(HtmlEnc(s.dpe_nome_servidor)).Append("\"")
+                            .Append(" style=\"cursor: pointer;\">");
+
+                        html.Append("<td style=\"text-align:center;\">").Append(HtmlEnc(matriculaTxt)).Append("</td>");
+                        html.Append("<td>").Append(HtmlEnc(s.dpe_nome_servidor)).Append("</td>");
+                        html.Append("<td style=\"text-align:center;\">").Append(HtmlEnc(MascararCpfExibicao(s.dpe_cpf_servidor))).Append("</td>");
+                        html.Append("<td style=\"text-align:center;\">").Append(HtmlEnc(s.dpe_desc_cbo)).Append("</td>");
+                        html.Append("<td style=\"text-align:center;\">").Append(HtmlEnc(situacao)).Append("</td>");
+
+                        html.Append("<td style=\"text-align: center;\">");
+                        html.Append("<button type=\"button\" class=\"btn btn-sm btn-outline-light btn-ver-pessoa\" data-index=\"").Append(index).Append("\" title=\"Ver detalhes\">");
+                        html.Append("<i class=\"fa-solid fa-eye text-info fa-lg\"></i></button></td>");
+
+                        html.Append("<td style=\"text-align: center;\">");
+                        html.Append("<button type=\"button\" class=\"btn btn-sm btn-outline-light btn-gerar-pdf-pessoa\" data-index=\"").Append(index).Append("\" title=\"Gerar PDF\">");
+                        html.Append("<i class=\"fa-regular fa-file-pdf text-danger fa-lg\"></i></button></td>");
+
+                        html.Append("</tr>");
+                        index++;
+                    }
+                }
+
+                // Vazio = nenhum segurado encontrado (o front trata como "sem resultados")
+                return Content(html.ToString(), "text/html", System.Text.Encoding.UTF8);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                Response.StatusCode = 500;
+                Response.TrySkipIisCustomErrors = true;
+                return Content("ERRO: " + ex.Message, "text/plain", System.Text.Encoding.UTF8);
+            }
+        }
+
+
+
+
+
+        [HttpPost]
         public JsonResult ListaDadosPessoais()
         {
             return GetDadosPessoais();
@@ -281,15 +421,20 @@ namespace RHFPMVC.Controllers
                     }
                 }
 
-                string cpf = (parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : string.Empty;
+                string cpf = (parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : string.Empty);
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
-                int matricula = (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"])) ? int.Parse(parametros["matricula"]) : 0;
-                string nome = (parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : string.Empty;
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"]))
+                    int.TryParse(parametros["matricula"], out matricula);
+                else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"]))
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : string.Empty);
                 int dpeNumero = (parametros.ContainsKey("dpe_numero") && !string.IsNullOrEmpty(parametros["dpe_numero"])) ? int.Parse(parametros["dpe_numero"]) : 0;
 
-                var pessoas = _dadosPessoaisBusiness.GetDadosPessoais(matricula: matricula, cpf: cpf, nome: nome);
+                var pessoas = _dadosPessoaisBusiness.GetDadosPessoais(matricula: matricula, cpf: cpf, nome: nome, dpe_numero: dpeNumero);
 
-                if (dpeNumero > 0)
+                if (dpeNumero > 0 && pessoas != null && pessoas.Count > 0)
                 {
                     pessoas = pessoas.Where(x => x.dpe_numero == dpeNumero).ToList();
                 }
@@ -383,7 +528,34 @@ namespace RHFPMVC.Controllers
         }
 
         #endregion
- 
+
+        #region Métodos Helper
+
+        private string PrimeiroParametro(params string[] chaves)
+        {
+            foreach (var chave in chaves)
+            {
+                var valor = Request[chave];
+                if (!string.IsNullOrEmpty(valor))
+                    return valor;
+            }
+            return string.Empty;
+        }
+
+        private static string HtmlEnc(string valor)
+        {
+            return System.Web.HttpUtility.HtmlEncode(valor ?? string.Empty);
+        }
+
+        private static string MascararCpfExibicao(string cpf)
+        {
+            var digitos = new string((cpf ?? string.Empty).Where(char.IsDigit).ToArray());
+            if (digitos.Length != 11) return digitos;
+            return "***." + digitos.Substring(3, 3) + "." + digitos.Substring(6, 3) + "-**";
+        }
+
+        #endregion
+    
     
     }
 }

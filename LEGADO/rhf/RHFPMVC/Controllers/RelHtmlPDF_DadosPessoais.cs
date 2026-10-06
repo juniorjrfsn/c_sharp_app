@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 using RHFP.Business;
 using RHFP.DTO.DTOS;
 
@@ -93,8 +94,6 @@ namespace RHFPMVC.Controllers
             sb.Append("<input class='form-control' type='text' style='width: 100%; padding: 8px 10px; border: 1px solid #ddd; font-size: 13px; box-sizing: border-box; font-weight: 500; background-color: #f8f9fa; border-radius: 3px; transition: border-color 0.3s;' value='").Append(WebUtility.HtmlEncode(pessoa.dpe_desc_estado_civil ?? "")).Append("' readonly />");
             sb.Append("</td>");
 
-
-
             sb.Append("</tr>\n");
             sb.Append("</table>\n");
             sb.Append("<br />");
@@ -164,7 +163,6 @@ namespace RHFPMVC.Controllers
             sb.Append("</tr>\n");
             sb.Append("</table>\n");
 
-
             sb.Append("</div>");
 
             var template = carregaLayout.layout_3;
@@ -179,8 +177,7 @@ namespace RHFPMVC.Controllers
                 pageHeadContent = "<style type=\"text/css\">" + pageHeadContent + "</style>";
             }
 
-            var pageHeader = carregaLayout.RelatorioPageHeader ?? string.Empty;
-            pageHeader = pageHeader.Replace("{tprel}", "Dados Pessoais");
+            var pageHeader = CriarHeaderHtmlDoPdf("Dados Pessoais", pessoa.dpe_nome_servidor, pessoa.dpe_cpf_servidor, pessoa.dpe_matricula.ToString());
 
             var htmlFinal = template
                 .Replace("{PageTitle}", "Relatório de Dados Pessoais")
@@ -188,6 +185,35 @@ namespace RHFPMVC.Controllers
                 .Replace("{PageContent}", pageHeader + sb.ToString());
 
             return htmlFinal.TrimStart();
+        }
+
+        private string CriarHeaderHtmlDoPdf(string tituloRelatorio, string nome, string cpf = null, string matricula = null)
+        {
+            var pageHeader = carregaLayout.RelatorioPageHeader ?? string.Empty;
+            if (!string.IsNullOrWhiteSpace(pageHeader))
+            {
+                pageHeader = pageHeader.Replace("{tprel}", tituloRelatorio);
+            }
+
+            pageHeader = Regex.Replace(pageHeader, @">\s+<", "><").Trim();
+            
+            return @"<!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset='utf-8'>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
+                    #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
+                
+                    .header-bottom-bar { background-color: #004F9F; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
+                    .header-bottom-bar strong { margin-right: 5px; }
+                </style>
+            </head>
+            <body>
+                " + pageHeader + @"
+            </body>
+            </html>";
         }
 
         private static string FormataCampo(string nomeCampo)

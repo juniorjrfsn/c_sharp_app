@@ -1,0 +1,645 @@
+using RHFP.DTO.DTOS;
+using RHFP.DTO.Helpers;
+using RHFP.ModelData.Database.Entity;
+using RHFP.Repository.Base;
+using RHFP.Repository.Interfaces;
+using RHFP.Repository.Repository.Interfaces;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+
+namespace RHFP.Repository.Implementations
+{
+    // rhfp_legado_dados_financeirosRepository
+    // rhfp_legado_dados_financeirosRepository
+
+    public class rhfp_legado_dados_financeirosRepository
+    : GenericRepository<rhfp_legado_dados_financeiros>, IRhfp_legado_dados_FinanceirosRepository
+    {
+
+        /*  
+            SELECT [fin_numero]
+            ,[dpe_matricula]
+            ,[dfu_tp_cargo]
+            ,[fin_competencia_ano_mes]
+            ,[rub_codigo]
+            ,[rub_descricao]
+            ,[fin_dt_inicio]
+            ,[fin_valor]
+            ,[fin_perc_pontos_dia_hora]
+            ,[fin_qtd_urv]
+            FROM [pms_rhfp_desenvolvimento].[dbo].[rhfp_legado_financeiro]
+        */
+        private static string NormalizarNomeBusca(string nome)
+        {
+            if (string.IsNullOrWhiteSpace(nome))
+                return string.Empty;
+
+            return string.Join(" ", nome
+                .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x)));
+        }
+
+        private static string[] ObterTokensPesquisaNome(string nome)
+        {
+            if (string.IsNullOrWhiteSpace(nome))
+                return Array.Empty<string>();
+
+            return nome
+                .Trim()
+                .Split(new[] { ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToArray();
+        }
+
+
+        public List<rhfp_legado_dados_financeirosDTO> GetListaSegurados__(int matricula = 0, string cpf = null, string nome = null, string competencia = null, int cod_rubrica = 0, string dtIni = null, string dtFim = null)
+        { 
+            try
+            {
+                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
+                var cpfComMascara = cpf?.Trim() ?? string.Empty;
+                var nomeBusca = NormalizarNomeBusca(nome)?.Trim();
+                var competenciaTrim = competencia?.Trim();
+                var dtIniTrim = dtIni?.Trim();
+                var dtFimTrim = dtFim?.Trim();
+
+                var temMatricula = matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeBusca);
+                var temCompetencia = !string.IsNullOrWhiteSpace(competenciaTrim);
+
+                // Sem nenhum critério de identificação, não retorna nada
+                if (!temMatricula && !temCpf && !temNome)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // 1. Restrição por competência/rubrica (se informadas)
+                IQueryable<int> matriculasPermitidas = null;
+                if (temCompetencia || cod_rubrica > 0)
+                {
+                    // Atribuição explícita como IQueryable
+                    IQueryable<rhfp_legado_dados_financeiros> financeiros = _context.rhfp_legado_dados_financeiros.AsNoTracking();
+
+                    if (temCompetencia)
+                        financeiros = financeiros.Where(f => f.fin_competencia_ano_mes == competenciaTrim);
+
+                    if (cod_rubrica > 0)
+                        financeiros = financeiros.Where(f => f.rub_codigo == cod_rubrica);
+
+                    matriculasPermitidas = financeiros.Select(f => f.dpe_matricula).Distinct();
+                }
+
+                // Função de projeção + desduplicação no BANCO DE DADOS (SELECT DISTINCT)
+                IQueryable<rhfp_legado_dados_financeirosDTO> ProjetarEDesduplicar(IQueryable<rhfp_legado_dados_financeiros> q)
+                {
+                    if (matriculasPermitidas != null)
+                        q = q.Where(d => matriculasPermitidas.Contains(d.dpe_matricula));
+
+                    return q.Select(d => new rhfp_legado_dados_financeirosDTO
+                    {
+                        dpe_matricula = d.dpe_matricula,
+                        dpe_nome_servidor = d.dpe_nome_servidor,
+                        dpe_cpf_servidor = d.dpe_cpf_servidor
+                    }).Distinct(); // Transforma a query em SELECT DISTINCT dpe_matricula, dpe_nome_servidor, dpe_cpf_servidor no SQL
+                }
+
+                // Declaração explícita de IQueryable para evitar erro de conversão de DbQuery/DbSet
+                IQueryable<rhfp_legado_dados_financeiros> baseQuery = _context.rhfp_legado_dados_financeiros.AsNoTracking();
+                var resultado = new List<rhfp_legado_dados_financeirosDTO>();
+
+                // Busca 1: Matrícula
+                if (temMatricula)
+                {
+                    var porMatricula = ProjetarEDesduplicar(baseQuery.Where(d => d.dpe_matricula == matricula)).ToList();
+                    resultado.AddRange(porMatricula);
+                }
+
+                // Busca 2: CPF (mantém o filtro sargable para uso do índice)
+                if (temCpf)
+                {
+                    var porCpf = ProjetarEDesduplicar(baseQuery.Where(d =>
+                        d.dpe_cpf_servidor == cpfNormalizado ||
+                        d.dpe_cpf_servidor == cpfComMascara
+                    )).ToList();
+
+                    resultado.AddRange(porCpf);
+                }
+
+                // Busca 3: Nome (utiliza StartsWith direto sem ToLower/Trim na coluna do banco)
+                if (temNome)
+                {
+                    var porNome = ProjetarEDesduplicar(baseQuery.Where(d =>
+                        d.dpe_nome_servidor != null &&
+                        d.dpe_nome_servidor.StartsWith(nomeBusca)
+                    )).ToList();
+
+                    resultado.AddRange(porNome);
+                }
+
+                if (resultado.Count == 0)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // Agrupamento/Desduplicação FINAL em memória (se o mesmo servidor vier em mais de uma busca)
+                var listaFinal = resultado
+                    .GroupBy(x => new { x.dpe_matricula, x.dpe_nome_servidor, x.dpe_cpf_servidor })
+                    .Select(g => g.First())
+                    .OrderBy(x => x.dpe_nome_servidor)
+                    .ThenBy(x => x.dpe_matricula)
+                    .ToList();
+
+                return listaFinal;
+            }
+            catch (Exception ex)
+            {
+                var detalhe = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception($"Erro ao consultar segurados. Detalhe: {detalhe}", ex);
+            }
+        }
+
+        public List<rhfp_legado_dados_financeirosDTO> GetListaSegurados(int matricula = 0, string cpf = null, string nome = null, string competencia = null, int cod_rubrica = 0, string dtIni = null, string dtFim = null)
+        {
+            try
+            {
+                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
+                var cpfComMascara = cpf?.Trim() ?? string.Empty;
+                var nomeBusca = NormalizarNomeBusca(nome)?.Trim();
+                var competenciaTrim = competencia?.Trim();
+                var dtIniFormatada = UtilitariosHelper.NormalizarCompetencia(dtIni);
+                var dtFimFormatada = UtilitariosHelper.NormalizarCompetencia(dtFim);
+
+                var temMatricula = matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeBusca);
+                var temCompetencia = !string.IsNullOrWhiteSpace(competenciaTrim);
+                var temDtIni = !string.IsNullOrWhiteSpace(dtIniFormatada);
+                var temDtFim = !string.IsNullOrWhiteSpace(dtFimFormatada);
+
+                // Sem nenhum critério de identificação, não retorna nada
+                if (!temMatricula && !temCpf && !temNome)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // 1. Restrição por competência/rubrica/período (se informadas)
+                IQueryable<int> matriculasPermitidas = null;
+                if (temCompetencia || cod_rubrica > 0 || temDtIni || temDtFim)
+                {
+                    IQueryable<rhfp_legado_dados_financeiros> financeiros = _context.rhfp_legado_dados_financeiros.AsNoTracking();
+
+                    if (temCompetencia)
+                        financeiros = financeiros.Where(f => f.fin_competencia_ano_mes == competenciaTrim);
+
+                    if (cod_rubrica > 0)
+                        financeiros = financeiros.Where(f => f.rub_codigo == cod_rubrica);
+
+                    if (temDtIni)
+                        financeiros = financeiros.Where(f =>
+                            f.fin_competencia_ano_mes != null &&
+                            string.Compare(f.fin_competencia_ano_mes, dtIniFormatada) >= 0);
+
+                    if (temDtFim)
+                        financeiros = financeiros.Where(f =>
+                            f.fin_competencia_ano_mes != null &&
+                            string.Compare(f.fin_competencia_ano_mes, dtFimFormatada) <= 0);
+
+                    matriculasPermitidas = financeiros.Select(f => f.dpe_matricula).Distinct();
+                }
+
+                // Função de projeção + desduplicação no BANCO DE DADOS (SELECT DISTINCT)
+                IQueryable<rhfp_legado_dados_financeirosDTO> ProjetarEDesduplicar(IQueryable<rhfp_legado_dados_financeiros> q)
+                {
+                    if (matriculasPermitidas != null)
+                        q = q.Where(d => matriculasPermitidas.Contains(d.dpe_matricula));
+
+                    return q.Select(d => new rhfp_legado_dados_financeirosDTO
+                    {
+                        dpe_matricula = d.dpe_matricula,
+                        dpe_nome_servidor = d.dpe_nome_servidor,
+                        dpe_cpf_servidor = d.dpe_cpf_servidor
+                    }).Distinct(); // Transforma a query em SELECT DISTINCT dpe_matricula, dpe_nome_servidor, dpe_cpf_servidor no SQL
+                }
+
+                // Declaração explícita de IQueryable para evitar erro de conversão de DbQuery/DbSet
+                IQueryable<rhfp_legado_dados_financeiros> baseQuery = _context.rhfp_legado_dados_financeiros.AsNoTracking();
+                var resultado = new List<rhfp_legado_dados_financeirosDTO>();
+
+                // Busca 1: Matrícula
+                if (temMatricula)
+                {
+                    var porMatricula = ProjetarEDesduplicar(baseQuery.Where(d => d.dpe_matricula == matricula)).ToList();
+                    resultado.AddRange(porMatricula);
+                }
+
+                // Busca 2: CPF (mantém o filtro sargable para uso do índice)
+                if (temCpf)
+                {
+                    var porCpf = ProjetarEDesduplicar(baseQuery.Where(d =>
+                        d.dpe_cpf_servidor == cpfNormalizado ||
+                        d.dpe_cpf_servidor == cpfComMascara
+                    )).ToList();
+
+                    resultado.AddRange(porCpf);
+                }
+
+                // Busca 3: Nome (utiliza StartsWith direto sem ToLower/Trim na coluna do banco)
+                if (temNome)
+                {
+                    var porNome = ProjetarEDesduplicar(baseQuery.Where(d =>
+                        d.dpe_nome_servidor != null &&
+                        d.dpe_nome_servidor.StartsWith(nomeBusca)
+                    )).ToList();
+
+                    resultado.AddRange(porNome);
+                }
+
+                if (resultado.Count == 0)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // Agrupamento/Desduplicação FINAL em memória (se o mesmo servidor vier em mais de uma busca)
+                var listaFinal = resultado
+                    .GroupBy(x => new { x.dpe_matricula, x.dpe_nome_servidor, x.dpe_cpf_servidor })
+                    .Select(g => g.First())
+                    .OrderBy(x => x.dpe_nome_servidor)
+                    .ThenBy(x => x.dpe_matricula)
+                    .ToList();
+
+                return listaFinal;
+            }
+            catch (Exception ex)
+            {
+                var detalhe = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception($"Erro ao consultar segurados. Detalhe: {detalhe}", ex);
+            }
+        }
+
+        public List<rhfp_legado_dados_financeirosDTO> GetListaFinanceirosSegurados(int matricula = 0, string cpf = null, string nome = null, string competencia = null, int cod_rubrica = 0)
+        {
+            try
+            {
+                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
+                var cpfComMascara = cpf?.Trim() ?? string.Empty;
+                var nomeTrim = nome?.Trim();
+                var competenciaTrim = competencia?.Trim();
+
+                var temMatricula = matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeTrim);
+                var temCompetencia = !string.IsNullOrWhiteSpace(competenciaTrim);
+
+                if (!temMatricula && !temCpf && !temNome)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                IQueryable<rhfp_legado_dados_pessoais> pessoaQuery = _context.rhfp_legado_dados_pessoais;
+
+                if (temMatricula)
+                    pessoaQuery = pessoaQuery.Where(d => d.dpe_matricula == matricula);
+
+                if (temCpf)
+                {
+                    pessoaQuery = pessoaQuery.Where(d => d.dpe_cpf_servidor != null && (
+                        d.dpe_cpf_servidor == cpfNormalizado ||
+                        d.dpe_cpf_servidor == cpfComMascara ||
+                        d.dpe_cpf_servidor.Replace(".", "").Replace("-", "").Replace("/", "") == cpfNormalizado
+                    ));
+                }
+
+                if (temNome)
+                {
+                    var nomeBusca = NormalizarNomeBusca(nomeTrim);
+                    if (!string.IsNullOrWhiteSpace(nomeBusca))
+                    {
+                        var nomeBuscaLower = nomeBusca.ToLower();
+                        pessoaQuery = pessoaQuery.Where(d => d.dpe_nome_servidor != null &&
+                            d.dpe_nome_servidor.Trim().ToLower().StartsWith(nomeBuscaLower));
+                    }
+                }
+
+                var matriculasSelecionadas = pessoaQuery
+                    .Select(d => d.dpe_matricula)
+                    .Distinct();
+
+                var query = from lf in _context.rhfp_legado_dados_financeiros
+                            join d in pessoaQuery on lf.dpe_matricula equals d.dpe_matricula into pessoaJoin
+                            from d in pessoaJoin.DefaultIfEmpty()
+                            where matriculasSelecionadas.Contains(lf.dpe_matricula)
+                            select new
+                            {
+                                lf,
+                                d
+                            };
+
+                if (temCompetencia)
+                    query = query.Where(x => x.lf.fin_competencia_ano_mes == competenciaTrim);
+
+                if (cod_rubrica > 0)
+                    query = query.Where(x => x.lf.rub_codigo == cod_rubrica);
+
+                var resultado = query
+                    .Select(x => new rhfp_legado_dados_financeirosDTO
+                    {
+                        fin_numero = x.lf.fin_numero,
+                        dpe_matricula = x.lf.dpe_matricula,
+                        dpe_nome_servidor = x.d != null ? x.d.dpe_nome_servidor : null,
+                        dpe_cpf_servidor = x.d != null ? x.d.dpe_cpf_servidor : null,
+                        dfu_tp_cargo = x.lf.dfu_tp_cargo,
+                        dfu_desc_tp_cargo = x.lf.dfu_desc_tp_cargo,
+                        fin_competencia_ano_mes = x.lf.fin_competencia_ano_mes,
+                        rub_codigo = x.lf.rub_codigo,
+                        rub_descricao = x.lf.rub_descricao,
+                        fin_dt_inicio = x.lf.fin_dt_inicio,
+                        fin_valor = x.lf.fin_valor,
+                        fin_perc_pontos_dia_hora = x.lf.fin_perc_pontos_dia_hora,
+                        fin_qtd_urv = x.lf.fin_qtd_urv
+                    })
+                    .OrderBy(x => x.dpe_nome_servidor)
+                    .ThenBy(x => x.dpe_matricula)
+                    .ThenBy(x => x.fin_competencia_ano_mes)
+                    .ToList();
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                var detalhe = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception($"Erro ao consultar segurados. Detalhe: {detalhe}", ex);
+            }
+        }
+
+
+        public List<rhfp_legado_dados_financeirosDTO> GetFinanceiro_0(int matricula = 0, string cpf = null, string competencia = null, int cod_rubrica = 0)
+        {
+            cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+            var resultado = _context.rhfp_legado_dados_financeiros.Where(r => r.dpe_matricula == matricula)
+                .Select(r => new rhfp_legado_dados_financeirosDTO
+                {
+                    dpe_matricula = r.dpe_matricula,
+                    dfu_tp_cargo = r.dfu_tp_cargo,
+                    dfu_desc_tp_cargo = r.dfu_desc_tp_cargo,
+                    fin_competencia_ano_mes = r.fin_competencia_ano_mes,
+                    rub_codigo = r.rub_codigo,
+                    rub_descricao = r.rub_descricao,
+                    fin_dt_inicio = r.fin_dt_inicio,
+                    fin_valor = r.fin_valor,
+                    fin_perc_pontos_dia_hora = r.fin_perc_pontos_dia_hora ?? 0m,
+                    fin_qtd_urv = r.fin_qtd_urv ?? 0m
+                })
+                .ToList();
+
+            return resultado;
+        }
+
+
+        /// <summary>
+        /// Consulta financeira (detalhe por rubrica + totais por matrícula/competência/cargo).
+        ///
+        /// Identificação do servidor (igual ao script SQL): matrícula OU CPF OU nome (nome começa com...),
+        /// usando apenas os critérios informados. Os demais filtros (competência, período, rubrica)
+        /// são aplicados em AND sobre a própria tabela rhfp_legado_dados_financeiros, que já traz
+        /// nome e CPF em cada linha (não é necessário join nem subquery correlacionada).
+        /// </summary>
+        public List<rhfp_legado_dados_financeirosDTO> GetFinanceiro(
+             int matricula = 0,
+             string cpf = null,
+             string nome = null,
+             string competencia = null,
+             int cod_rubrica = 0,
+             string dtIni = null,
+             string dtFim = null
+        )
+        {
+            try
+            {
+                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
+                var nomeBusca = NormalizarNomeBusca(nome);
+                var competenciaTrim = competencia?.Trim();
+                var dtIniFormatada = UtilitariosHelper.NormalizarCompetencia(dtIni);
+                var dtFimFormatada = UtilitariosHelper.NormalizarCompetencia(dtFim);
+
+                var temMatricula = matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeBusca);
+                var temCompetencia = !string.IsNullOrWhiteSpace(competenciaTrim);
+                var temDtIni = !string.IsNullOrWhiteSpace(dtIniFormatada);
+                var temDtFim = !string.IsNullOrWhiteSpace(dtFimFormatada);
+
+                // Sem nenhum critério de identificação (matrícula, CPF ou nome) não retorna nada,
+                // como no script: o filtro de período sozinho varreria a tabela inteira.
+                if (!temMatricula && !temCpf && !temNome)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // ---------------------------------------------------------------------------
+                // Filtros comuns (AND): competência, período e rubrica
+                // ---------------------------------------------------------------------------
+                IQueryable<rhfp_legado_dados_financeiros> baseQuery = _context.rhfp_legado_dados_financeiros.AsNoTracking();
+
+                if (temCompetencia)
+                    baseQuery = baseQuery.Where(f => f.fin_competencia_ano_mes == competenciaTrim);
+
+                if (temDtIni)
+                    baseQuery = baseQuery.Where(f =>
+                        f.fin_competencia_ano_mes != null &&
+                        string.Compare(f.fin_competencia_ano_mes, dtIniFormatada) >= 0);
+
+                if (temDtFim)
+                    baseQuery = baseQuery.Where(f =>
+                        f.fin_competencia_ano_mes != null &&
+                        string.Compare(f.fin_competencia_ano_mes, dtFimFormatada) <= 0);
+
+                if (cod_rubrica > 0)
+                    baseQuery = baseQuery.Where(f => f.rub_codigo == cod_rubrica);
+
+                // ---------------------------------------------------------------------------
+                // Passo 1: identificar as matrículas (matrícula OU CPF OU nome).
+                // Cada critério roda em uma consulta separada (sargável) e o resultado é unido em memória.
+                // ---------------------------------------------------------------------------
+                var matriculas = new HashSet<int>();
+
+                if (temMatricula)
+                    matriculas.Add(matricula);
+
+                if (temCpf)
+                {
+                    var cpfComMascara = cpfNormalizado.Length == 11
+                        ? cpfNormalizado.Substring(0, 3) + "." + cpfNormalizado.Substring(3, 3) + "." +
+                          cpfNormalizado.Substring(6, 3) + "-" + cpfNormalizado.Substring(9, 2)
+                        : cpfNormalizado;
+
+                    var porCpf = baseQuery
+                        .Where(f => f.dpe_cpf_servidor == cpfNormalizado || f.dpe_cpf_servidor == cpfComMascara)
+                        .Select(f => f.dpe_matricula)
+                        .Distinct()
+                        .ToList();
+
+                    foreach (var m in porCpf)
+                        matriculas.Add(m);
+                }
+
+                if (temNome)
+                {
+                    // LIKE 'NOME%' (sem Trim/ToLower na coluna, para não perder o índice)
+                    var porNome = baseQuery
+                        .Where(f => f.dpe_nome_servidor != null && f.dpe_nome_servidor.StartsWith(nomeBusca))
+                        .Select(f => f.dpe_matricula)
+                        .Distinct()
+                        .ToList();
+
+                    foreach (var m in porNome)
+                        matriculas.Add(m);
+                }
+
+                if (matriculas.Count == 0)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // ---------------------------------------------------------------------------
+                // Passo 2: buscar o detalhe financeiro das matrículas encontradas.
+                // Em lotes, para não estourar o limite de parâmetros do SQL Server em buscas por nome amplas.
+                // ---------------------------------------------------------------------------
+                const int tamanhoLote = 1000;
+                var listaMatriculas = matriculas.ToList();
+                var dados = new List<rhfp_legado_dados_financeirosDTO>();
+
+                for (int i = 0; i < listaMatriculas.Count; i += tamanhoLote)
+                {
+                    var lote = listaMatriculas.Skip(i).Take(tamanhoLote).ToList();
+
+                    var parcial = baseQuery
+                        .Where(f => lote.Contains(f.dpe_matricula))
+                        .Select(f => new rhfp_legado_dados_financeirosDTO
+                        {
+                            fin_numero = f.fin_numero,
+                            dpe_matricula = f.dpe_matricula,
+                            dpe_nome_servidor = f.dpe_nome_servidor,
+                            dpe_cpf_servidor = f.dpe_cpf_servidor,
+                            dfu_tp_cargo = f.dfu_tp_cargo,
+                            dfu_desc_tp_cargo = f.dfu_desc_tp_cargo,
+                            fin_competencia_ano_mes = f.fin_competencia_ano_mes,
+                            rub_codigo = f.rub_codigo,
+                            rub_descricao = f.rub_descricao,
+                            fin_dt_inicio = f.fin_dt_inicio,
+                            fin_valor = f.fin_valor,
+                            fin_perc_pontos_dia_hora = f.fin_perc_pontos_dia_hora,
+                            fin_qtd_urv = f.fin_qtd_urv
+                        })
+                        .ToList();
+
+                    dados.AddRange(parcial);
+                }
+
+                if (dados.Count == 0)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                // ---------------------------------------------------------------------------
+                // Passo 3: PROVENTO / DESCONTO por linha e totais por matrícula + competência + cargo
+                // ---------------------------------------------------------------------------
+                foreach (var r in dados)
+                {
+                    r.PROVENTO = (r.rub_codigo > 0 && r.rub_codigo < 100) ? r.fin_valor : 0m;
+                    r.DESCONTO = (r.rub_codigo >= 100 && r.rub_codigo <= 400) ? r.fin_valor : 0m;
+                }
+
+                foreach (var grupo in dados.GroupBy(x => new { x.dpe_matricula, x.fin_competencia_ano_mes, x.dfu_tp_cargo }))
+                {
+                    var totalProvento = grupo.Sum(x => x.PROVENTO);
+                    var totalDesconto = grupo.Sum(x => x.DESCONTO);
+
+                    foreach (var r in grupo)
+                    {
+                        r.TOTAL_PROVENTO = totalProvento;
+                        r.TOTAL_DESCONTO = totalDesconto;
+                        r.LIQUIDO = totalProvento - totalDesconto;
+                    }
+                }
+
+                return dados
+                    .OrderBy(x => x.dpe_matricula)
+                    .ThenBy(x => x.fin_competencia_ano_mes)
+                    .ThenBy(x => x.dfu_tp_cargo)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                var detalhe = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception($"Erro ao consultar financeiro. Detalhe: {detalhe}", ex);
+            }
+        }
+
+        /// <summary>
+        /// Consulta de Segurados (agrupado por matricula, nome e CPF) com filtros opcionais.
+        /// Retorna uma lista de registros únicos de Segurados, agrupados por dpe_matricula, dpe_nome_servidor e dpe_cpf_servidor.
+        /// </summary>
+        public List<rhfp_legado_dados_financeirosDTO> GetFinanceiroPorDependente(
+            int dpe_matricula = 0,
+            string dpe_nome_servidor = null,
+            string dpe_cpf_servidor = null
+        )
+        {
+            try
+            {
+                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(dpe_cpf_servidor);
+                var nomeTrim = dpe_nome_servidor?.Trim();
+
+                var temMatricula = dpe_matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeTrim);
+
+                if (!temMatricula && !temCpf && !temNome)
+                    return new List<rhfp_legado_dados_financeirosDTO>();
+
+                IQueryable<rhfp_legado_dados_pessoais> dpQuery = _context.rhfp_legado_dados_pessoais.AsQueryable();
+
+                if (temMatricula)
+                {
+                    dpQuery = dpQuery.Where(d => d.dpe_matricula == dpe_matricula);
+                }
+
+                if (temCpf)
+                {
+                    var cpfRaw = cpfNormalizado;
+                    var cpfComMascara = dpe_cpf_servidor?.Trim() ?? string.Empty;
+                    dpQuery = dpQuery.Where(d => d.dpe_cpf_servidor != null && (
+                        d.dpe_cpf_servidor == cpfRaw ||
+                        d.dpe_cpf_servidor == cpfComMascara ||
+                        d.dpe_cpf_servidor.Replace(".", "").Replace("-", "").Replace("/", "") == cpfRaw
+                    ));
+                }
+
+                if (temNome)
+                {
+                    var nomeBusca = NormalizarNomeBusca(nomeTrim);
+                    if (!string.IsNullOrWhiteSpace(nomeBusca))
+                    {
+                        var nomeBuscaLower = nomeBusca.ToLower();
+                        dpQuery = dpQuery.Where(d => d.dpe_nome_servidor != null &&
+                            d.dpe_nome_servidor.Trim().ToLower().StartsWith(nomeBuscaLower));
+                    }
+                }
+
+                var resultado = dpQuery
+                    .Select(d => new rhfp_legado_dados_financeirosDTO
+                    {
+                        dpe_matricula = d.dpe_matricula,
+                        dpe_nome_servidor = d.dpe_nome_servidor,
+                        dpe_cpf_servidor = d.dpe_cpf_servidor
+                    })
+                    .OrderBy(x => x.dpe_nome_servidor)
+                    .ToList();
+
+                return resultado;
+            }
+            catch (Exception ex)
+            {
+                var detalhe = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception($"Erro ao consultar financeiro por dependente. Detalhe: {detalhe}", ex);
+            }
+        }
+
+        public rhfp_legado_dados_financeirosRepository(RHFPContext context) : base(context) { }
+   
+        public void FinanceiroAdd(rhfp_legado_dados_financeiros entity) => base.Add(entity);
+        public rhfp_legado_dados_financeiros FinanceiroGetById(int id) => base.GetById(id);
+        public IEnumerable<rhfp_legado_dados_financeiros> FinanceiroGetAll() => base.GetAll();
+        public void FinanceiroUpdate(rhfp_legado_dados_financeiros entity) => base.Update(entity);
+        public void FinanceiroDelete(int id) => base.Delete(id);
+    }
+}

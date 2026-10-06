@@ -66,8 +66,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">Nº</span>
                                                         </div>
-                                                        <input type="text" class="form-control" name="ate_numero"
-                                                               id="ate_numero">
+                                                        <input type="text" class="form-control" name="ate_numero" id="ate_numero">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
@@ -75,8 +74,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">CPF</span>
                                                         </div>
-                                                        <input type="text" class="form-control" name="cpf_busca"
-                                                               id="cpf_busca">
+                                                        <input type="text" class="form-control" name="cpf_busca" id="cpf_busca">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-3 col-xs-3 col-lg-3 col-sm-3 mb-3">
@@ -84,8 +82,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">Matrícula</span>
                                                         </div>
-                                                        <input type="text" class="form-control" name="dep_matricula"
-                                                               id="dep_matricula">
+                                                        <input type="text" class="form-control" name="matricula" id="matricula">
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4 col-xs-4 col-lg-4 col-sm-4 mb-3">
@@ -93,8 +90,7 @@
                                                         <div class="input-group-prepend">
                                                             <span class="input-group-text">Nome</span>
                                                         </div>
-                                                        <input type="text" class="form-control" name="ate_nome"
-                                                               id="ate_nome">
+                                                        <input type="text" class="form-control" name="nome" id="nome">
                                                     </div>
                                                 </div>
                                             </div>
@@ -333,9 +329,9 @@
                                                             </div>
                                                         </td>
                                                         <td>
-                                                            <div class="form-group">
+                                                            <div class="form-group" style="display:none;">
                                                                 <div class="input-group mb-3">
-                                                                    <button type="button" class="btn btn-outline-secondary" name="btnGerarPDF" id="btnGerarPDF">
+                                                                    <button type="button" class="btn btn-outline-secondary" name="btnGerarPDF" id="btnGerarPDF"  disabled="disabled">
                                                                         <i class="fa-solid fa-file-pdf fa-lg text-danger"></i> Gerar PDF
                                                                     </button>
                                                                 </div>
@@ -348,6 +344,29 @@
                                         </div>
 
                                     </form>
+                                </div>
+
+                                <div id="div-resultado-segurados" style="display: none;">
+                                    <div class="form-row" style="margin: 5px 5px 5px 5px;">
+                                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align:left;">
+                                            <button class="btn btn-light" name="btnVoltarFiltro" id="btnVoltarFiltro" type="button">
+                                                <i class="fa-solid fa-arrow-left fa-lg"></i> Voltar
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <table id="table-lista-segurados" class="table table-striped table-bordered" style="width:100%">
+                                        <thead>
+                                            <tr>
+                                                <th style="text-align:center;">Matrícula</th>
+                                                <th style="text-align:center;">Nome</th>
+                                                <th style="text-align:center;">CPF</th>
+                                                <th style="text-align:center;">Ver</th>
+                                                <th style="text-align:center;">Pdf</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                    </table>
                                 </div>
 
                                 <div id="div-resultado-ato-eventos" style="display: none;">
@@ -385,11 +404,20 @@
     </div>
 </div>
 
-<script src="/Content/controls/js/script-page/atos-eventos-relatorio.js?v=0.000000000000000005023"></script>
+<script src="/Content/controls/js/script-page/atos-eventos-relatorio.js?v=0.000000000000000005058"></script>
 <style type="text/css">
     .footer {
          position:page;
         bottom: 0;
+    }
+
+    /* Garante que o modal do SweetAlert2 (janela de "carregando") sempre
+       apareça por cima de qualquer elemento da página (sidebar, navbar,
+       preloader, etc.), independente de z-index/transform herdados do
+       template. Definir isso via CSS, e não via JS após o Swal.fire(),
+       evita qualquer atraso/"flash" em que o modal fica escondido. */
+    .swal2-container {
+        z-index: 2147483647 !important;
     }
 </style>
 
@@ -397,11 +425,13 @@
     $(function () {
         // Use Inputmask 5.x API
         try {
-            Inputmask("999.999.999-99").mask(document.querySelector('input[name="cpf_busca"]'));
-            Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_diario_oficial"]'));
-            Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_ato"]'));
-            Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_validade"]'));
-            Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_final"]'));
+            if (typeof Inputmask !== 'undefined') {
+                Inputmask("999.999.999-99").mask(document.querySelector('input[name="cpf_busca"]'));
+                Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_diario_oficial"]'));
+                Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_ato"]'));
+                Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_validade"]'));
+                Inputmask("99/99/9999").mask(document.querySelector('input[name="ate_dt_final"]'));
+            }
         } catch (e) {
             console.error('Inputmask initialization error:', e);
         }

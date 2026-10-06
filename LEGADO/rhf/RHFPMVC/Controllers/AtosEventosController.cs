@@ -1,4 +1,4 @@
-﻿using Microsoft.Ajax.Utilities;
+using Microsoft.Ajax.Utilities;
 using NReco.PdfGenerator;
 using SGI.Framework.MVC.Architecture.Controller;
 
@@ -208,8 +208,8 @@ namespace RHFPMVC.Controllers
                     * { margin: 0; padding: 0; box-sizing: border-box; }
                     body { margin: 0; padding: 0; font-family: 'Segoe UI', 'Arial', sans-serif; width: 100%; background: transparent; }
                     #header { width: 100% !important; border-collapse: collapse; margin: 0; padding: 0; }
-                    #header td:nth-child(1) { width: 280px !important; text-align: right !important; vertical-align: middle !important; }
-                    #header td:nth-child(2) { width: 440px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
+                    #header td:nth-child(1) { width: 360px !important; text-align: right !important; vertical-align: middle !important; }
+                    #header td:nth-child(2) { width: 200px; text-align: center !important; vertical-align: middle !important; color: #002060 !important; font-weight: 600 !important; font-size: 20px !important; }
                     #header td:nth-child(3) { text-align: left !important; vertical-align: middle !important; }
                     .header-bottom-bar { background-color: #004F9F; color: white; padding: 5px 8px; font-size: 10px; width: 100%; box-sizing: border-box; margin-top: 2px; font-family: 'Segoe UI', 'Arial', sans-serif; }
                     .header-bottom-bar strong { margin-right: 5px; }
@@ -327,17 +327,28 @@ namespace RHFPMVC.Controllers
         [HttpPost]
         public JsonResult GerarPdfAtosEventos()
         {
+            int depMatricula = 0;
+            string cpf = string.Empty;
+            string ateNome = string.Empty;
             try
             {
+              
+
                 var parametros = LerParametrosAtosEventos();
 
-                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? string.Empty;
+                cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? ParametroString(parametros, "cpf") ?? ParametroString(parametros, "dpe_cpf_servidor") ?? string.Empty;
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+             
+                depMatricula = ParametroInt(parametros, "dep_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "dpe_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "matricula");
+
+                ateNome = ParametroString(parametros, "ate_nome") ?? ParametroString(parametros, "dpe_nome_servidor") ?? ParametroString(parametros, "nome") ?? ParametroString(parametros, "per_nome");
 
                 List<rhfp_legado_atos_e_eventosDTO> eventos = _atosEventosBusiness.GetAtosEventos(
                     ate_numero: ParametroInt(parametros, "ate_numero"),
-                    dep_matricula: ParametroInt(parametros, "dep_matricula"),
-                    ate_nome: ParametroString(parametros, "ate_nome"),
+                    dep_matricula: depMatricula,
+                    ate_nome: ateNome.Trim(),
                     ate_cpf_servidor: cpf,
                     ate_cod_ato: ParametroInt(parametros, "ate_cod_ato"),
                     ate_cod_texto: ParametroString(parametros, "ate_cod_texto"),
@@ -361,6 +372,12 @@ namespace RHFPMVC.Controllers
                     ate_comissao_cod_simbolo: ParametroShort(parametros, "ate_comissao_cod_simbolo"),
                     ate_comissao_simbolo: ParametroString(parametros, "ate_comissao_simbolo")
                 );
+
+
+                if (String.IsNullOrEmpty(cpf) && depMatricula == 0 && String.IsNullOrEmpty(ateNome))
+                {
+                    return Json(new { sucesso = false, msg = "Pelo menos um dos campos (CPF, Matrícula ou Nome) deve ser informado.", caminhoPDF = "" });
+                }
 
                 if (eventos == null || eventos.Count == 0)
                 {
@@ -403,13 +420,19 @@ namespace RHFPMVC.Controllers
             {
                 var parametros = LerParametrosAtosEventos();
 
-                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? string.Empty;
+                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? ParametroString(parametros, "cpf") ?? ParametroString(parametros, "dpe_cpf_servidor") ?? string.Empty;
                 cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int depMatricula = ParametroInt(parametros, "dep_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "dpe_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "matricula");
+
+                string ateNome = ParametroString(parametros, "ate_nome") ?? ParametroString(parametros, "dpe_nome_servidor") ?? ParametroString(parametros, "nome") ?? ParametroString(parametros, "per_nome");
 
                 var eventos = _atosEventosBusiness.GetAtosEventos(
                     ate_numero: ParametroInt(parametros, "ate_numero"),
-                    dep_matricula: ParametroInt(parametros, "dep_matricula"),
-                    ate_nome: ParametroString(parametros, "ate_nome"),
+                    dep_matricula: depMatricula,
+                    ate_nome: ateNome,
                     ate_cpf_servidor: cpf,
                     ate_cod_ato: ParametroInt(parametros, "ate_cod_ato"),
                     ate_cod_texto: ParametroString(parametros, "ate_cod_texto"),
@@ -432,7 +455,7 @@ namespace RHFPMVC.Controllers
                     ate_comissao_quadro: ParametroShort(parametros, "ate_comissao_quadro"),
                     ate_comissao_cod_simbolo: ParametroShort(parametros, "ate_comissao_cod_simbolo"),
                     ate_comissao_simbolo: ParametroString(parametros, "ate_comissao_simbolo")
-    );
+                );
 
                 if (eventos != null && eventos.Count > 0)
                 {
@@ -480,6 +503,91 @@ namespace RHFPMVC.Controllers
                 else
                 {
                     msg = "Nenhum registro encontrado para os parâmetros informados.";
+                }
+
+                return Json(new { sucesso = sucesso, msg = msg, lista = lista, qtd = lista.Count });
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex.ToString());
+                return Json(new { sucesso = false, msg = "ERRO: " + ex.Message, lista = lista, qtd = 0 });
+            }
+        }
+
+        [HttpPost]
+        public JsonResult GetListaSegurados()
+        {
+            bool sucesso = false;
+            string msg = string.Empty;
+            List<object> lista = new List<object>();
+
+            try
+            {
+                /*
+                var parametros = LerParametrosAtosEventos();
+
+                string cpf = ParametroString(parametros, "ate_cpf_servidor") ?? ParametroString(parametros, "cpf_busca") ?? ParametroString(parametros, "cpf") ?? ParametroString(parametros, "dpe_cpf_servidor") ?? string.Empty;
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int depMatricula = ParametroInt(parametros, "dep_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "dpe_matricula");
+                if (depMatricula == 0) depMatricula = ParametroInt(parametros, "matricula");
+
+                string ateNome = ParametroString(parametros, "ate_nome") ?? ParametroString(parametros, "dpe_nome_servidor") ?? ParametroString(parametros, "nome") ?? ParametroString(parametros, "per_nome");
+                */
+
+
+                Dictionary<string, string> parametros = new Dictionary<string, string>();
+                foreach (var texto in Request.Params.AllKeys)
+                {
+                    if (texto != null && Request[texto] != null)
+                    {
+                        parametros[texto] = Request[texto];
+                    }
+                }
+
+                string cpf = (parametros.ContainsKey("cpf") && !string.IsNullOrEmpty(parametros["cpf"])) ? parametros["cpf"] : ((parametros.ContainsKey("cpf_busca") && !string.IsNullOrEmpty(parametros["cpf_busca"])) ? parametros["cpf_busca"] : ((parametros.ContainsKey("dpe_cpf_servidor") && !string.IsNullOrEmpty(parametros["dpe_cpf_servidor"])) ? parametros["dpe_cpf_servidor"] : string.Empty));
+                cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
+
+                int matricula = 0;
+                if (parametros.ContainsKey("matricula") && !string.IsNullOrEmpty(parametros["matricula"]))
+                {
+                    int.TryParse(parametros["matricula"], out matricula);
+                }
+                else if (parametros.ContainsKey("dpe_matricula") && !string.IsNullOrEmpty(parametros["dpe_matricula"]))
+                {
+                    int.TryParse(parametros["dpe_matricula"], out matricula);
+                }
+
+                string nome = (parametros.ContainsKey("nome") && !string.IsNullOrEmpty(parametros["nome"])) ? parametros["nome"] : ((parametros.ContainsKey("per_nome") && !string.IsNullOrEmpty(parametros["per_nome"])) ? parametros["per_nome"] : ((parametros.ContainsKey("dpe_nome_servidor") && !string.IsNullOrEmpty(parametros["dpe_nome_servidor"])) ? parametros["dpe_nome_servidor"] : string.Empty));
+
+                string competencia = (parametros.ContainsKey("competencia") && !string.IsNullOrEmpty(parametros["competencia"])) ? parametros["competencia"] : string.Empty;
+                int cod_rubrica = (parametros.ContainsKey("cod_rubrica") && !string.IsNullOrEmpty(parametros["cod_rubrica"])) ? int.Parse(parametros["cod_rubrica"]) : 0;
+                string dtIni = (parametros.ContainsKey("dt_ini") && !string.IsNullOrEmpty(parametros["dt_ini"])) ? parametros["dt_ini"] : ((parametros.ContainsKey("per_dt_ini") && !string.IsNullOrEmpty(parametros["per_dt_ini"])) ? parametros["per_dt_ini"] : string.Empty);
+                string dtFim = (parametros.ContainsKey("dt_fim") && !string.IsNullOrEmpty(parametros["dt_fim"])) ? parametros["dt_fim"] : ((parametros.ContainsKey("per_dt_fim") && !string.IsNullOrEmpty(parametros["per_dt_fim"])) ? parametros["per_dt_fim"] : string.Empty);
+
+                var segurados = _atosEventosBusiness.GetListaSegurados(
+                    dep_matricula: matricula,
+                    ate_cpf_servidor: cpf,
+                    ate_nome: nome
+                );
+
+                if (segurados != null && segurados.Count > 0)
+                {
+                    sucesso = true;
+                    foreach (var dpe in segurados)
+                    {
+                        lista.Add(new
+                        {
+                            dep_matricula = dpe.dep_matricula,
+                            ate_nome = dpe.ate_nome,
+                            ate_cpf_servidor = dpe.ate_cpf_servidor
+                        });
+                    }
+                }
+                else
+                {
+                    msg = "Nenhum segurado encontrado para os parâmetros informados.";
                 }
 
                 return Json(new { sucesso = sucesso, msg = msg, lista = lista, qtd = lista.Count });

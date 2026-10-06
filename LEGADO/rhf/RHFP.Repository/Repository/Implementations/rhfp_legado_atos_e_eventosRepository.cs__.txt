@@ -145,7 +145,7 @@ namespace RHFP.Repository.Implementations
                 if (!string.IsNullOrWhiteSpace(nomeTrim))
                 {
                     var nomeLower = nomeTrim.ToLower();
-                    query = query.Where(x => x.ate_nome != null && x.ate_nome.Trim().ToLower().Contains(nomeLower));
+                    query = query.Where(x => x.ate_nome != null && x.ate_nome.ToLower().Contains(nomeLower));
                 }
 
                 if (!string.IsNullOrWhiteSpace(cpfNormalizado))
@@ -237,7 +237,7 @@ namespace RHFP.Repository.Implementations
                     {
                         ate_numero = x.ate_numero,
                         dep_matricula = x.dep_matricula,
-                        ate_nome = x.ate_nome.Trim(),
+                        ate_nome = x.ate_nome,
                         ate_cpf_servidor = x.ate_cpf_servidor,
                         ate_cod_ato = x.ate_cod_ato,
                         ate_cod_texto = x.ate_cod_texto,
@@ -440,7 +440,7 @@ namespace RHFP.Repository.Implementations
                         temCpf &&  f.ate_cpf_servidor != null &&  (  f.ate_cpf_servidor == cpfNormalizado ||  f.ate_cpf_servidor == cpfInformado  )
                     ) 
                     || 
-                    (temNome && f.ate_nome != null && f.ate_nome.Trim().StartsWith(nomeBusca))
+                    (temNome && f.ate_nome != null && f.ate_nome.StartsWith(nomeBusca))
                 );
 
 
@@ -509,7 +509,7 @@ namespace RHFP.Repository.Implementations
                 var resultado = query.Select(f => new rhfp_legado_atos_e_eventosDTO
                     {
                         dep_matricula       = f.dep_matricula,
-                        ate_nome            = f.ate_nome.Trim(),
+                        ate_nome            = f.ate_nome,
                         ate_cpf_servidor    = f.ate_cpf_servidor
                     })
                     .Distinct()

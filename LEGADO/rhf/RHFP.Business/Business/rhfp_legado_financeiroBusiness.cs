@@ -31,5 +31,21 @@ namespace RHFP.Business
             return _repository.GetFinanceiro(matricula, cpf, nome, competencia, cod_rubrica, dtIni, dtFim);
         }
 
+
+        public List<rhfp_legado_dados_financeirosDTO> GetListaSegurados(int matricula = 0, string cpf = null, string nome = null, string competencia = null, int cod_rubrica = 0, string dtIni = null, string dtFim = null)
+        {   
+            return _repository.GetListaSegurados(matricula, cpf, nome, competencia, cod_rubrica, dtIni, dtFim);
+        }
+
+
+        /// <summary>
+        /// Retorna dependentes agrupados por matricula, nome e CPF.
+        /// </summary>
+        public List<rhfp_legado_dados_financeirosDTO> GetFinanceiroPorSegurado(int dpe_matricula = 0, string dpe_nome_servidor = null, string dpe_cpf_servidor = null)
+        {
+            return _repository.GetFinanceiroPorDependente(dpe_matricula, dpe_nome_servidor, dpe_cpf_servidor);
+        }
+
+     
     }
 }

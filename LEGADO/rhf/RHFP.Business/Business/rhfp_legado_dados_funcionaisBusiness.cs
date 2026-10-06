@@ -1,4 +1,4 @@
-﻿using RHFP.ModelData.Database.Entity;
+using RHFP.ModelData.Database.Entity;
 using RHFP.DTO.DTOS;
 using RHFP.Repository.Implementations;
 using System;
@@ -26,9 +26,14 @@ namespace RHFP.Business
             _repository = repository;
         }
 
-        public List<rhfp_legado_dados_funcionaisDTO> GetDadosFuncionais(int matricula = 0, string cpf = null, string nome = null)
+        public List<rhfp_legado_dados_funcionaisDTO> GetListaSegurados(int matricula = 0, string cpf = null, string nome = null)
         {
-            return _repository.GetDadosFuncionais(matricula: matricula, cpf: cpf, nome: nome);
+            return _repository.GetListaSegurados(matricula: matricula, cpf: cpf, nome: nome);
+        }
+
+        public List<rhfp_legado_dados_funcionaisDTO> GetDadosFuncionais(int matricula = 0, string cpf = null, string nome = null, int fun_numero = 0)
+        {
+            return _repository.GetDadosFuncionais(matricula: matricula, cpf: cpf, nome: nome, fun_numero: fun_numero);
         }
 
     }

@@ -1,4 +1,4 @@
-﻿// File: script-page/financeiro-relatorio.ts
+// File: script-page/financeiro-relatorio.ts
 
 /// <reference path="../config-scripts/@types/jquery/index.d.ts" />
 /// <reference path="../config-scripts/@types/jquery.form/index.d.ts" />
@@ -8,6 +8,12 @@
 /// <reference path="../config-scripts/config.ts" />
 /// <reference path="../config-scripts/ScriptsConfig.d.ts" />
 /// <reference path="../config-scripts/highcharts.d.ts" />
+/// <reference path="../config-scripts/inputmask.d.ts" />
+
+// Declare Inputmask globally (from CDN or local library)
+declare var Inputmask: any;
+
+
 
 
 namespace FinRel {
@@ -26,6 +32,7 @@ namespace FinRel {
     let municipiosList: any[] = [];
     let carregandoMunicipios = false;
     let selectedIndex = -1;
+
 
 
     export let container;
@@ -70,6 +77,8 @@ namespace FinRel {
 
     export let que_num_questionario: number = 0;
 
+    export let veioDeResultadoUnico: boolean = false;
+
 
     export let listaFinanceiro: Array<{
         tempo: number;
@@ -94,7 +103,385 @@ namespace FinRel {
 
     export function carregarIndices() { }
 
+    export function exibirLoadingConsulta(titulo: string, mensagem: string) {        
+        Swal.fire({
+            title: `<strong style="color:#045C99;">${titulo}</strong>`,
+            html: `
+                    <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
+                    <p>🔎 <b>Enviando consulta...</b></p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                    <small style="color: #888;"><i>⏳ ${mensagem}</i></small>
+                    </div>
+                `,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => {
+                Swal.showLoading();
+                // Personaliza a cor do spinner para combinar com o seu sistema (#045C99)
+                const loader = Swal.getPopup().querySelector('.swal2-loader') as HTMLElement;
+                if (loader) {
+                    loader.style.color = '#045C99';
+                    loader.style.borderRightColor = 'transparent';
+                }
+            }
+        });
+    }
+
+    // ============== SEGURADOS - Datatable Functions ==============
+
+    export function validarFiltroSegurado(): boolean {
+        FinRel.validoFiltro = true;
+        FinRel.msgFiltro = '';
+        const matricula: string = (($('#matricula').val() as string) || '').trim();
+        const nome: string = (($('#per_nome').val() as string) || '').trim();
+        const cpfNumeros: string = (($('#cpf_busca').val() as string) || '').replace(/\D/g, '');
+
+        const erros: string[] = [];
+
+        // Matrícula: apenas números e maior que 0
+        if (matricula.length > 0) {
+            if (!/^\d+$/.test(matricula)) {
+                erros.push('A matrícula deve conter apenas números.');
+            } else if (parseInt(matricula, 10) <= 0) {
+                erros.push('A matrícula deve ser maior que zero.');
+            }
+        }
+
+        // Nome: mínimo de 3 caracteres
+        if (nome.length > 0 && nome.length < 3) {
+            erros.push(`Nome incompleto: faltam ${3 - nome.length} letra(s) para a busca (mínimo 3).`);
+        }
+
+        // CPF: exatamente 11 dígitos
+        if (cpfNumeros.length > 0 && cpfNumeros.length < 11) {
+            erros.push(`CPF incompleto: faltam ${11 - cpfNumeros.length} dígito(s).`);
+        }
+
+        const nenhumPreenchido = matricula.length === 0 && nome.length === 0 && cpfNumeros.length === 0;
+
+        if (nenhumPreenchido) {
+            FinRel.validoFiltro = false;
+            FinRel.msgFiltro += 'Por favor, informe pelo menos um critério de busca (Matrícula, Nome ou CPF).';
+        } else if (erros.length > 0) {
+            FinRel.validoFiltro = false;
+            FinRel.msgFiltro += erros.join('\n');
+        } else {
+            FinRel.validoFiltro = true;
+            FinRel.msgFiltro = '';
+        }
+
+        return FinRel.validoFiltro; // mantive o retorno original: true = filtro inválido
+    }
+
+    /**
+     * Realiza a consulta de segurados por matrícula, nome ou CPF
+     */
+    export function GetListaSegurados() {
+        const matricula = $('#matricula').val() || '';
+        const nome = $('#per_nome').val() || '';
+        const cpf = $('#cpf_busca').val() || '';
+
+        const dtIni = $('#per_dt_ini').val() || '';
+        const dtFim = $('#per_dt_fim').val() || '';
+
+        console.log(`Consultando : `, matricula, nome, cpf);
+        if (validarFiltroSegurado()) { } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Atenção',
+                text: FinRel.msgFiltro,
+                footer: ScriptsConfig.footerAlert
+            });
+            return;
+        }
+
+        const url = '/Financeiro/GetListaSegurados';
+        const dados = {
+            matricula: matricula,
+            nome: nome,
+            cpf_busca: cpf,
+            dt_ini: dtIni,
+            dt_fim: dtFim
+        };
+        console.log("dados: ", dados);
+        FinRel.exibirLoadingConsulta('Relatório Financeiro', 'Carregando resultado da busca. Por favor, não feche esta janela!');
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: dados,
+            dataType: 'json',
+            success: function (response) {
+                console.log("response: ", response);
+                Swal.close();
+                if (response.sucesso && response.lista && response.lista.length > 0) {
+                    FinRel.inicializarDataTableSegurados(response.lista);
+
+                    // Mostrar resultado e esconder filtro
+                    $('#div-filtro').css('display', 'none');
+                    $('#div-resultado-segurados').css('display', 'block');
+                    $('#div-resultado-financeiro').css('display', 'none');
+                    $('#lista-financeiro').css('display', 'none');
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sem resultados',
+                        text: response.msg || 'Nenhum segurado encontrado para os parâmetros informados',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Erro na consulta:', xhr && xhr.status, error, xhr && xhr.responseText ? String(xhr.responseText).substring(0, 300) : '');
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao buscar segurados: ' + extrairMensagemErro(xhr, error),
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
+    /**
+     * Gera PDF diretamente para o segurado selecionado na tabela
+     */
+    export function gerarPdfDoSegurado(segurado: any) {
+        const mat = segurado.dpe_matricula || segurado.dep_matricula || '';
+        const nm = segurado.dpe_nome_servidor || segurado.ate_nome || '';
+        const cpf = segurado.dpe_cpf_servidor || segurado.ate_cpf_servidor || '';
+        const dtIni = $('#per_dt_ini').val() || '';
+        const dtFim = $('#per_dt_fim').val() || '';
+
+        FinRel.exibirLoadingConsulta('Dados Financeiros', 'Carregando Relatório Financeiro em PDF...<br>Por favor, não feche esta janela!'); 
+ 
+        $.ajax({
+            url: '/Financeiro/GerarPdfFinanceiro',
+            type: 'POST',
+            data: {
+                matricula: mat,
+                nome: nm,
+                cpf_busca: cpf,
+                dt_ini: dtIni,
+                dt_fim: dtFim
+            },
+            dataType: 'json',
+            success: function (response) {
+                Swal.close();
+                if (response.sucesso) {
+                    // window.open('/Financeiro/abrirPdfFinanceiroGerado', '_blank');
+                    window.open('/Financeiro/abrirPdfFinanceiroGerado', 'popup', 'height=1080,width=1024,toolbar=no'); // '_blank' , 'popup', 'height=1080,width=1024,toolbar=no'
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Erro ao gerar PDF',
+                        text: response.msg || 'Não foi possível gerar o arquivo PDF.',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                Swal.close();
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao gerar PDF: ' + error,
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
+    /**
+     * Inicializa o DataTable com os dados de segurados
+     */
+    export function inicializarDataTableSegurados(dados: any[]) {
+        if (FinRel.dataTableInstance) {
+            FinRel.dataTableInstance.destroy();
+            FinRel.dataTableInstance = null;
+        }
+
+        // Se já existe uma instância anterior, destruir de forma segura
+        try {
+            if ($.fn && $.fn.dataTable && $.fn.dataTable.isDataTable && $.fn.dataTable.isDataTable('#table-lista-segurados')) {
+                try {
+                    const existing = $('#table-lista-segurados').DataTable();
+                    existing.clear && existing.clear();
+                    existing.destroy && existing.destroy();
+                } catch (err) {
+                    console.warn('Falha ao destruir DataTable via API:', err);
+                }
+                // Remover elementos remanescentes que o plugin pode ter criado
+                try { $('.dt-buttons').remove(); } catch (e) { }
+                try { $('.fixedHeader-floating').remove(); } catch (e) { }
+                try { $('#table-lista-segurados_wrapper').remove(); } catch (e) { }
+                AtEvenRel.dataTableInstance = null;
+            }
+        } catch (e) {
+            console.warn('Erro ao verificar/destruir DataTable anterior:', e);
+        }
+
+
+        $('#table-lista-segurados tbody').empty();
+
+        let html = '';
+        dados.forEach((item: any, index: number) => {
+            html += `<tr data-index="${index}">
+                <td style="text-align:center;">${item.dpe_matricula || ''}</td>
+                <td>${item.dpe_nome_servidor || ''}</td>
+                <td style="text-align:center;">${mascararCpf(item.dpe_cpf_servidor) || ''}</td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-segurado-html mr-1" data-index="${index}" data-matricula="${item.dpe_matricula || ''}" data-nome="${(item.dpe_nome_servidor || item.nome || '')}" data-cpf="${item.dpe_cpf_servidor || ''}" title="Visualizar HTML">
+                        <i class="fa-solid fa-eye text-info fa-lg"></i>
+                    </button>
+                </td>
+                <td style="text-align: center;">
+                    <button type="button" class="btn btn-sm btn-outline-light btn-ver-segurado-pdf" data-index="${index}" data-matricula="${item.dpe_matricula || ''}" data-nome="${(item.dpe_nome_servidor || item.nome || '')}" data-cpf="${item.dpe_cpf_servidor || ''}" title="Gerar PDF">
+                        <i class="fa-regular fa-file-pdf text-danger fa-lg"></i>
+                    </button>
+                </td>
+            </tr>`;
+        });
+
+        $('#table-lista-segurados tbody').html(html);
+
+        FinRel.dataTableInstance = $('#table-lista-segurados').DataTable({
+            paging: true,
+            pageLength: 10,
+            lengthMenu: [10, 25, 50, 100],
+            destroy: true,
+            searching: true,
+            ordering: true,
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/pt-BR.json'
+            }
+            , order: [[1, 'asc']] // Ordenar por nome do servidor (segunda coluna)
+        });
+
+        // ====== EVENT HANDLERS ======
+
+        // Botão Ver HTML - usar data-attributes do próprio botão para evitar depender
+        // do array 'dados' (problemas com reindexação/paging do DataTables podem
+        // causar 'undefined' ao acessar dados[index]).
+        $('#table-lista-segurados tbody').on('click', 'button.btn-ver-segurado-html', function (e) {
+            e.stopPropagation();
+            const mat = $(this).data('matricula') || '';
+            const nome = $(this).data('nome') || '';
+            const cpf = $(this).data('cpf') || '';
+            FinRel.carregarFinanceirodoSeguradoClicado({ dpe_matricula: mat, dpe_nome_servidor: nome, dpe_cpf_servidor: cpf });
+        });
+
+        // Botão Gerar PDF - idem
+        $('#table-lista-segurados tbody').on('click', 'button.btn-ver-segurado-pdf', function (e) {
+            e.stopPropagation();
+            const mat = $(this).data('matricula') || '';
+            const nome = $(this).data('nome') || '';
+            const cpf = $(this).data('cpf') || '';
+            FinRel.gerarPdfDoSegurado({ dpe_matricula: mat, dpe_nome_servidor: nome, dpe_cpf_servidor: cpf });
+        });
+    }
+
+
+
+    /**
+     * Extrai uma mensagem útil de uma falha de $.ajax (o "error" do jQuery vem vazio em HTTP 500).
+     */
+    function extrairMensagemErro(xhr: any, error: any): string {
+        const texto = String((xhr && xhr.responseText) || '');
+        const titulo = texto.match(/<title>([\s\S]*?)<\/title>/i);
+        if (titulo && titulo[1]) {
+            const el = document.createElement('textarea');
+            el.innerHTML = titulo[1];
+            return el.value.trim();
+        }
+        if (texto.indexOf('ERRO:') === 0) return texto;
+        if (error) return String(error);
+        return (xhr && xhr.status) ? 'HTTP ' + xhr.status : 'erro desconhecido';
+    }
+
+    /**
+     * Carrega todos os registros financeiros do segurado selecionado
+     */
+    export function carregarFinanceirodoSeguradoClicado(segurado: any) {
+        const mat = segurado.dpe_matricula || segurado.dep_matricula || '';
+        const nm = segurado.dpe_nome_servidor || segurado.ate_nome || '';
+        const cpf = segurado.dpe_cpf_servidor || segurado.ate_cpf_servidor || '';
+
+        FinRel.exibirLoadingConsulta('Dados Financeiros', 'Carregando financeiro...');   
+        // Atualizar inputs do formulário com o segurado selecionado
+        $('#matricula').val(mat);
+        $('#per_nome').val(nm);
+        $('#cpf_busca').val(cpf);
+
+        const dtIni = $('#per_dt_ini').val() || '';
+        const dtFim = $('#per_dt_fim').val() || '';
+
+        const url = '/Financeiro/GetDadosFinanceiro';
+
+        // No servidor matrícula, CPF e nome são combinados com OR. Enviar os três traria também
+        // homônimos (nome começando igual) e outras matrículas do mesmo CPF; por isso vai só a
+        // identificação mais específica do segurado clicado.
+        const dados: any = { dt_ini: dtIni, dt_fim: dtFim };
+        if (Number(mat) > 0) {
+            dados.matricula = mat;
+        } else if (String(cpf).replace(/\D/g, '').length > 0) {
+            dados.cpf = cpf;
+        } else {
+            dados.nome = nm;
+        }
+
+        console.log(dados);
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: dados,
+            dataType: 'json',
+            success: function (response) {
+                console.log(response);
+                Swal.close();
+                if (response.sucesso && response.lista && response.lista.length > 0) {
+                    console.log('Financeiro do segurado carregado com sucesso:', response.lista);
+                    // Processar dados e mostrar a lista de financeiro
+                    FinRel.listaFinanceiro = response.lista;
+                    gerarHTML(response.lista);
+
+                    // Mostrar resultado e esconder outros
+                    $('#div-filtro').css('display', 'none');
+                    $('#div-resultado-segurados').css('display', 'none');
+                    $('#div-resultado-financeiro').css('display', 'block');
+                    $('#lista-financeiro').css('display', 'block');
+
+                } else {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Sem registros',
+                        text: 'Nenhum registro financeiro encontrado para este segurado',
+                        footer: ScriptsConfig.footerAlert
+                    });
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Erro na consulta:', xhr && xhr.status, error, xhr && xhr.responseText ? String(xhr.responseText).substring(0, 300) : '');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Erro',
+                    text: 'Erro ao buscar financeiro: ' + extrairMensagemErro(xhr, error),
+                    footer: ScriptsConfig.footerAlert
+                });
+            }
+        });
+    }
+
     // Formata número para o padrão brasileiro: 2 casas decimais e "," como separador decimal
+    function mascararCpf(cpf: any): string {
+        const str = String(cpf ?? '').replace(/\D/g, '');
+        if (str.length !== 11) return str;
+        return `***.${str.substring(3, 6)}.${str.substring(6, 9)}-**`;
+    }
+
     function formatarNumero(valor: any): string {
         if (valor === null || valor === undefined || valor === '') return '';
         const numero = Number(valor);
@@ -109,6 +496,7 @@ namespace FinRel {
         if (str.length < 6) return str;
         return `${str.substring(0, 4)}/${str.substring(4, 6)}`;
     }
+
     function formatarCompetenciaMesAno(competencia: any): string {
         if (competencia === null || competencia === undefined) return '';
         const str = String(competencia).trim();
@@ -116,6 +504,7 @@ namespace FinRel {
         return `${str.substring(4, 6)}/${str.substring(0, 4)}`;
     }
     // Converte formato mm/aaaa para aaaamm (ex: 08/2026 para 202608)
+
     function converterDataFormularioParaCompetencia(dataFormulario: string): string {
         if (!dataFormulario || dataFormulario.trim().length < 7) return '';
         const trimmed = dataFormulario.trim();
@@ -164,7 +553,6 @@ namespace FinRel {
         });
         return FinRel.listaFinanceiro;
     }
-
 
     function getDescricaoTipoCargo(tipoCargo: any): string {
         const numeroTipoCargo = Number(tipoCargo ?? 0);
@@ -232,7 +620,7 @@ namespace FinRel {
 
                 htmlServidor += '<div class="table-responsive"><table class="table table-sm table-bordered table-striped"><thead class="thead-light"><tr>' +
                     '<th style="text-align:center;">Cód. Rubrica</th><th style="text-align:center;">Rubrica</th><th style="text-align:center;">Data Início</th><th style="text-align:center;">Valor</th><th style="text-align:center;">% Pont./Dia/Hora</th><th style="text-align:center;">QTDE URV</th>' +
-                    `<th style="text-align:center;">PROVENTO</th><th>DESCONTO</th><th style="text-align:center;">LIQUIDO</th>` +
+                    `<th style="text-align:center;">PROVENTO</th><th style="text-align:center;">DESCONTO</th><th style="text-align:center;">LIQUIDO</th>` +
                     '</tr></thead><tbody>';
 
                 grupo.registros.forEach((item: any) => {
@@ -279,9 +667,8 @@ namespace FinRel {
             // string gigante acumulada em memória.
             containerElement.insertAdjacentHTML('beforeend', htmlServidor);
         });
+
     }
-
-
 
     export function agruparFinanceiro(dados: any[]) {
         if (!Array.isArray(dados)) {
@@ -306,20 +693,20 @@ namespace FinRel {
                     matricula,
                     grupos: {} as {
                         [chaveGrupo: string]: {
-                            competencia: string; tipo_cargo_fi: string; dfu_tp_cargo: number;dfu_desc_tp_cargo: string; registros: any[] 
+                            competencia: string; tipo_cargo_fi: string; dfu_tp_cargo: number; dfu_desc_tp_cargo: string; registros: any[]
                         }
-                    
+
                     }
                 };
             }
 
             const servidor = mapaServidores[chaveServidor];
 
-            const competencia           = String(item.fin_competencia_ano_mes ?? item.COMPETENCIA_FI ?? 'Sem Competência');
-            const tipoCargoRaw          = item.dfu_tp_cargo ?? item.tipo_cargo_fi ?? 0;
-            const tipoCargo             = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
-            const desc_tp_cargo         = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
-            const chaveGrupo            = `${competencia}|${tipoCargo}`;
+            const competencia = String(item.fin_competencia_ano_mes ?? item.COMPETENCIA_FI ?? 'Sem Competência');
+            const tipoCargoRaw = item.dfu_tp_cargo ?? item.tipo_cargo_fi ?? 0;
+            const tipoCargo = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
+            const desc_tp_cargo = item.dfu_desc_tp_cargo ?? ''; // String(tipoCargoRaw || 'Sem Tipo Cargo');
+            const chaveGrupo = `${competencia}|${tipoCargo}`;
 
             if (!servidor.grupos[chaveGrupo]) {
                 servidor.grupos[chaveGrupo] = {
@@ -369,7 +756,6 @@ namespace FinRel {
             grupos: Object.values(servidor.grupos)
         }));
     }
-
 
     function isFinanceiroAgrupado(dados: any[]): dados is Array<{ competencia: string; tipos: any[] }> {
         return Array.isArray(dados) && dados.length > 0 && typeof dados[0].competencia === 'string' && Array.isArray(dados[0].tipos);
@@ -447,7 +833,7 @@ namespace FinRel {
                         FinRel.gerarHTML(processedData);
 
                         $('#botoes').css('display', 'block');
-                        Swal.close();
+                        // Swal.close();
                     } else {
                         ScriptsConfig.swalconfirmeActionAlertaWarning.fire({
                             icon: 'info',
@@ -555,7 +941,6 @@ namespace FinRel {
         return jqxhr;
     }
 
-
     export function validarBusca(cpf, matricula, per_nome, per_dt_ini, per_dt_fim) {
         const cpfLimpo = String(cpf ?? '').replace(/\D/g, '');
         const cpfInformado = cpfLimpo.length > 0;
@@ -576,7 +961,6 @@ namespace FinRel {
 
         return FinRel.validoFiltro;
     }
-
 
     export function gerarPDF() {
         const cpf = String($('input[name="cpf_busca"]').val() || '').replace(/\D/g, '');
@@ -668,7 +1052,6 @@ namespace FinRel {
     }
 
 
-
     $(function () {
 
         _ano = '2026';
@@ -729,48 +1112,8 @@ namespace FinRel {
         });
 
         $('button[name="btnBuscar"]').on('click', function (e) {
-            const cpf = String($('input[name="cpf_busca"]').val() as string || '').replace(/\D/g, '');
-            const matricula = String($('input[name="matricula"]').val() as string || '').trim();
-            const nome = String($('input[name="per_nome"]').val() as string || '').trim();
-            const per_dt_ini = ($('input[name="per_dt_ini"]').val() as string || '').trim();
-            const per_dt_fim = ($('input[name="per_dt_fim"]').val() as string || '').trim();
-            if (FinRel.validarBusca(cpf, matricula, nome, per_dt_ini, per_dt_fim)) {
-                Swal.fire({
-                    title: '<strong style="color:#045C99;">Financeiro</strong>',
-                    html: `
-                        <div style="text-align: left; font-size: 15px; color: #555; line-height: 1.6;">
-                        <p>🔎 <b>Enviando consulta...</b></p>
-                        <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
-                        <small style="color: #888;"><i>⏳ Gerando o relatório. Por favor, não feche esta janela!</i></small>
-                        </div>
-                    `,
-                    allowOutsideClick: false,
-                    allowEscapeKey: false,
-                    showConfirmButton: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                        // Personaliza a cor do spinner para combinar com o seu sistema (#045C99)
-                        const loader = Swal.getPopup().querySelector('.swal2-loader') as HTMLElement;
-                        if (loader) {
-                            loader.style.color = '#045C99';
-                            loader.style.borderRightColor = 'transparent';
-                        }
-                    }
-                });
-
-                // Property 'always' does not exist on type 'void'.
-                FinRel.carregarFinanceiro(cpf, matricula, nome, per_dt_ini, per_dt_fim).always(function () {
-
-                });
-            } else {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '<span style="color:#045C99;font-size:22px;">Atenção!</span>',
-                    html: '<label style="color:#045C99;font-size:20px;text-align:left;">' + FinRel.msgFiltro + '<label>',
-                    footer: ScriptsConfig.footerAlert
-                });
-            }
-
+            // Chamar GetListaSegurados() para exibir lista de segurados
+            FinRel.GetListaSegurados();
         });
 
         $('input[name="cpf_busca"]').on('input', function () {
@@ -785,36 +1128,38 @@ namespace FinRel {
             // FinRel.editarEventoQuestionrio(eve_num_evento)
         });
 
-        $('#div-lista-questionario tbody').on('click', 'button.btn-editar-questionario', function () {
-            const eve_num_evento = Number($(this).data('eve') || 0);
-            const que_num_questionario = Number($(this).data('que') || 0);
-            $('input[name="eve_num_evento"]').val(eve_num_evento);
-            $('input[name="que_num_questionario"]').val(que_num_questionario);
-            console.log(FinRel.questionariosDtos);
-            let questionario = FinRel.questionariosDtos.find(x => x.que_num_questionario === que_num_questionario);
-            console.log(questionario);
-            if (questionario) {
-                // Estat.editarQuestionrio(questionario);
-                // $('#div-lista-evento-question').css('display', 'none');
-                // $('#div-lista-questionario').css('display', 'none');
-                // $('#div-formulario-questionario').css('display', 'block');
-                // FinRel.carregarContagemPorNotaResultado()
-            }
+
+        $('button[name="btnVoltarFiltro"]').on('click', function (e) {
+            // Voltar para tela de filtros
+
+            $('input[name="matricula"]').val('');
+            $('input[name="per_nome"]').val('');
+            $('input[name="cpf_busca"]').val('');
+            $('input[name="per_dt_ini"]').val('');
+            $('input[name="per_dt_fim"]').val('');
+
+
+            $('#div-filtro').css('display', 'block');
+            $('#div-resultado-segurados').css('display', 'none');
+            $('#div-resultado-financeiro').css('display', 'none');
+            $('#lista-financeiro').css('display', 'none');
+
         });
 
         $('button[name="btn-fechar-lista"]').on('click', function (e) {
-            $('form[name="formRelFinanceiro"] input[name="cpf_busca"]').val('');
-            $('form[name="formRelFinanceiro"] input[name="matricula"]').val('');
-            $('form[name="formRelFinanceiro"] input[name="per_dt_ini"]').val('');
-            $('form[name="formRelFinanceiro"] input[name="per_dt_fim"]').val('');
-
-            $('#div-filtro').css('display', 'block');
-            $('#div-resultado-financeiro').css('display', 'none');
+            if (FinRel.veioDeResultadoUnico) {
+                $('#div-filtro').css('display', 'block');
+                $('#div-resultado-segurados').css('display', 'none');
+                $('#div-resultado-financeiro').css('display', 'none');
+                $('#lista-financeiro').css('display', 'none');
+            } else {
+                $('#div-filtro').css('display', 'none');
+                $('#div-resultado-segurados').css('display', 'block');
+                $('#div-resultado-financeiro').css('display', 'none');
+                $('#lista-financeiro').css('display', 'none');
+            }
         });
 
-        $('button[name="btn-salvar-questionario"]').on('click', function (e) {
-            // Estat.salvarQuestionario();
-        });
 
         $('button[name="btn-abrir-cadastro"]').on('click', function (e) {
             $('input[name="que_num_questionario"]').val('0');
@@ -834,17 +1179,6 @@ namespace FinRel {
             var cleanValue = ($(this).val() as string);
             $('input[name="busca"]').val(cleanValue)
             console.log("Cleaned:", cleanValue);
-        });
-
-        $('button[name="btnBuscar"]').on('click', function (e) {
-
-            // $.when(FinRel.buscarUsuarioaNoRelatorio()).then(function (data, textStatus, jqXHR) {
-            //     $.when(FinRel.initializeDataTable(FinRel.listaBusca, _ano, _mes, 100)).then(function (data, textStatus, jqXHR) {
-            //         $('input[name="buscaLimpa"]').val('');
-            //         console.log('Pontuação carregada com filtro');
-            //     });
-            // });
-
         });
 
         /*

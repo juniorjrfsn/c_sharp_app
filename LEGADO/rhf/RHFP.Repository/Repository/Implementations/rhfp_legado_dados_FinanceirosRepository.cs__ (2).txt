@@ -31,13 +31,6 @@ namespace RHFP.Repository.Implementations
             ,[fin_qtd_urv]
             FROM [pms_rhfp_desenvolvimento].[dbo].[rhfp_legado_financeiro]
         */
-
-        private class ServidorKey
-        {
-            public int dpe_matricula { get; set; }
-            public string dpe_nome_servidor { get; set; }
-            public string dpe_cpf_servidor { get; set; }
-        }
         private static string NormalizarNomeBusca(string nome)
         {
             if (string.IsNullOrWhiteSpace(nome))
@@ -108,7 +101,7 @@ namespace RHFP.Repository.Implementations
                     return q.Select(d => new rhfp_legado_dados_financeirosDTO
                     {
                         dpe_matricula = d.dpe_matricula,
-                        dpe_nome_servidor = d.dpe_nome_servidor.Trim(),
+                        dpe_nome_servidor = d.dpe_nome_servidor,
                         dpe_cpf_servidor = d.dpe_cpf_servidor
                     }).Distinct(); // Transforma a query em SELECT DISTINCT dpe_matricula, dpe_nome_servidor, dpe_cpf_servidor no SQL
                 }
@@ -140,7 +133,7 @@ namespace RHFP.Repository.Implementations
                 {
                     var porNome = ProjetarEDesduplicar(baseQuery.Where(d =>
                         d.dpe_nome_servidor != null &&
-                        d.dpe_nome_servidor.Trim().StartsWith(nomeBusca)
+                        d.dpe_nome_servidor.StartsWith(nomeBusca)
                     )).ToList();
 
                     resultado.AddRange(porNome);
@@ -180,273 +173,147 @@ namespace RHFP.Repository.Implementations
         /// - Se matrícula, CPF e nome estiverem vazios, nenhuma consulta é executada.
         /// </summary>
 
-      
         public List<rhfp_legado_dados_financeirosDTO> GetListaSegurados(
-            int matricula = 0,
-            string cpf = null,
-            string nome = null,
-            string competencia = null,
-            int cod_rubrica = 0,
-            string dtIni = null,
-            string dtFim = null
-         )
-         {
-
-            /*
-               DECLARE @dpe_cpf_servidor VARCHAR(11) = '',  @dpe_matricula  INT = 0 , @dpe_nome_servidor VARCHAR(100) = 'MARIA APARECIDA'
-                , @dtIni CHAR(6) = '', @dtFim CHAR(6) = '' 
-                SELECT [dpe_matricula]
-                    ,[dpe_nome_servidor]
-                    ,[dpe_cpf_servidor]  
-                FROM [pms_rhfp_desenvolvimento].[dbo].[rhfp_legado_dados_financeiros]
-                WHERE 
-                    (
-                        ([dpe_matricula] = @dpe_matricula AND @dpe_matricula > 0)
-                        OR 
-                        ( [dpe_nome_servidor] LIKE ''+ @dpe_nome_servidor+'%' AND @dpe_nome_servidor IS NOT NULL AND @dpe_nome_servidor != '' )
-                        OR 
-                        ([dpe_cpf_servidor] = @dpe_cpf_servidor AND @dpe_cpf_servidor IS NOT NULL AND @dpe_cpf_servidor != '')
-                    )
-                    AND
-                    (
-                    ( [fin_competencia_ano_mes] >= @dtIni AND @dtIni IS NOT NULL AND  @dtIni != ''  AND (@dtFim = '' OR @dtFim IS NULL))
-                    OR
-                    ( [fin_competencia_ano_mes] <= @dtFim AND @dtFim IS NOT NULL AND  @dtFim != ''  AND (@dtIni = '' OR @dtFim IS NULL))
-                    OR 
-                    ( 
-                            ( @dtIni != '' AND @dtFim != '' AND @dtIni IS NOT NULL AND @dtFim IS NOT NULL )
-                            AND
-                            (
-                                [fin_competencia_ano_mes] >= @dtIni AND  [fin_competencia_ano_mes] <= @dtFim
-                            )
-                    )
-                    OR
-                    ( @dtIni = '' AND @dtFim = '' )
-                    )
-                GROUP BY  
-                    [dpe_matricula]
-                    ,[dpe_nome_servidor]
-                    ,[dpe_cpf_servidor]  
-
-            */
-            
+           int matricula = 0,
+           string cpf = null,
+           string nome = null,
+           string competencia = null,
+           int cod_rubrica = 0,
+           string dtIni = null,
+           string dtFim = null)
+        {
             try
             {
                 // ============================================================
-                // 1. NORMALIZAÇÃO DOS PARÂMETROS
+                // 1. NORMALIZAÇÃO
                 // ============================================================
 
                 var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
                 var cpfInformado = cpf?.Trim();
-
                 var nomeBusca = NormalizarNomeBusca(nome);
-
                 var competenciaBusca = competencia?.Trim();
                 var dtIniBusca = UtilitariosHelper.NormalizarCompetencia(dtIni);
                 var dtFimBusca = UtilitariosHelper.NormalizarCompetencia(dtFim);
 
+                // ============================================================
+                // 2. VERIFICA QUAIS CAMPOS FORAM INFORMADOS
+                // ============================================================
+
                 bool temMatricula = matricula > 0;
                 bool temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
                 bool temNome = !string.IsNullOrWhiteSpace(nomeBusca);
-
                 bool temCompetencia = !string.IsNullOrWhiteSpace(competenciaBusca);
                 bool temDtIni = !string.IsNullOrWhiteSpace(dtIniBusca);
                 bool temDtFim = !string.IsNullOrWhiteSpace(dtFimBusca);
 
                 // ============================================================
-                // 2. PROTEÇÃO
-                // Matrícula, CPF ou nome são obrigatórios.
+                // 3. PROTEÇÃO
+                // CPF, NOME e MATRÍCULA são os identificadores.
+                // Se nenhum deles foi informado, NÃO consulta o banco.
                 // ============================================================
 
                 if (!temMatricula && !temCpf && !temNome)
+                {
                     return new List<rhfp_legado_dados_financeirosDTO>();
+                }
 
                 // ============================================================
-                // 3. VALIDAÇÃO DO PERÍODO
-                // Formato esperado: YYYYMM
+                // 4. VALIDAÇÃO DOS PERÍODOS
+                // O formato esperado é YYYYMM.
                 // ============================================================
 
                 if (temDtIni)
                 {
                     if (dtIniBusca.Length != 6 || !dtIniBusca.All(char.IsDigit))
+                    {
                         return new List<rhfp_legado_dados_financeirosDTO>();
+                    }
 
                     int mesIni = int.Parse(dtIniBusca.Substring(4, 2));
-
                     if (mesIni < 1 || mesIni > 12)
+                    {
                         return new List<rhfp_legado_dados_financeirosDTO>();
+                    }
                 }
 
                 if (temDtFim)
                 {
                     if (dtFimBusca.Length != 6 || !dtFimBusca.All(char.IsDigit))
+                    {
                         return new List<rhfp_legado_dados_financeirosDTO>();
+                    }
 
                     int mesFim = int.Parse(dtFimBusca.Substring(4, 2));
-
                     if (mesFim < 1 || mesFim > 12)
+                    {
                         return new List<rhfp_legado_dados_financeirosDTO>();
+                    }
                 }
 
-                if (temDtIni &&
-                    temDtFim &&
-                    string.Compare(
-                        dtIniBusca,
-                        dtFimBusca,
-                        StringComparison.Ordinal) > 0)
+                if (temDtIni && temDtFim && string.Compare(dtIniBusca, dtFimBusca, StringComparison.Ordinal) > 0)
                 {
                     return new List<rhfp_legado_dados_financeirosDTO>();
                 }
 
                 // ============================================================
-                // 4. QUERY BASE
+                // 5. CONSULTA NA TABELA rhfp_legado_dados_financeiros
+                // A própria tabela financeira já possui matrícula, CPF e nome do servidor,
+                // portanto NÃO é feita nenhuma consulta em rhfp_legado_dados_pessoais.
+                // Identificadores (matrícula / CPF / nome) são combinados com OR.
+                // Filtros financeiros (competência, período, rubrica) são combinados com AND.
                 // ============================================================
 
-                _context.Database.CommandTimeout = 240;
+                IQueryable<rhfp_legado_dados_financeiros> query = _context.rhfp_legado_dados_financeiros.AsNoTracking();
 
-                IQueryable<rhfp_legado_dados_financeiros> query =
-                    _context.rhfp_legado_dados_financeiros.AsNoTracking();
-
-                // ============================================================
-                // 5. FILTROS FINANCEIROS
-                // Esses filtros são AND.
-                // ============================================================
+                query = query.Where(f =>
+                    (temMatricula && f.dpe_matricula == matricula)
+                    ||
+                    (temCpf && f.dpe_cpf_servidor != null && (f.dpe_cpf_servidor == cpfNormalizado || f.dpe_cpf_servidor == cpfInformado))
+                    ||
+                    (temNome && f.dpe_nome_servidor != null && f.dpe_nome_servidor.StartsWith(nomeBusca))
+                );
 
                 if (temCompetencia)
                 {
-                    query = query.Where(x =>
-                        x.fin_competencia_ano_mes == competenciaBusca);
+                    query = query.Where(f => f.fin_competencia_ano_mes == competenciaBusca);
                 }
 
-                // ============================================================
-                // 6. FILTRO DE PERÍODO (equivalente ao SQL informado)
-                // Somente uma regra deve ser aplicada de acordo com o que foi informado:
-                // - dtIni + dtFim: entre dtIni e dtFim
-                // - somente dtIni: >= dtIni
-                // - somente dtFim: <= dtFim
-                // - nenhum dos dois: sem filtro de período
-                // ============================================================
+                if (temDtIni)
+                {
+                    query = query.Where(f => f.fin_competencia_ano_mes != null && string.Compare(f.fin_competencia_ano_mes, dtIniBusca) >= 0);
+                }
 
-                if (temDtIni && temDtFim)
+                if (temDtFim)
                 {
-                    query = query.Where(x =>
-                        x.fin_competencia_ano_mes != null &&
-                        string.Compare(x.fin_competencia_ano_mes, dtIniBusca, StringComparison.Ordinal) >= 0 &&
-                        string.Compare(x.fin_competencia_ano_mes, dtFimBusca, StringComparison.Ordinal) <= 0);
-                }
-                else if (temDtIni)
-                {
-                    query = query.Where(x =>
-                        x.fin_competencia_ano_mes != null &&
-                        string.Compare(x.fin_competencia_ano_mes, dtIniBusca, StringComparison.Ordinal) >= 0);
-                }
-                else if (temDtFim)
-                {
-                    query = query.Where(x =>
-                        x.fin_competencia_ano_mes != null &&
-                        string.Compare(x.fin_competencia_ano_mes, dtFimBusca, StringComparison.Ordinal) <= 0);
+                    query = query.Where(f => f.fin_competencia_ano_mes != null && string.Compare(f.fin_competencia_ano_mes, dtFimBusca) <= 0);
                 }
 
                 if (cod_rubrica > 0)
                 {
-                    query = query.Where(x =>
-                        x.rub_codigo == cod_rubrica);
+                    query = query.Where(f => f.rub_codigo == cod_rubrica);
                 }
 
-                // ============================================================
-                // 7. FILTROS DE IDENTIFICAÇÃO
-                // Matrícula OR CPF OR Nome
-                // ============================================================
-
-                query = query.Where(x =>
-                    (temMatricula && x.dpe_matricula == matricula)
-                    ||
-                    (temCpf && x.dpe_cpf_servidor != null && (
-                        x.dpe_cpf_servidor == cpfNormalizado ||
-                        x.dpe_cpf_servidor == cpfInformado
-                    ))
-                    ||
-                    (temNome && x.dpe_nome_servidor != null && x.dpe_nome_servidor.StartsWith(nomeBusca))
-                );
-
-                // ============================================================
-                // 8. PROJEÇÃO
-                //
-                // A tabela possui vários campos, mas GetListaSegurados
-                // precisa somente de:
-                //
-                // - matrícula
-                // - nome
-                // - CPF
-                //
-                // Portanto, não carregamos os demais campos financeiros.
-                // ============================================================
-
-                var segurados = query
-                    .Select(x => new
+                // SELECT DISTINCT dpe_matricula, dpe_nome_servidor, dpe_cpf_servidor (desduplicado no banco)
+                var resultado = query
+                    .Select(f => new rhfp_legado_dados_financeirosDTO
                     {
-                        x.dpe_matricula,
-                        x.dpe_nome_servidor,
-                        x.dpe_cpf_servidor
+                        dpe_matricula = f.dpe_matricula,
+                        dpe_nome_servidor = f.dpe_nome_servidor,
+                        dpe_cpf_servidor = f.dpe_cpf_servidor
                     })
-
-                    // ========================================================
-                    // 9. AGRUPAMENTO
-                    //
-                    // Um servidor pode possuir várias linhas financeiras
-                    // por competência/rubrica.
-                    //
-                    // Aqui transformamos essas várias linhas em um único
-                    // registro para a consulta de segurados.
-                    // ========================================================
-
-                    .GroupBy(x => new
-                    {
-                        x.dpe_matricula,
-                        x.dpe_nome_servidor,
-                        x.dpe_cpf_servidor
-                    })
-
-                    .Select(g => g.Key)
-
-                    // ========================================================
-                    // 10. ORDENAÇÃO
-                    // ========================================================
-
+                    .Distinct()
                     .OrderBy(x => x.dpe_nome_servidor)
                     .ThenBy(x => x.dpe_matricula)
-
-                    // ========================================================
-                    // 11. LIMITE
-                    // ========================================================
-
-                    .Take(20000)
-
                     .ToList();
 
-                // ============================================================
-                // 12. CONVERSÃO PARA DTO
-                // ============================================================
-
-                return segurados
-                    .Select(x => new rhfp_legado_dados_financeirosDTO
-                    {
-                        dpe_matricula = x.dpe_matricula,
-                        dpe_nome_servidor = x.dpe_nome_servidor?.Trim(),
-                        dpe_cpf_servidor = x.dpe_cpf_servidor
-                    })
-                    .ToList();
+                return resultado;
             }
             catch (Exception ex)
             {
                 var detalhe = ex.InnerException?.Message ?? ex.Message;
-
-                throw new Exception(
-                    $"Erro ao consultar segurados. Detalhe: {detalhe}",
-                    ex);
+                throw new Exception($"Erro ao consultar segurados. Detalhe: {detalhe}", ex);
             }
         }
- 
 
 
 
@@ -520,7 +387,7 @@ namespace RHFP.Repository.Implementations
                     {
                         fin_numero = x.lf.fin_numero,
                         dpe_matricula = x.lf.dpe_matricula,
-                        dpe_nome_servidor = x.d != null ? x.d.dpe_nome_servidor.Trim() : null,
+                        dpe_nome_servidor = x.d != null ? x.d.dpe_nome_servidor : null,
                         dpe_cpf_servidor = x.d != null ? x.d.dpe_cpf_servidor : null,
                         dfu_tp_cargo = x.lf.dfu_tp_cargo,
                         dfu_desc_tp_cargo = x.lf.dfu_desc_tp_cargo,
@@ -596,208 +463,150 @@ namespace RHFP.Repository.Implementations
             string dtFim = null
        )
         {
-            /*
-            DECLARE 
-                @dpe_cpf_servidor VARCHAR(11) = '',  
-                @dpe_matricula  INT = 1 ,
-                @dpe_nome_servidor VARCHAR(100) = ''
-                , @dtIni CHAR(6) = '', @dtFim CHAR(6) = '' ;
-            WITH Filtro AS (
-                SELECT [fin_numero]
-                    ,[dpe_matricula]
-                    ,[dpe_nome_servidor]
-                    ,[dpe_cpf_servidor]
-                    ,[dfu_tp_cargo]
-                    ,[dfu_desc_tp_cargo]
-                    ,[fin_competencia_ano_mes]
-                    ,[rub_codigo]
-                    ,[rub_descricao]
-                    ,[fin_dt_inicio]
-                    ,[fin_valor]
-                    ,[fin_perc_pontos_dia_hora]
-                    ,[fin_qtd_urv]
-                FROM [dbo].[rhfp_legado_dados_financeiros]
-                WHERE 
-                    (
-                        ([dpe_matricula] = @dpe_matricula AND @dpe_matricula > 0)
-                        OR 
-                        ( [dpe_nome_servidor] LIKE ''+ @dpe_nome_servidor+'%' AND @dpe_nome_servidor IS NOT NULL AND @dpe_nome_servidor != '' )
-                        OR 
-                        ([dpe_cpf_servidor] = @dpe_cpf_servidor AND @dpe_cpf_servidor IS NOT NULL AND @dpe_cpf_servidor != '')
-                    )
-                    AND
-                    (
-                    ( [fin_competencia_ano_mes] >= @dtIni AND @dtIni IS NOT NULL AND  @dtIni != ''  AND (@dtFim = '' OR @dtFim IS NULL))
-                    OR
-                    ( [fin_competencia_ano_mes] <= @dtFim AND @dtFim IS NOT NULL AND  @dtFim != ''  AND (@dtIni = '' OR @dtFim IS NULL))
-                    OR 
-                    ( 
-                            ( @dtIni != '' AND @dtFim != '' AND @dtIni IS NOT NULL AND @dtFim IS NOT NULL )
-                            AND
-                            (
-                                [fin_competencia_ano_mes] >= @dtIni AND  [fin_competencia_ano_mes] <= @dtFim
-                            )
-                    )
-                    OR
-                    ( @dtIni = '' AND @dtFim = '' )
-                    )
-            ) 
-            SELECT  
-                [fin_numero]
-                ,[dpe_matricula]
-                ,[dpe_nome_servidor]
-                ,[dpe_cpf_servidor]
-                ,[dfu_tp_cargo]
-                ,[dfu_desc_tp_cargo]
-                ,[fin_competencia_ano_mes]
-                ,[rub_codigo]
-                ,[rub_descricao]
-                ,[fin_dt_inicio]
-                ,[fin_valor]
-                ,[fin_perc_pontos_dia_hora]
-                ,[fin_qtd_urv]
-                , CASE WHEN ([rub_codigo] > 0 AND [rub_codigo] < 100)       THEN [fin_valor] ELSE 0 END AS PROVENTO
-                , CASE WHEN ([rub_codigo] >= 100 AND [rub_codigo] <= 400)   THEN [fin_valor] ELSE 0 END AS DESCONTO
-                    , SUM( CASE WHEN [rub_codigo] > 0     AND [rub_codigo] < 100  THEN [fin_valor] ELSE 0 END ) OVER(
-                    PARTITION BY [dpe_matricula], [fin_competencia_ano_mes], [dfu_tp_cargo] 
-                ) AS [TOTAL_PROVENTO]
-                , SUM( CASE WHEN [rub_codigo] >= 100  AND [rub_codigo] <= 400 THEN [fin_valor] ELSE 0 END ) OVER(
-                    PARTITION BY [dpe_matricula], [fin_competencia_ano_mes], [dfu_tp_cargo] 
-                ) AS [TOTAL_DESCONTO]
-                , SUM( CASE WHEN [rub_codigo] > 0     AND [rub_codigo] < 100  THEN [fin_valor] ELSE 0 END ) OVER(
-                    PARTITION BY [dpe_matricula], [fin_competencia_ano_mes], [dfu_tp_cargo] 
-                ) - SUM( CASE WHEN [rub_codigo] >= 100  AND [rub_codigo] <= 400 THEN [fin_valor] ELSE 0 END ) OVER(
-                    PARTITION BY [dpe_matricula], [fin_competencia_ano_mes], [dfu_tp_cargo] 
-                ) AS [LIQUIDO] 
-            FROM Filtro
-            */
+
             try
             {
-                // ============================================================
-                // 1. NORMALIZAÇÃO DOS PARÂMETROS
-                // ============================================================
                 var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
-                var cpfInformado = cpf?.Trim();
-                var nomeBusca = NormalizarNomeBusca(nome);
-                var competenciaBusca = competencia?.Trim();
-                var dtIniBusca = UtilitariosHelper.NormalizarCompetencia(dtIni);
-                var dtFimBusca = UtilitariosHelper.NormalizarCompetencia(dtFim);
+                var nomeTrim = nome?.Trim();
+                var dtIniFormatada = UtilitariosHelper.NormalizarCompetencia(dtIni);
+                var dtFimFormatada = UtilitariosHelper.NormalizarCompetencia(dtFim);
 
-                bool temMatricula = matricula > 0;
-                bool temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
-                bool temNome = !string.IsNullOrWhiteSpace(nomeBusca);
-                bool temCompetencia = !string.IsNullOrWhiteSpace(competenciaBusca);
-                bool temDtIni = !string.IsNullOrWhiteSpace(dtIniBusca);
-                bool temDtFim = !string.IsNullOrWhiteSpace(dtFimBusca);
+                var temMatricula = matricula > 0;
+                var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
+                var temNome = !string.IsNullOrWhiteSpace(nomeTrim);
+                var temCompetencia = !string.IsNullOrWhiteSpace(competencia);
+                var temDtIni = !string.IsNullOrWhiteSpace(dtIniFormatada);
+                var temDtFim = !string.IsNullOrWhiteSpace(dtFimFormatada);
 
-                // No SQL, sem matrícula/CPF/nome nenhuma condição do OR é verdadeira
-                // e nada é retornado. Também evita varrer a tabela inteira.
-                if (!temMatricula && !temCpf && !temNome)
+                if (!temMatricula && !temCpf && !temNome && !temCompetencia && !temDtIni && !temDtFim)
                     return new List<rhfp_legado_dados_financeirosDTO>();
 
-                _context.Database.CommandTimeout = 240;
+                // dp NÃO é mais um join direto por matrícula: rhfp_financeiro tem várias linhas
+                // por matrícula (uma por competência/rubrica), então um join só por matrícula
+                // multiplicava cada linha de lf por todas as linhas de dp com a mesma matrícula
+                // (fan-out), duplicando registros e inflando os totais.
+                // Em vez disso, usamos uma subquery correlacionada (FirstOrDefault) que traz
+                // no máximo 1 nome/cpf por matrícula.
 
-                // ============================================================
-                // 2. CTE "Filtro": identificação (OR) AND período
-                // ============================================================
-                IQueryable<rhfp_legado_dados_financeiros> query =
-                    _context.rhfp_legado_dados_financeiros.AsNoTracking();
+                var query = from lf in _context.rhfp_legado_dados_financeiros
+                            select new
+                            {
+                                lf,
+                                dp = _context.rhfp_legado_dados_financeiros
+                                    .Where(d => d.dpe_matricula == lf.dpe_matricula)
+                                    .Select(d => new { d.dpe_nome_servidor, d.dpe_cpf_servidor })
+                                    .FirstOrDefault()
+                            };
 
-                // Matrícula OR CPF OR Nome (colunas da própria tabela financeira,
-                // sem subquery por linha)
-                query = query.Where(x =>
-                    (temMatricula && x.dpe_matricula == matricula)
-                    ||
-                    (temNome && x.dpe_nome_servidor != null && x.dpe_nome_servidor.StartsWith(nomeBusca))
-                    ||
-                    (temCpf && x.dpe_cpf_servidor != null && (
-                        x.dpe_cpf_servidor == cpfNormalizado ||
-                        x.dpe_cpf_servidor == cpfInformado
-                    )));
+                if (temMatricula)
+                {
+                    query = query.Where(x => x.lf.dpe_matricula == matricula);
+                }
 
-                // Período sobre fin_competencia_ano_mes:
-                // só dtIni => >= dtIni | só dtFim => <= dtFim | os dois => entre | nenhum => sem filtro
+                if (temCpf)
+                {
+                    var cpfRaw = cpfNormalizado;
+                    var cpfComMascara = cpf?.Trim() ?? string.Empty;
+                    query = query.Where(x => x.dp != null && x.dp.dpe_cpf_servidor != null && (
+                        x.dp.dpe_cpf_servidor == cpfRaw ||
+                        x.dp.dpe_cpf_servidor == cpfComMascara ||
+                        x.dp.dpe_cpf_servidor.Replace(".", "").Replace("-", "").Replace("/", "") == cpfRaw
+                    ));
+                }
+
+                if (temNome)
+                {
+                    var nomeBusca = NormalizarNomeBusca(nomeTrim);
+                    if (!string.IsNullOrWhiteSpace(nomeBusca))
+                    {
+                        var nomeBuscaLower = nomeBusca.ToLower();
+                        query = query.Where(x => x.dp != null && x.dp.dpe_nome_servidor != null &&
+                            x.dp.dpe_nome_servidor.Trim().ToLower().StartsWith(nomeBuscaLower));
+                    }
+                }
+
+
                 if (temDtIni)
-                    query = query.Where(x => x.fin_competencia_ano_mes != null &&
-                        string.Compare(x.fin_competencia_ano_mes, dtIniBusca) >= 0);
+                {
+                    query = query.Where(x => x.lf.fin_competencia_ano_mes != null && string.Compare(x.lf.fin_competencia_ano_mes, dtIniFormatada) >= 0);
+                }
+
 
                 if (temDtFim)
-                    query = query.Where(x => x.fin_competencia_ano_mes != null &&
-                        string.Compare(x.fin_competencia_ano_mes, dtFimBusca) <= 0);
+                {
+                    query = query.Where(x => x.lf.fin_competencia_ano_mes != null && string.Compare(x.lf.fin_competencia_ano_mes, dtFimFormatada) <= 0);
+                }
 
-                // Filtros extras da assinatura (não existem no SQL; só atuam se informados)
-                if (temCompetencia)
-                    query = query.Where(x => x.fin_competencia_ano_mes == competenciaBusca);
 
                 if (cod_rubrica > 0)
-                    query = query.Where(x => x.rub_codigo == cod_rubrica);
+                    query = query.Where(x => x.lf.rub_codigo == cod_rubrica);
 
-                // ============================================================
-                // 3. SELECT das colunas da CTE (uma única ida ao banco)
-                // ============================================================
-                var linhas = query
-                    .Select(x => new
-                    {
-                        x.fin_numero,
-                        x.dpe_matricula,
-                        x.dpe_nome_servidor,
-                        x.dpe_cpf_servidor,
-                        x.dfu_tp_cargo,
-                        x.dfu_desc_tp_cargo,
-                        x.fin_competencia_ano_mes,
-                        x.rub_codigo,
-                        x.rub_descricao,
-                        x.fin_dt_inicio,
-                        x.fin_valor,
-                        x.fin_perc_pontos_dia_hora,
-                        x.fin_qtd_urv
-                    })
-                    .ToList();
+                var dados = query.Select(x => new
+                {
+                    x.lf.fin_numero,
+                    x.lf.dpe_matricula,
+                    nome_ = x.dp != null ? x.dp.dpe_nome_servidor : null,
+                    cpf_ = x.dp != null ? x.dp.dpe_cpf_servidor : null,
+                    x.lf.dfu_tp_cargo,
+                    x.lf.dfu_desc_tp_cargo,
+                    x.lf.fin_competencia_ano_mes,
+                    x.lf.rub_codigo,
+                    x.lf.rub_descricao,
+                    x.lf.fin_dt_inicio,
+                    x.lf.fin_valor,
+                    x.lf.fin_perc_pontos_dia_hora,
+                    x.lf.fin_qtd_urv
+                }).ToList();
 
-                if (linhas.Count == 0)
+                if (dados == null || dados.Count == 0)
                     return new List<rhfp_legado_dados_financeirosDTO>();
 
-                // ============================================================
-                // 4. PROVENTO / DESCONTO e SUM() OVER (PARTITION BY ...)
-                // O EF não gera funções de janela; o cálculo é feito em memória
-                // sobre as linhas já filtradas (mesma base da CTE), particionando por
-                // dpe_matricula, fin_competencia_ano_mes e dfu_tp_cargo.
-                // ============================================================
-                var resultado = linhas
-                    .GroupBy(l => new { l.dpe_matricula, l.fin_competencia_ano_mes, l.dfu_tp_cargo })
-                    .SelectMany(g =>
-                    {
-                        decimal totalProvento = g.Where(l => EhProvento(l.rub_codigo)).Sum(l => l.fin_valor);
-                        decimal totalDesconto = g.Where(l => EhDesconto(l.rub_codigo)).Sum(l => l.fin_valor);
+                var calculado = dados.Select(r => new
+                {
+                    r,
+                    PROVENTO = (r.rub_codigo > 0 && r.rub_codigo < 100) ? r.fin_valor : 0m,
+                    DESCONTO = (r.rub_codigo >= 100 && r.rub_codigo <= 400) ? r.fin_valor : 0m
+                }).ToList();
 
-                        return g.Select(l => new rhfp_legado_dados_financeirosDTO
-                        {
-                            fin_numero = l.fin_numero,
-                            dpe_matricula = l.dpe_matricula,
-                            dpe_nome_servidor = l.dpe_nome_servidor?.TrimEnd(),
-                            dpe_cpf_servidor = l.dpe_cpf_servidor,
-                            dfu_tp_cargo = l.dfu_tp_cargo,
-                            dfu_desc_tp_cargo = l.dfu_desc_tp_cargo,
-                            fin_competencia_ano_mes = l.fin_competencia_ano_mes,
-                            rub_codigo = l.rub_codigo,
-                            rub_descricao = l.rub_descricao,
-                            fin_dt_inicio = l.fin_dt_inicio,
-                            fin_valor = l.fin_valor,
-                            fin_perc_pontos_dia_hora = l.fin_perc_pontos_dia_hora,
-                            fin_qtd_urv = l.fin_qtd_urv,
-                            PROVENTO = EhProvento(l.rub_codigo) ? l.fin_valor : 0m,
-                            DESCONTO = EhDesconto(l.rub_codigo) ? l.fin_valor : 0m,
-                            TOTAL_PROVENTO = totalProvento,
-                            TOTAL_DESCONTO = totalDesconto,
-                            LIQUIDO = totalProvento - totalDesconto
-                        });
-                    })
-                    .OrderBy(x => x.dpe_matricula)
-                    .ThenBy(x => x.fin_competencia_ano_mes, StringComparer.Ordinal)
-                    .ThenBy(x => x.dfu_tp_cargo)
-                    .ThenBy(x => x.rub_codigo)
-                    .ThenBy(x => x.fin_numero)
-                    .ToList();
+                var totaisPorParticao = calculado
+                    .GroupBy(x => new { x.r.dpe_matricula, x.r.fin_competencia_ano_mes, x.r.dfu_tp_cargo })
+                    .ToDictionary(g => g.Key, g => new
+                    {
+                        TOTAL_PROVENTO = g.Sum(x => x.PROVENTO),
+                        TOTAL_DESCONTO = g.Sum(x => x.DESCONTO)
+                    });
+
+                var resultado = calculado.Select(x =>
+                {
+                    var chave = new { x.r.dpe_matricula, x.r.fin_competencia_ano_mes, x.r.dfu_tp_cargo };
+                    var tot = totaisPorParticao[chave];
+
+                    return new rhfp_legado_dados_financeirosDTO
+                    {
+                        fin_numero = x.r.fin_numero,
+                        dpe_matricula = x.r.dpe_matricula,
+                        dpe_cpf_servidor = x.r.cpf_,
+                        dpe_nome_servidor = x.r.nome_,
+                        dfu_tp_cargo = x.r.dfu_tp_cargo,
+                        dfu_desc_tp_cargo = x.r.dfu_desc_tp_cargo, // Assuming dfu_desc_tp_cargo is the same as dfu_tp_cargo for now
+                        fin_competencia_ano_mes = x.r.fin_competencia_ano_mes,
+                        rub_codigo = x.r.rub_codigo,
+                        rub_descricao = x.r.rub_descricao,
+                        fin_dt_inicio = x.r.fin_dt_inicio,
+                        fin_valor = x.r.fin_valor,
+                        fin_perc_pontos_dia_hora = x.r.fin_perc_pontos_dia_hora,
+                        fin_qtd_urv = x.r.fin_qtd_urv,
+                        PROVENTO = x.PROVENTO,
+                        DESCONTO = x.DESCONTO,
+                        TOTAL_PROVENTO = tot.TOTAL_PROVENTO,
+                        TOTAL_DESCONTO = tot.TOTAL_DESCONTO,
+                        LIQUIDO = tot.TOTAL_PROVENTO - tot.TOTAL_DESCONTO
+                    };
+                })
+                .OrderBy(x => x.dpe_matricula)
+                .ThenBy(x => x.fin_competencia_ano_mes)
+                .ThenBy(x => x.dfu_tp_cargo)
+                .ToList();
 
                 return resultado;
             }
@@ -807,12 +616,6 @@ namespace RHFP.Repository.Implementations
                 throw new Exception($"Erro ao consultar financeiro. Detalhe: {detalhe}", ex);
             }
         }
-
-        // CASE WHEN rub_codigo > 0 AND rub_codigo < 100 THEN fin_valor
-        private static bool EhProvento(int rub_codigo) => rub_codigo > 0 && rub_codigo < 100;
-
-        // CASE WHEN rub_codigo >= 100 AND rub_codigo <= 400 THEN fin_valor
-        private static bool EhDesconto(int rub_codigo) => rub_codigo >= 100 && rub_codigo <= 400;
 
 
 
@@ -875,7 +678,7 @@ namespace RHFP.Repository.Implementations
                     .Select(d => new rhfp_legado_dados_financeirosDTO
                     {
                         dpe_matricula = d.dpe_matricula,
-                        dpe_nome_servidor = d.dpe_nome_servidor.Trim(),
+                        dpe_nome_servidor = d.dpe_nome_servidor,
                         dpe_cpf_servidor = d.dpe_cpf_servidor
                     })
                     .OrderBy(x => x.dpe_nome_servidor)

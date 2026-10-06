@@ -85,5 +85,20 @@ namespace RHFP.Business
                 ate_comissao_simbolo: ate_comissao_simbolo
             );
         }
+
+        /// <summary>
+        /// Retorna dependentes agrupados por matricula, nome e CPF.
+        /// </summary>
+        public List<rhfp_legado_atos_e_eventosDTO> GetListaSegurados(int dep_matricula = 0, string ate_cpf_servidor = null, string ate_nome = null,
+            string competencia = null,
+            int ate_cod_ato = 0,
+            string dtIni = null,
+            string dtFim = null
+        )
+        {
+            return _repository.GetListaSegurados(matricula: dep_matricula, cpf: ate_cpf_servidor, nome: ate_nome);
+        }
+
+       
     }
 }

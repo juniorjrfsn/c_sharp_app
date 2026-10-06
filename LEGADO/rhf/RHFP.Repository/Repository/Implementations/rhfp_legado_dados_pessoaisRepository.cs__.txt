@@ -1,4 +1,4 @@
-using RHFP.DTO.Helpers;
+﻿using RHFP.DTO.Helpers;
 using RHFP.DTO.DTOS;
 using RHFP.ModelData.Database.Entity;
 using RHFP.Repository.Base;
@@ -16,148 +16,6 @@ namespace RHFP.Repository.Implementations
     : GenericRepository<rhfp_legado_dados_pessoais>, IRhfp_legado_dados_pessoaisRepository
     {
 
-
-        /// <summary>
-        /// Consulta a lista de segurados a partir dos dados pessoais.
-        /// 
-        /// Matrícula, CPF e nome são critérios de identificação combinados com OR.
-        /// Retorna somente matrícula, nome e CPF, agrupados para eliminar
-        /// registros duplicados do mesmo segurado.
-        /// </summary>
-        public List<rhfp_legado_dados_pessoaisDTO> GetListaSegurados(
-            int matricula = 0,
-            string cpf = null,
-            string nome = null)
-        {
-
-            /*
-             DECLARE @dpe_cpf_servidor VARCHAR(11) = 0,  @dpe_matricula  INT = 0 , @dpe_nome_servidor VARCHAR(100) = 'MARIA AP'
-
-            SELECT 
-                [dpe_matricula] 
-                ,[dpe_nome_servidor]
-                ,[dpe_cpf_servidor]
-                ,[dpe_desc_cbo] 
-                ,[dpe_desc_situacao]
-            FROM [dbo].[rhfp_legado_dados_pessoais]
-            WHERE
-                ([dpe_matricula] = @dpe_matricula AND @dpe_matricula > 0)
-                OR 
-                [dpe_nome_servidor] LIKE ''+ @dpe_nome_servidor+'%'
-                OR 
-                ([dpe_cpf_servidor] = @dpe_cpf_servidor AND @dpe_cpf_servidor IS NOT NULL AND @dpe_cpf_servidor != '')
-            GROUP BY 
-                [dpe_matricula]
-                ,[dpe_nome_servidor]
-                ,[dpe_cpf_servidor]
-                ,[dpe_desc_cbo] 
-                ,[dpe_desc_situacao] 
-            
-
-            */
-
-            try
-            {
-                var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
-                var cpfInformado = cpf?.Trim();
-                var nomeBusca = nome?.Trim() ?? string.Empty;
-                var nomeBuscaUpper = nomeBusca.ToUpperInvariant();
-
-                bool temMatricula = matricula > 0;
-                bool temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
-                bool temNome = !string.IsNullOrWhiteSpace(nomeBusca);
-
-                // Não consulta a tabela inteira sem nenhum filtro
-                if (!temMatricula && !temCpf && !temNome)
-                    return new List<rhfp_legado_dados_pessoaisDTO>();
-
-                IQueryable<rhfp_legado_dados_pessoais> query =
-                    _context.rhfp_legado_dados_pessoais
-                        .AsNoTracking();
-
-                // ============================================================
-                // FILTRO POR MATRÍCULA / CPF / NOME
-                // SQL original:
-                // ([dpe_matricula] = @dpe_matricula AND @dpe_matricula > 0)
-                // OR [dpe_nome_servidor] LIKE '' + @dpe_nome_servidor + '%'
-                // OR ([dpe_cpf_servidor] = @dpe_cpf_servidor AND ...)
-                // ============================================================
-
-                query = query.Where(x =>
-                    (temMatricula && x.dpe_matricula == matricula)
-                    ||
-                    (temNome && x.dpe_nome_servidor != null &&
-                        x.dpe_nome_servidor.Trim().ToUpper().StartsWith(nomeBuscaUpper))
-                    ||
-                    (temCpf && x.dpe_cpf_servidor != null && (
-                        x.dpe_cpf_servidor == cpfNormalizado ||
-                        x.dpe_cpf_servidor == cpfInformado ||
-                        x.dpe_cpf_servidor.Replace(".", string.Empty)
-                            .Replace("-", string.Empty)
-                            .Replace("/", string.Empty) == cpfNormalizado
-                    ))
-                );
-
-                // ============================================================
-                // BUSCA SOMENTE OS CAMPOS NECESSÁRIOS
-                // ============================================================
-
-                var resultado = query
-                    .Select(x => new
-                    {
-                        dpe_numero = x.dpe_numero,
-                        dpe_matricula = x.dpe_matricula,
-                        dpe_nome_servidor = x.dpe_nome_servidor,
-                        dpe_cpf_servidor = x.dpe_cpf_servidor,
-                        dpe_desc_cbo = x.dpe_desc_cbo,
-                        dpe_desc_situacao = x.dpe_desc_situacao
-                    })
-                    .GroupBy(x => new
-                    {
-                        x.dpe_numero,
-                        x.dpe_matricula,
-                        x.dpe_nome_servidor,
-                        x.dpe_cpf_servidor,
-                        x.dpe_desc_cbo,
-                        x.dpe_desc_situacao
-                    })
-                    .Select(g => new
-                    {
-                        dpe_numero = g.Key.dpe_numero,
-                        dpe_matricula = g.Key.dpe_matricula,
-                        dpe_nome_servidor = g.Key.dpe_nome_servidor,
-                        dpe_cpf_servidor = g.Key.dpe_cpf_servidor,
-                        dpe_desc_cbo = g.Key.dpe_desc_cbo,
-                        dpe_desc_situacao = g.Key.dpe_desc_situacao
-                    })
-                    .OrderBy(x => x.dpe_nome_servidor)
-                    .ThenBy(x => x.dpe_matricula)
-                    .Take(20000)
-                    .ToList();
-
-                return resultado
-                    .Select(x => new rhfp_legado_dados_pessoaisDTO
-                    {
-                        dpe_numero = x.dpe_numero,
-                        dpe_matricula = x.dpe_matricula,
-                        dpe_nome_servidor = x.dpe_nome_servidor?.Trim(),
-                        dpe_cpf_servidor = x.dpe_cpf_servidor,
-                        dpe_desc_cbo = x.dpe_desc_cbo,
-                        dpe_desc_situacao = x.dpe_desc_situacao
-                    })
-                    .ToList();
-            }
-            catch (Exception ex)
-            {
-                var detalhe = ex.InnerException?.Message ?? ex.Message;
-
-                throw new Exception(
-                    $"Erro ao consultar lista de segurados nos dados pessoais. Detalhe: {detalhe}",
-                    ex);
-            }
-        }
-
-
         public rhfp_legado_dados_pessoaisDTO GetDados(int matricula = 0, string cpf = null)
         {
             cpf = cpf.Replace(".", "").Replace("-", "").Replace("/", "").Trim();
@@ -167,7 +25,7 @@ namespace RHFP.Repository.Implementations
                     dpe_numero = r.dpe_numero,
                     dpe_matricula = r.dpe_matricula,
                     dpe_dt_atualizacao = r.dpe_dt_atualizacao,
-                    dpe_nome_servidor = r.dpe_nome_servidor.Trim(),
+                    dpe_nome_servidor = r.dpe_nome_servidor,
                     dpe_cpf_servidor = r.dpe_cpf_servidor,
                     dpe_num_doc_identidade = r.dpe_num_doc_identidade,
                     dpe_orgao_doc_identidade = r.dpe_orgao_doc_identidade,
@@ -237,53 +95,30 @@ namespace RHFP.Repository.Implementations
         public List<rhfp_legado_dados_pessoaisDTO> GetDadosPessoais(
              int matricula = 0,
              string cpf = null,
-             string nome = null,
-             int dpe_numero = 0
+             string nome = null
         )
         {
             try
             {
                 var cpfNormalizado = UtilitariosHelper.NormalizarCpf(cpf);
-                var cpfInformado = cpf?.Trim();
                 var nomeTrim = nome?.Trim();
-                var nomeUpper = string.IsNullOrWhiteSpace(nomeTrim) ? string.Empty : nomeTrim.ToUpperInvariant();
 
                 var temMatricula = matricula > 0;
                 var temCpf = !string.IsNullOrWhiteSpace(cpfNormalizado);
                 var temNome = !string.IsNullOrWhiteSpace(nomeTrim);
-                var temDpeNumero = dpe_numero > 0;
 
-                if (!temMatricula && !temCpf && !temNome && !temDpeNumero)
+                if (!temMatricula && !temCpf && !temNome)
                     return new List<rhfp_legado_dados_pessoaisDTO>();
 
                 IQueryable<rhfp_legado_dados_pessoais> query = _context.rhfp_legado_dados_pessoais.AsQueryable();
+                if (temMatricula)
+                    query = query.Where(r => r.dpe_matricula == matricula);
 
-                if (temDpeNumero)
-                {
-                    query = query.Where(r => r.dpe_numero == dpe_numero);
-                }
-                else
-                {
-                    if (temMatricula)
-                        query = query.Where(r => r.dpe_matricula == matricula);
+                if (temCpf)
+                    query = query.Where(r => r.dpe_cpf_servidor == cpfNormalizado);
 
-                    if (temCpf)
-                    {
-                        var cpfRaw = cpfNormalizado;
-                        var cpfComMascara = cpf?.Trim() ?? string.Empty;
-
-                        query = query.Where(r =>
-                            r.dpe_cpf_servidor != null && (
-                                r.dpe_cpf_servidor == cpfRaw ||
-                                r.dpe_cpf_servidor == cpfComMascara ||
-                                r.dpe_cpf_servidor.Replace(".", string.Empty).Replace("-", string.Empty).Replace("/", string.Empty) == cpfRaw
-                            )
-                        );
-                    }
-
-                    if (temNome)
-                        query = query.Where(r => r.dpe_nome_servidor != null && r.dpe_nome_servidor.Trim().ToUpper().StartsWith(nomeUpper));
-                }
+                if (temNome)
+                    query = query.Where(r => r.dpe_nome_servidor != null && r.dpe_nome_servidor.Contains(nomeTrim));
 
                 var resultado = query
                     .Select(r => new rhfp_legado_dados_pessoaisDTO
@@ -291,7 +126,7 @@ namespace RHFP.Repository.Implementations
                         dpe_numero = r.dpe_numero,
                         dpe_matricula = r.dpe_matricula,
                         dpe_dt_atualizacao = r.dpe_dt_atualizacao,
-                        dpe_nome_servidor = r.dpe_nome_servidor.Trim(),
+                        dpe_nome_servidor = r.dpe_nome_servidor,
                         dpe_cpf_servidor = r.dpe_cpf_servidor,
                         dpe_num_doc_identidade = r.dpe_num_doc_identidade,
                         dpe_orgao_doc_identidade = r.dpe_orgao_doc_identidade,
